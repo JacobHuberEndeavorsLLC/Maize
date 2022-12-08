@@ -15,7 +15,8 @@ You do not need 'Maize Origin Logo' to use the Maize on goerli.
 
 Download one of the compiled releases in the [Releases](https://github.com/cobmin/maize/releases) section and unzip it into a location of your choice. You will need to edit the included appsettings.json file with your own wallet details. 
 
-Here is a video going over the setup: https://youtu.be/P0EvuxfpCR4
+Here is a video going over the setup: https://youtu.be/P0EvuxfpCR4. This is with LoopDropSharp but this will still work. Note in the Mazie appsettings.json there are two sections. One is for the mainnet and the other is for the testnet.
+'//' is a comment. Any text after it will not be compiled.
 
 This application uses a ***MetaMask/GameStop*** private key to sign the transfers. You will need to export that out from your metamask/gamestop Wallet. You can export the Loopring related account details from the "Security" tab while logged into https://loopring.io. Make sure these details are from the same Wallet. *Note* that you cannot perform transfers with a Loopring wallet
 
@@ -54,6 +55,8 @@ You will need to change the "appsettings.json" file in the project directory wit
 //}
 ```
 After setting up the appsettings.json, launch Maize and get started.
+
+### Only LRC can be used with Maize
 
 ### Predecessor
 Maize is the successor to LoopDropSharp, https://github.com/cobmin/LoopDropSharp. 
