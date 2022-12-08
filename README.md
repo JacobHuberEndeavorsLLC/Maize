@@ -6,7 +6,7 @@ In order to use Maize, you will need to own a 'Maize Origin Logo'. One can be pu
 
 <img src="https://user-images.githubusercontent.com/97369738/206356200-491b3771-61f2-41c8-af85-3f2c308f0aaa.png" width="100" height="100" />
 
-You do not need 'Maize Origin Logo' to use the Maize on goerli.
+You do not need 'Maize Origin Logo' to use Maize on goerli.
 
 ## Current Functionality 
 ![image](https://user-images.githubusercontent.com/97369738/206525608-c1088341-2383-4f7a-9102-2b253bd40975.png)
