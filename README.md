@@ -1,5 +1,6 @@
 # Maize
-![Untitled](https://user-images.githubusercontent.com/97369738/205774544-2b875df8-fa70-4a44-8184-50bd55af25d7.png)
+![](https://user-images.githubusercontent.com/97369738/205774544-2b875df8-fa70-4a44-8184-50bd55af25d7.png)
+
 ## Analytics and Airdrops for your Crypto and Nfts on Loopring and Imx
 
 In order to use Maize, you will need to own a 'Maize Origin Logo'. One can be purchased at https://loopexchange.art/collection/maizeorigin.
