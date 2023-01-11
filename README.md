@@ -7,10 +7,10 @@ In order to use Maize, you will need to own a 'Maize Origin Logo'. One can be pu
 
 <img src="https://user-images.githubusercontent.com/97369738/206356200-491b3771-61f2-41c8-af85-3f2c308f0aaa.png" width="100" height="100" />
 
-You do not need 'Maize Origin Logo' to use Maize on the testnet, goerli.
+You do not need 'Maize Origin Logo' to use Maize on the testnet goerli.
 
 ## Current Functionality 
-![image](https://user-images.githubusercontent.com/97369738/209454728-2968ad7b-4783-4374-b3b5-ae2ff3518e28.png)
+![image](https://user-images.githubusercontent.com/97369738/211910999-b38fe968-7b06-49d5-89ea-f4aedc91776b.png)
 
 ## Setup
 
@@ -27,7 +27,7 @@ chmod +x Maize
 ```
 DO NOT SHARE ANY API OR PRIVATE KEYS with anyone else!!!!!!! 
 
-You will need to change the "appsettings.json" file in the project directory with the necessary information. The video above covers this. 
+You will need to change the both the main and test appsettings.json" file in the project directory with the necessary information. The video above covers this. 
 
 ```json
 { // this is the mainnet setup
