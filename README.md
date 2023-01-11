@@ -42,17 +42,17 @@ You will need to change the both the main and test appsettings.json" file in the
 }
 }
 
-//{ // this is the goerli setup (note that these values may differ from mainnet)
-//  "Settings": {
-//    "LoopringApiKey": "asdfasdfasdfasdfasdfasdf", //Your loopring api key.  DO NOT SHARE THIS AT ALL. FLOWERS INFORMATION
-//    "LoopringPrivateKey": "0xasdfasdfasdfasdfasdfasdf", //Your loopring private key.  DO NOT SHARE THIS AT ALL.
-//    "MMorGMEPrivateKey": "asdfasdfasdfasdfasdfasdf", //Private key from metamask. DO NOT SHARE THIS AT ALL.: null,
-//    "LoopringAddress": "0xasdfasdfasdfasdf", //Your loopring address
-//    "LoopringAccountId": 1234, //Your loopring account id
-//    "ValidUntil": 1700000000, //How long this transfer should be valid for. Shouldn't have to change this value
-//    "Environment": 5 // 1 = mainnet or 5 = Goerli
-//  }
-//}
+{ // this is the goerli setup (note that these values may differ from mainnet)
+  "Settings": {
+    "LoopringApiKey": "asdfasdfasdfasdfasdfasdf", //Your loopring api key.  DO NOT SHARE THIS AT ALL. FLOWERS INFORMATION
+    "LoopringPrivateKey": "0xasdfasdfasdfasdfasdfasdf", //Your loopring private key.  DO NOT SHARE THIS AT ALL.
+    "MMorGMEPrivateKey": "asdfasdfasdfasdfasdfasdf", //Private key from metamask. DO NOT SHARE THIS AT ALL.: null,
+    "LoopringAddress": "0xasdfasdfasdfasdf", //Your loopring address
+    "LoopringAccountId": 1234, //Your loopring account id
+    "ValidUntil": 1700000000, //How long this transfer should be valid for. Shouldn't have to change this value
+    "Environment": 5 // 1 = mainnet or 5 = Goerli
+  }
+}
 ```
 After setting up the appsettings.json, launch Maize and get started.
 
