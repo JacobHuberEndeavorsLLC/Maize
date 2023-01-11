@@ -91,7 +91,7 @@ In the Input.txt located in the project directory add a wallet addresses. You wi
 In the Banish.txt located in the project directory add wallet addresses that you do not want to send to. If you have a wallet address that you never want to airdrop an Nft to or send crypto to then you can place them on this list. The application checks this list before sending Nfts or crypto. You can add a long wallet address or the ENS.
 
 ### 11. Send all Nfts owned by banished addresses to the dead address
-In the Banish.txt located in the project directory add a wallet address whose Nfts you want to remove from your wallet. You can add a long wallet address or the ENS.
+In the Banish.txt located in the project directory add the minter wallet address whose Nfts you want to remove from your wallet. You will have one wallet address per line and you can add a long wallet address or the ENS.
 
 ### Predecessor
 Maize is the successor to LoopDropSharp, https://github.com/cobmin/LoopDropSharp. 
