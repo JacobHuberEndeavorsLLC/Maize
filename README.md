@@ -10,7 +10,7 @@ In order to use Maize, you will need to own a 'Maize Origin Logo'. One can be pu
 You do not need 'Maize Origin Logo' to use Maize on the testnet goerli.
 
 ## Current Functionality 
-![image](https://user-images.githubusercontent.com/97369738/211910999-b38fe968-7b06-49d5-89ea-f4aedc91776b.png)
+![image](https://user-images.githubusercontent.com/97369738/212672369-695db36b-00fe-4942-9729-84f19dda9fbd.png)
 
 ## Setup
 
