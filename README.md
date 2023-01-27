@@ -56,10 +56,10 @@ You will need to change the both the main and test appsettings.json" file in the
 ```
 After setting up the appsettings.json, launch Maize and get started.
 
-### Only LRC can be used with Maize
-
 ## Banish.txt setup
 In the Banish.txt located in the project directory add wallet addresses that you do not want to send to. If you have a wallet address that you never want to airdrop an Nft to or send crypto to then you can place them on this list. The application checks this list before sending Nfts or crypto. You can add a long wallet address or the ENS.
+
+### Only LRC can be used with Maize
 
 ### Predecessor
 Maize is the successor to LoopDropSharp, https://github.com/cobmin/LoopDropSharp. 
