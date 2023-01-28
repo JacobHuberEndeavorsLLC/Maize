@@ -182,12 +182,12 @@ namespace Maize
 
                 while (total > 50)
                 {
-                    total = total - 50;
+                    total -= 50;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<CollectionInformation>(response.Content!);
                     data.nftTokenInfos.AddRange(moreData.nftTokenInfos);
-                    offset = offset + 50;
+                    offset += 50;
                 }
                 return data;
             }
@@ -410,7 +410,6 @@ namespace Maize
 
         public async Task<NftBalance> GetTokenId(string apiKey, int accountId, string nftData)
         {
-            var data = new NftBalance();
             var counter = 0;
             var request = new RestRequest("/api/v3/user/nft/balances");
             request.AddHeader("x-api-key", apiKey);
@@ -419,7 +418,7 @@ namespace Maize
             try
             {
                     var response = await _client.GetAsync(request);
-                    data = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
+                    var data = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
                     counter++;
                 return data;
             }
@@ -432,7 +431,6 @@ namespace Maize
 
         public async Task<NftBalance> GetTokenIdWithCheck(string apiKey, int accountId, string nftData)
         {
-            var data = new NftBalance();
             var counter = 0;
             var request = new RestRequest("/api/v3/user/nft/balances");
             request.AddHeader("x-api-key", apiKey);
@@ -440,6 +438,7 @@ namespace Maize
             request.AddParameter("nftDatas", nftData);
             try
             {
+                var data = new NftBalance();
                 do
                 {
                     if (counter != 0)
@@ -478,12 +477,12 @@ namespace Maize
                 allData.AddRange(data.data);
                 while (total > 50)
                 {
-                    total = total - 50;
+                    total -= 50;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
                     allData.AddRange(moreData.data);
-                    offset = offset + 50;
+                    offset += 50;
                 }
                 return allData;
             }
@@ -496,7 +495,6 @@ namespace Maize
 
         public async Task<NftData> GetNftData(string apiKey, string nftId, string minter, string tokenAddress)
         {
-            var data = new NftData();
             var request = new RestRequest("/api/v3/nft/info/nftData");
             request.AddHeader("X-API-KEY", apiKey);
             request.AddParameter("nftId", nftId);
@@ -505,7 +503,7 @@ namespace Maize
             try
             {
                     var response = await _client.GetAsync(request);
-                    data = JsonConvert.DeserializeObject<NftData>(response.Content!);
+                    var data = JsonConvert.DeserializeObject<NftData>(response.Content!);
                 Thread.Sleep(75);
                 return data;
             }
@@ -538,12 +536,12 @@ namespace Maize
                 allData.AddRange(data.nftHolders);
                 while (total > 100)
                 {
-                    total = total - 100;
+                    total -= 100;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<NftHoldersAndTotal>(response.Content!);
                     allData.AddRange(moreData.nftHolders);
-                    offset = offset + 100;
+                    offset += 100;
                 }
                 Thread.Sleep(75);
                 return allData;
@@ -554,18 +552,14 @@ namespace Maize
                 return null;
             }
         }
-        public async Task<List<NftHolderAndNftData>> GetNftHolderIncludeNftData(Font font, string apiKey, string nftData, string environmentalUrl, int counter, int max)
+        public async Task<List<NftHolderAndNftData>> GetNftHolderIncludeNftData(Font font, ILoopringService loopringService, INftMetadataService nftMetadataService,
+            IEthereumService ethereumService, string apiKey, string nftData, string environmentalUrl, int counter, int max)
         {
-            ILoopringService loopringService = new LoopringService(environmentalUrl, _font);
-            INftMetadataService nftMetadataService = new NftMetadataService("https://loopring.mypinata.cloud/ipfs/");
-            IEthereumService ethereumService = new EthereumService();
             var holderCounter = 0;
-            var nftInformation = await loopringService.GetNftInformationFromNftData(apiKey, nftData);
-            var nftMetadataLink = await ethereumService.GetMetadataLink(nftInformation.FirstOrDefault().nftId, nftInformation.FirstOrDefault().tokenAddress, 0);
-            var nftMetadata = await nftMetadataService.GetMetadata(nftMetadataLink);
             var allData = new List<NftHolder>();
             var allDataAndHolders = new List<NftHolderAndNftData>();
             var request = new RestRequest("/api/v3/nft/info/nftHolders");
+
             request.AddHeader("X-API-KEY", apiKey);
             request.AddParameter("nftData", nftData);
             request.AddParameter("limit", 100);
@@ -578,17 +572,19 @@ namespace Maize
                 allData.AddRange(data.nftHolders);
                 while (total > 100)
                 {
-                    total = total - 100;
+                    total -= 100;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<NftHoldersAndTotal>(response.Content!);
                     allData.AddRange(moreData.nftHolders);
-                    offset = offset + 100;
+                    offset += 100;
                 }
-                Console.Write($"\r                                                                                                            ");
+                var nftInformation = await loopringService.GetNftInformationFromNftData(apiKey, nftData);
+                var nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftInformation.FirstOrDefault().nftId, nftInformation.FirstOrDefault().tokenAddress);
                 foreach (var item in allData)
                 {
-                    font.SetTextToTertiaryInline($"\rNft: {counter}/{max} {nftMetadata.name} Nft Holder: {++holderCounter}/{allData.Count()}");
+                    Console.Write($"\r                                                                                                            ");
+                    font.SetTextToTertiaryInline($"\rNft: {counter}/{max} {nftMetadata.name} Nft Holder: {++holderCounter}/{allData.Count}");
                     var walletAddress = await loopringService.GetUserAccountInformation(item.accountId.ToString());
                     allDataAndHolders.Add(new NftHolderAndNftData
                     {
@@ -623,12 +619,12 @@ namespace Maize
                 allData.Add(data);
                 while (total > 100)
                 {
-                    total = total - 100;
+                    total -= 100;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<NftHoldersAndTotal>(response.Content!);
                     allData.Add(moreData);
-                    offset = offset + 100;
+                    offset += 100;
                 }
                 return allData;
             }
@@ -646,7 +642,6 @@ namespace Maize
             request.AddParameter("limit", 100);
             try
             {
-                var offset = 100;
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<NftHoldersAndTotal>(response.Content!);
                 return data;
@@ -709,7 +704,7 @@ namespace Maize
                 Thread.Sleep(75);
                 return data;
             }
-            catch (HttpRequestException httpException)
+            catch (HttpRequestException)
             {
                 return null;
             }
@@ -754,7 +749,7 @@ namespace Maize
                 font.SetTextToTertiaryInline($"\rGrabbing all mints");
                 while (total >= 50)
                 {
-                    total = total - 50;
+                    total -= 50;
                     var createdAt = allDataMintsAndTotal.LastOrDefault().mints.LastOrDefault().createdAt;
                     request.AddOrUpdateParameter("end", createdAt);
                     response = await _client.GetAsync(request);
@@ -766,7 +761,7 @@ namespace Maize
                 foreach (var mint in allDataMints)
                 {
                     allDataMintsAndTotalInCollection.AddRange(await GetNftInformationFromNftData(apiKey, mint.nftData));
-                    font.SetTextToTertiaryInline($"\rGrabbing Nft: {++counter}/{allDataMints.Count()}");
+                    font.SetTextToTertiaryInline($"\rGrabbing Nft: {++counter}/{allDataMints.Count}");
                 }
                 //allDataMintsAndTotalInCollection = allDataMintsAndTotalInCollection.Where(x => x.tokenAddress.ToLower() == collectionId.ToLower()).ToList();
 
@@ -799,7 +794,7 @@ namespace Maize
                 font.SetTextToTertiaryInline($"\rGrabbing all mints");
                 while (total >= 50)
                 {
-                    total = total - 50;
+                    total -= 50;
                     var createdAt = allDataMintsAndTotal.LastOrDefault().mints.LastOrDefault().createdAt;
                     request.AddOrUpdateParameter("end", createdAt);
                     response = await _client.GetAsync(request);
@@ -811,7 +806,7 @@ namespace Maize
                 foreach (var mint in allDataMints)
                 {
                     allDataMintsAndTotalInCollection.AddRange(await GetNftInformationFromNftData(apiKey, mint.nftData));
-                    font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{allDataMints.Count()}");
+                    font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{allDataMints.Count}");
                 }
                 allDataMintsAndTotalInCollection = allDataMintsAndTotalInCollection.Where(x => x.tokenAddress.ToLower() == collectionId.ToLower()).ToList();
 
@@ -901,10 +896,10 @@ namespace Maize
 
         public async Task<bool> CheckBanishTextFile(Font font, string toAddressInitial, string toAddress, string loopringApiKey)
         {
-            List<string> banishAddresses = new List<string>();
+            List<string> banishAddresses = new();
             bool banned;
             string banishAddress;
-            using (StreamReader sr = new StreamReader("./Banish.txt"))
+            using (StreamReader sr = new("./Banish.txt"))
             {
                 while ((banishAddress = sr.ReadLine()) != null)
                 {
@@ -939,10 +934,10 @@ namespace Maize
 
         public async Task<bool> CheckBanishFile(Font font, string loopringApiKey, string toAddress)
         {
-            List<string> banishAddresses = new List<string>();
+            List<string> banishAddresses = new();
             bool banned;
 
-            using (StreamReader sr = new StreamReader("./Banish.txt"))
+            using (StreamReader sr = new("./Banish.txt"))
             {
                 string banishAddress;
                 while ((banishAddress = sr.ReadLine()) != null)
@@ -991,7 +986,7 @@ namespace Maize
                 transfers.AddRange(data.transfers);
                 while (total > 50)
                 {
-                    total = total - 50;
+                    total -= 50;
                     var createdAt = transfers.LastOrDefault().createdAt.ToString();
                     request.AddOrUpdateParameter("end", createdAt);
                     response = await _client.GetAsync(request);
@@ -1024,12 +1019,12 @@ namespace Maize
                 allData.AddRange(data.transactions);
                 while (total > 50)
                 {
-                    total = total - 50;
+                    total -= 50;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<UserTransactions>(response.Content!);
                     allData.AddRange(moreData.transactions);
-                    offset = offset + 50;
+                    offset += 50;
                 }
                 return allData;
             }
@@ -1073,7 +1068,7 @@ namespace Maize
             var feeAmount = transferFeeAmountResult.fees.Where(w => w.token == maxFeeToken).First().fee;
             var transferStorageId = await loopringService.GetNextStorageId(loopringApiKey, fromAccountId, maxFeeTokenId);
 
-            TransferRequest req = new TransferRequest()
+            TransferRequest req = new()
             {
                 exchange = environmentExchange,
                 maxFee = new Token()
@@ -1111,32 +1106,33 @@ namespace Maize
                 (BigInteger)req.storageId
             };
 
-            Poseidon poseidonTransfer = new Poseidon(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+            Poseidon poseidonTransfer = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
             BigInteger poseidonTransferHash = poseidonTransfer.CalculatePoseidonHash(eddsaSignatureinputs);
-            Eddsa eddsaTransfer = new Eddsa(poseidonTransferHash, loopringPrivateKey);
+            Eddsa eddsaTransfer = new(poseidonTransferHash, loopringPrivateKey);
             string transferEddsaSignature = eddsaTransfer.Sign();
 
             //Calculate ecdsa
             string primaryTypeNameTransfer = "Transfer";
-            TypedData eip712TypedDataTransfer = new TypedData();
-            eip712TypedDataTransfer.Domain = new Domain()
+            TypedData eip712TypedDataTransfer = new()
             {
-                Name = "Loopring Protocol",
-                Version = "3.6.0",
-                ChainId = environment,
-                VerifyingContract = environmentExchange,
-            };
-            eip712TypedDataTransfer.PrimaryType = primaryTypeNameTransfer;
-            eip712TypedDataTransfer.Types = new Dictionary<string, MemberDescription[]>()
-            {
-                ["EIP712Domain"] = new[]
+                Domain = new Domain()
+                {
+                    Name = "Loopring Protocol",
+                    Version = "3.6.0",
+                    ChainId = environment,
+                    VerifyingContract = environmentExchange,
+                },
+                PrimaryType = primaryTypeNameTransfer,
+                Types = new Dictionary<string, MemberDescription[]>()
+                {
+                    ["EIP712Domain"] = new[]
                     {
                                             new MemberDescription {Name = "name", Type = "string"},
                                             new MemberDescription {Name = "version", Type = "string"},
                                             new MemberDescription {Name = "chainId", Type = "uint256"},
                                             new MemberDescription {Name = "verifyingContract", Type = "address"},
                                         },
-                [primaryTypeNameTransfer] = new[]
+                    [primaryTypeNameTransfer] = new[]
                     {
                                             new MemberDescription {Name = "from", Type = "address"},            // payerAddr
                                             new MemberDescription {Name = "to", Type = "address"},              // toAddr
@@ -1148,8 +1144,8 @@ namespace Maize
                                             new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
                                         },
 
-            };
-            eip712TypedDataTransfer.Message = new[]
+                },
+                Message = new[]
             {
                                     new MemberValue {TypeName = "address", Value = fromAddress},
                                     new MemberValue {TypeName = "address", Value = myAddress},
@@ -1159,9 +1155,10 @@ namespace Maize
                                     new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.maxFee.volume)},
                                     new MemberValue {TypeName = "uint32", Value = req.validUntil},
                                     new MemberValue {TypeName = "uint32", Value = req.storageId},
-                                };
+                                }
+            };
 
-            TransferTypedData typedDataTransfer = new TransferTypedData()
+            TransferTypedData typedDataTransfer = new()
             {
                 domain = new TransferTypedData.Domain()
                 {
@@ -1205,7 +1202,7 @@ namespace Maize
                 }
             };
 
-            Eip712TypedDataSigner signerTransfer = new Eip712TypedDataSigner();
+            Eip712TypedDataSigner signerTransfer = new();
             var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
             var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
             var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
@@ -1262,14 +1259,14 @@ namespace Maize
             string nftAmountInitial = nftAmount;
             int nftTokenIdInitial = nftTokenId;
             int nftSentTotal = 0;
-            List<string> invalidAddress = new List<string>();
-            List<string> validAddress = new List<string>();
-            List<string> banishAddress = new List<string>();
-            List<string> invalidNftData = new List<string>();
-            List<string> alreadyActivatedAddress = new List<string>();
+            List<string> invalidAddress = new();
+            List<string> validAddress = new();
+            List<string> banishAddress = new();
+            List<string> invalidNftData = new();
+            List<string> alreadyActivatedAddress = new();
 
 
-            using (StreamReader sr = new StreamReader($"./{fileName}"))
+            using (StreamReader sr = new($"./{fileName}"))
             {
 
                 while ((toAddressInitial = sr.ReadLine()) != null)
@@ -1342,32 +1339,33 @@ namespace Maize
                                     (BigInteger) validUntil,
                                     (BigInteger) storageId.offchainId
                     };
-                    Poseidon poseidon = new Poseidon(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+                    Poseidon poseidon = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
                     BigInteger poseidonHash = poseidon.CalculatePoseidonHash(poseidonInputs);
-                    Eddsa eddsa = new Eddsa(poseidonHash, loopringPrivateKey);
+                    Eddsa eddsa = new(poseidonHash, loopringPrivateKey);
                     string eddsaSignature = eddsa.Sign();
 
                     //Calculate ecdsa
                     string primaryTypeName = "Transfer";
-                    TypedData eip712TypedData = new TypedData();
-                    eip712TypedData.Domain = new Domain()
+                    TypedData eip712TypedData = new()
                     {
-                        Name = "Loopring Protocol",
-                        Version = "3.6.0",
-                        ChainId = environment,
-                        VerifyingContract = environmentExchange,
-                    };
-                    eip712TypedData.PrimaryType = primaryTypeName;
-                    eip712TypedData.Types = new Dictionary<string, MemberDescription[]>()
-                    {
-                        ["EIP712Domain"] = new[]
+                        Domain = new Domain()
+                        {
+                            Name = "Loopring Protocol",
+                            Version = "3.6.0",
+                            ChainId = environment,
+                            VerifyingContract = environmentExchange,
+                        },
+                        PrimaryType = primaryTypeName,
+                        Types = new Dictionary<string, MemberDescription[]>()
+                        {
+                            ["EIP712Domain"] = new[]
                             {
                                             new MemberDescription {Name = "name", Type = "string"},
                                             new MemberDescription {Name = "version", Type = "string"},
                                             new MemberDescription {Name = "chainId", Type = "uint256"},
                                             new MemberDescription {Name = "verifyingContract", Type = "address"},
                                         },
-                        [primaryTypeName] = new[]
+                            [primaryTypeName] = new[]
                             {
                                             new MemberDescription {Name = "from", Type = "address"},            // payerAddr
                                             new MemberDescription {Name = "to", Type = "address"},              // toAddr
@@ -1379,8 +1377,8 @@ namespace Maize
                                             new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
                                         },
 
-                    };
-                    eip712TypedData.Message = new[]
+                        },
+                        Message = new[]
                     {
                                     new MemberValue {TypeName = "address", Value = fromAddress},
                                     new MemberValue {TypeName = "address", Value = toAddress},
@@ -1390,9 +1388,10 @@ namespace Maize
                                     new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(offChainFee.fees[maxFeeTokenId].fee)},
                                     new MemberValue {TypeName = "uint32", Value = validUntil},
                                     new MemberValue {TypeName = "uint32", Value = storageId.offchainId},
-                                };
+                                }
+                    };
 
-                    TransferTypedData typedData = new TransferTypedData()
+                    TransferTypedData typedData = new()
                     {
                         domain = new TransferTypedData.Domain()
                         {
@@ -1436,7 +1435,7 @@ namespace Maize
                         }
                     };
 
-                    Eip712TypedDataSigner signer = new Eip712TypedDataSigner();
+                    Eip712TypedDataSigner signer = new();
                     var ethECKey = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
                     var encodedTypedData = signer.EncodeTypedData(eip712TypedData);
                     var ECDRSASignature = ethECKey.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedData));
@@ -1516,18 +1515,17 @@ namespace Maize
             )
         {
             ILoopringService loopringService = new LoopringService(environmentUrl, _font);
-            string toAddressInitial;
             var airdropNumberOn = 0;
             var gasFeeTotal = 0m;
             var transactionFeeTotal = 0m;
             int nftSentTotal = 0;
             string nftAmountInitial = nftAmount;
             int nftTokenIdInitial = nftTokenId;
-            List<string> invalidAddress = new List<string>();
-            List<string> validAddress = new List<string>();
-            List<string> banishAddress = new List<string>();
-            List<string> invalidNftData = new List<string>();
-            List<string> alreadyActivatedAddress = new List<string>();
+            List<string> invalidAddress = new();
+            List<string> validAddress = new();
+            List<string> banishAddress = new();
+            List<string> invalidNftData = new();
+            List<string> alreadyActivatedAddress = new();
 
 
             foreach (var banishedNft in banishedNfts)
@@ -1566,32 +1564,33 @@ namespace Maize
                     (BigInteger) validUntil,
                     (BigInteger) storageId.offchainId
                 };
-                Poseidon poseidon = new Poseidon(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+                Poseidon poseidon = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
                 BigInteger poseidonHash = poseidon.CalculatePoseidonHash(poseidonInputs);
-                Eddsa eddsa = new Eddsa(poseidonHash, loopringPrivateKey);
+                Eddsa eddsa = new(poseidonHash, loopringPrivateKey);
                 string eddsaSignature = eddsa.Sign();
 
                 //Calculate ecdsa
                 string primaryTypeName = "Transfer";
-                TypedData eip712TypedData = new TypedData();
-                eip712TypedData.Domain = new Domain()
+                TypedData eip712TypedData = new()
                 {
-                    Name = "Loopring Protocol",
-                    Version = "3.6.0",
-                    ChainId = environment,
-                    VerifyingContract = environmentExchange,
-                };
-                eip712TypedData.PrimaryType = primaryTypeName;
-                eip712TypedData.Types = new Dictionary<string, MemberDescription[]>()
-                {
-                    ["EIP712Domain"] = new[]
+                    Domain = new Domain()
+                    {
+                        Name = "Loopring Protocol",
+                        Version = "3.6.0",
+                        ChainId = environment,
+                        VerifyingContract = environmentExchange,
+                    },
+                    PrimaryType = primaryTypeName,
+                    Types = new Dictionary<string, MemberDescription[]>()
+                    {
+                        ["EIP712Domain"] = new[]
                         {
                                         new MemberDescription {Name = "name", Type = "string"},
                                         new MemberDescription {Name = "version", Type = "string"},
                                         new MemberDescription {Name = "chainId", Type = "uint256"},
                                         new MemberDescription {Name = "verifyingContract", Type = "address"},
                                     },
-                    [primaryTypeName] = new[]
+                        [primaryTypeName] = new[]
                         {
                                         new MemberDescription {Name = "from", Type = "address"},            // payerAddr
                                         new MemberDescription {Name = "to", Type = "address"},              // toAddr
@@ -1603,8 +1602,8 @@ namespace Maize
                                         new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
                                     },
 
-                };
-                eip712TypedData.Message = new[]
+                    },
+                    Message = new[]
                 {
                                 new MemberValue {TypeName = "address", Value = fromAddress},
                                 new MemberValue {TypeName = "address", Value = toAddress},
@@ -1614,9 +1613,10 @@ namespace Maize
                                 new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(offChainFee.fees[maxFeeTokenId].fee)},
                                 new MemberValue {TypeName = "uint32", Value = validUntil},
                                 new MemberValue {TypeName = "uint32", Value = storageId.offchainId},
-                            };
+                            }
+                };
 
-                TransferTypedData typedData = new TransferTypedData()
+                TransferTypedData typedData = new()
                 {
                     domain = new TransferTypedData.Domain()
                     {
@@ -1660,8 +1660,8 @@ namespace Maize
                     }
                 };
 
-                Eip712TypedDataSigner signer = new Eip712TypedDataSigner();
-                var ethECKey = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+                Eip712TypedDataSigner signer = new();
+                var ethECKey = new EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
                 var encodedTypedData = signer.EncodeTypedData(eip712TypedData);
                 var ECDRSASignature = ethECKey.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedData));
                 var serializedECDRSASignature = EthECDSASignature.CreateStringSignature(ECDRSASignature);
@@ -1737,14 +1737,14 @@ namespace Maize
             var transactionFeeTotal = 0m;
             var transferTokenId = 1;
             var transferTokenSymbol = "LRC";
-            List<string> invalidAddress = new List<string>();
-            List<string> validAddress = new List<string>();
-            List<string> banishAddress = new List<string>();
-            List<string> invalidNftData = new List<string>();
-            List<string> alreadyActivatedAddress = new List<string>();
+            List<string> invalidAddress = new();
+            List<string> validAddress = new();
+            List<string> banishAddress = new();
+            List<string> invalidNftData = new();
+            List<string> alreadyActivatedAddress = new();
 
 
-            using (StreamReader sr = new StreamReader($"./{fileName}"))
+            using (StreamReader sr = new($"./{fileName}"))
             {
                 while ((toAddressInitial = sr.ReadLine()) != null)
                 {
@@ -1789,7 +1789,7 @@ namespace Maize
                     var feeAmount = transferFeeAmountResult.fees.Where(w => w.token == transferTokenSymbol).First().fee;
                     var transferStorageId = await loopringService.GetNextStorageId(loopringApiKey, fromAccountId, transferTokenId);
 
-                    TransferRequest req = new TransferRequest()
+                    TransferRequest req = new()
                     {
                         exchange = environmentExchange,
                         maxFee = new Token()
@@ -1827,32 +1827,33 @@ namespace Maize
                     (BigInteger)req.storageId
                     };
 
-                    Poseidon poseidonTransfer = new Poseidon(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+                    Poseidon poseidonTransfer = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
                     BigInteger poseidonTransferHash = poseidonTransfer.CalculatePoseidonHash(eddsaSignatureinputs);
-                    Eddsa eddsaTransfer = new Eddsa(poseidonTransferHash, loopringPrivateKey);
+                    Eddsa eddsaTransfer = new(poseidonTransferHash, loopringPrivateKey);
                     string transferEddsaSignature = eddsaTransfer.Sign();
 
                     //Calculate ecdsa
                     string primaryTypeNameTransfer = "Transfer";
-                    TypedData eip712TypedDataTransfer = new TypedData();
-                    eip712TypedDataTransfer.Domain = new Domain()
+                    TypedData eip712TypedDataTransfer = new()
                     {
-                        Name = "Loopring Protocol",
-                        Version = "3.6.0",
-                        ChainId = environment,
-                        VerifyingContract = environmentExchange,
-                    };
-                    eip712TypedDataTransfer.PrimaryType = primaryTypeNameTransfer;
-                    eip712TypedDataTransfer.Types = new Dictionary<string, MemberDescription[]>()
-                    {
-                        ["EIP712Domain"] = new[]
+                        Domain = new Domain()
+                        {
+                            Name = "Loopring Protocol",
+                            Version = "3.6.0",
+                            ChainId = environment,
+                            VerifyingContract = environmentExchange,
+                        },
+                        PrimaryType = primaryTypeNameTransfer,
+                        Types = new Dictionary<string, MemberDescription[]>()
+                        {
+                            ["EIP712Domain"] = new[]
                         {
                             new MemberDescription {Name = "name", Type = "string"},
                             new MemberDescription {Name = "version", Type = "string"},
                             new MemberDescription {Name = "chainId", Type = "uint256"},
                             new MemberDescription {Name = "verifyingContract", Type = "address"},
                         },
-                        [primaryTypeNameTransfer] = new[]
+                            [primaryTypeNameTransfer] = new[]
                         {
                             new MemberDescription {Name = "from", Type = "address"},            // payerAddr
                             new MemberDescription {Name = "to", Type = "address"},              // toAddr
@@ -1864,8 +1865,8 @@ namespace Maize
                             new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
                         },
 
-                    };
-                    eip712TypedDataTransfer.Message = new[]
+                        },
+                        Message = new[]
                     {
                         new MemberValue {TypeName = "address", Value = fromAddress},
                         new MemberValue {TypeName = "address", Value = toAddress},
@@ -1875,9 +1876,10 @@ namespace Maize
                         new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.maxFee.volume)},
                         new MemberValue {TypeName = "uint32", Value = req.validUntil},
                         new MemberValue {TypeName = "uint32", Value = req.storageId},
+                    }
                     };
 
-                    TransferTypedData typedDataTransfer = new TransferTypedData()
+                    TransferTypedData typedDataTransfer = new()
                     {
                         domain = new TransferTypedData.Domain()
                         {
@@ -1921,7 +1923,7 @@ namespace Maize
                         }
                     };
 
-                    Eip712TypedDataSigner signerTransfer = new Eip712TypedDataSigner();
+                    Eip712TypedDataSigner signerTransfer = new();
                     var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
                     var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
                     var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
@@ -1995,13 +1997,13 @@ namespace Maize
             var transactionFeeTotal = 0m;
             var transferTokenId = 1;
             var transferTokenSymbol = "LRC";
-            List<string> invalidAddress = new List<string>();
-            List<string> validAddress = new List<string>();
-            List<string> banishAddress = new List<string>();
-            List<string> invalidNftData = new List<string>();
-            List<string> alreadyActivatedAddress = new List<string>();
+            List<string> invalidAddress = new();
+            List<string> validAddress = new();
+            List<string> banishAddress = new();
+            List<string> invalidNftData = new();
+            List<string> alreadyActivatedAddress = new();
 
-            using (StreamReader sr = new StreamReader($"./{fileName}"))
+            using (StreamReader sr = new($"./{fileName}"))
             {
                 while ((toAddressInitial = sr.ReadLine()) != null)
                 {
@@ -2041,7 +2043,7 @@ namespace Maize
                     var feeAmount = transferFeeAmountResult.fees.Where(w => w.token == transferTokenSymbol).First().fee;
                     var transferStorageId = await loopringService.GetNextStorageId(loopringApiKey, fromAccountId, transferTokenId);
 
-                    TransferRequest req = new TransferRequest()
+                    TransferRequest req = new()
                     {
                         exchange = environmentExchange,
                         maxFee = new Token()
@@ -2079,44 +2081,45 @@ namespace Maize
                     (BigInteger)req.storageId
                     };
 
-                    Poseidon poseidonTransfer = new Poseidon(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+                    Poseidon poseidonTransfer = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
                     BigInteger poseidonTransferHash = poseidonTransfer.CalculatePoseidonHash(eddsaSignatureinputs);
-                    Eddsa eddsaTransfer = new Eddsa(poseidonTransferHash, loopringPrivateKey);
+                    Eddsa eddsaTransfer = new(poseidonTransferHash, loopringPrivateKey);
                     string transferEddsaSignature = eddsaTransfer.Sign();
 
                     //Calculate ecdsa
                     string primaryTypeNameTransfer = "Transfer";
-                    TypedData eip712TypedDataTransfer = new TypedData();
-                    eip712TypedDataTransfer.Domain = new Domain()
+                    TypedData eip712TypedDataTransfer = new()
                     {
-                        Name = "Loopring Protocol",
-                        Version = "3.6.0",
-                        ChainId = environment,
-                        VerifyingContract = environmentExchange,
-                    };
-                    eip712TypedDataTransfer.PrimaryType = primaryTypeNameTransfer;
-                    eip712TypedDataTransfer.Types = new Dictionary<string, MemberDescription[]>()
-                    {
-                        ["EIP712Domain"] = new[]
+                        Domain = new Domain()
+                        {
+                            Name = "Loopring Protocol",
+                            Version = "3.6.0",
+                            ChainId = environment,
+                            VerifyingContract = environmentExchange,
+                        },
+                        PrimaryType = primaryTypeNameTransfer,
+                        Types = new Dictionary<string, MemberDescription[]>()
+                        {
+                            ["EIP712Domain"] = new[]
                             {
                                 new MemberDescription {Name = "name", Type = "string"},
                                 new MemberDescription {Name = "version", Type = "string"},
                                 new MemberDescription {Name = "chainId", Type = "uint256"},
                                 new MemberDescription {Name = "verifyingContract", Type = "address"},
                             },
-                        [primaryTypeNameTransfer] = new[]
+                            [primaryTypeNameTransfer] = new[]
                             {
-                            new MemberDescription {Name = "from", Type = "address"},     
-                            new MemberDescription {Name = "to", Type = "address"},       
-                            new MemberDescription {Name = "tokenID", Type = "uint16"},   
-                            new MemberDescription {Name = "amount", Type = "uint96"},    
+                            new MemberDescription {Name = "from", Type = "address"},
+                            new MemberDescription {Name = "to", Type = "address"},
+                            new MemberDescription {Name = "tokenID", Type = "uint16"},
+                            new MemberDescription {Name = "amount", Type = "uint96"},
                             new MemberDescription {Name = "feeTokenID", Type = "uint16"},
-                            new MemberDescription {Name = "maxFee", Type = "uint96"},    
+                            new MemberDescription {Name = "maxFee", Type = "uint96"},
                             new MemberDescription {Name = "validUntil", Type = "uint32"},
-                            new MemberDescription {Name = "storageID", Type = "uint32"}  
+                            new MemberDescription {Name = "storageID", Type = "uint32"}
                         },
-                    };
-                    eip712TypedDataTransfer.Message = new[]
+                        },
+                        Message = new[]
                     {
                         new MemberValue {TypeName = "address", Value = fromAddress},
                         new MemberValue {TypeName = "address", Value = toAddress},
@@ -2126,9 +2129,10 @@ namespace Maize
                         new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.maxFee.volume)},
                         new MemberValue {TypeName = "uint32", Value = req.validUntil},
                         new MemberValue {TypeName = "uint32", Value = req.storageId},
+                    }
                     };
 
-                    TransferTypedData typedDataTransfer = new TransferTypedData()
+                    TransferTypedData typedDataTransfer = new()
                     {
                         domain = new TransferTypedData.Domain()
                         {
@@ -2172,7 +2176,7 @@ namespace Maize
                         }
                     };
 
-                    Eip712TypedDataSigner signerTransfer = new Eip712TypedDataSigner();
+                    Eip712TypedDataSigner signerTransfer = new();
                     var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
                     var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
                     var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));

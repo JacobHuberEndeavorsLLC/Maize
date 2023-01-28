@@ -16,7 +16,7 @@ var consoleForegroundColorPrimary = ConsoleColor.DarkYellow;
 var consoleForegroundColorSecondary = ConsoleColor.DarkGreen;
 var consoleForegroundColorTertiary = ConsoleColor.Green;
 Console.ForegroundColor = consoleForegroundColorPrimary;
-Font font = new Font(consoleForegroundColorPrimary, consoleForegroundColorSecondary, consoleForegroundColorTertiary);
+Font font = new(consoleForegroundColorPrimary, consoleForegroundColorSecondary, consoleForegroundColorTertiary);
 Console.WriteLine("Enter mainnet or testnet.");
 Console.ResetColor();
 var net = Utils.CheckMainnetOrTestnet(font);
@@ -71,20 +71,20 @@ else
     environmentExchange = "0x2e76EBd1c7c0C8e7c2B875b6d505a260C525d25e";
     myAccountId = 15504;
 }
-// load services
+
 ILoopringService loopringService = new LoopringService(environmentUrl, font);
 ILoopExchangeService loopExchangeService = new LoopExchangeService(font);
 IEthereumService ethereumService = new EthereumService();
 INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
-//load global variables 
-List<MintsAndTotal> userMintsAndTotalList = new List<MintsAndTotal>();
-List<NftHolder> nftHoldersAndTotalList = new List<NftHolder>();
-List<NftHolder> nftHoldersList = new List<NftHolder>();
-List<Leaderboard> usersTransactionsAndNftsSent = new List<Leaderboard>();
-NftBalance userNftToken = new NftBalance();
-NftMetadata nftMetadata = new NftMetadata();
-MinterAndCollection minterAndCollection = new MinterAndCollection();
-AccountInformation userAccountInformation = new AccountInformation();
+
+List<MintsAndTotal> userMintsAndTotalList = new();
+List<NftHolder> nftHoldersAndTotalList = new();
+List<NftHolder> nftHoldersList = new();
+List<Leaderboard> usersTransactionsAndNftsSent = new();
+NftBalance userNftToken = new();
+NftMetadata nftMetadata = new();
+MinterAndCollection minterAndCollection = new();
+AccountInformation userAccountInformation = new();
 string nftData;
 bool contains = false;
 var fileName = "Input.txt";
@@ -190,7 +190,6 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
         #endregion
         #region case 1
         case "1":
-            string nftMetaDataLink;
             NftData nftdataRequest;
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(1).Value} -");
             font.SetTextToDarkGray("Here you will get Nft Data for an Nft.");
@@ -201,20 +200,15 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             do
             {
                 font.SetTextToTertiary("Enter the Nft Id");
-                string nftIdForNftData = Utils.ReadLineWarningNoNulls("Enter the Nft Id", font);
+                string nftId = Utils.ReadLineWarningNoNulls("Enter the Nft Id", font);
                 minterAndCollection = UtilsLoopring.GetMinterAndCollection(font);
 
                 minterAndCollection.minter = await loopringService.CheckForEthAddress(settings.LoopringApiKey, minterAndCollection.minter);
 
-                nftdataRequest = await loopringService.GetNftData(settings.LoopringApiKey, nftIdForNftData, minterAndCollection.minter, minterAndCollection.TokenId);
+                nftdataRequest = await loopringService.GetNftData(settings.LoopringApiKey, nftId, minterAndCollection.minter, minterAndCollection.TokenId);
                 if (nftdataRequest == null)
                     continue;
-                do
-                {
-                    nftMetaDataLink = await ethereumService.GetMetadataLink(nftIdForNftData, minterAndCollection.TokenId, 0);
-                    nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                    UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                } while (nftMetadata == null);
+                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftId, minterAndCollection.minter);
             } while (nftdataRequest == null);
             Console.WriteLine();
             font.SetTextToPrimaryInline($"{nftMetadata.name} Nft Data is: ");
@@ -225,7 +219,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
         case "2":
             var counter = 0;
             var nftDataAndName = new List<NftDataAndName>();
-            string excelFileName = $"NftDataFromNftId_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            string excelFileName = $"NftDataFromNftId_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
 
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(2).Value} -");
             font.SetTextToDarkGray("Here you will provide Nft Id and get the associated Nft Data.");
@@ -237,7 +231,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             var howManyLines = Utils.CheckInputDotTxt(int.Parse(menuAndUtility.userResponseOnUtility), fileName, font);
 
-            using (StreamReader sr = new StreamReader($"./{fileName}"))
+            using (StreamReader sr = new($"./{fileName}"))
             {
                 string nftIdFromText;
                 nftdataRequest = null;
@@ -250,12 +244,8 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 while ((nftIdFromText = sr.ReadLine()) != null)
                 {
                     nftdataRequest = await loopringService.GetNftData(settings.LoopringApiKey, nftIdFromText, minterAndCollection.minter, minterAndCollection.TokenId);
-                    do
-                    {
-                        nftMetaDataLink = await ethereumService.GetMetadataLink(nftIdFromText, minterAndCollection.TokenId, 0);
-                        nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                        UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                    } while (nftMetadata == null);
+                    nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftIdFromText, minterAndCollection.minter);
+
                     Console.Write($"\r                                                                                                            ");
                     font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{howManyLines} {nftMetadata.name}");
                     if (nftMetadata != null && nftdataRequest != null)
@@ -281,7 +271,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
         #region case 3
         case "3":
             string responseOnMinter;
-            AccountInformation responseOnAccountId = new AccountInformation();
+            AccountInformation responseOnAccountId = new();
             nftDataAndName = new List<NftDataAndName>();
 
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(3).Value} -");
@@ -300,21 +290,16 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             Console.WriteLine();
             font.SetTextToPrimary("Gathering information...");
             var nftDataList = await loopringService.GetUserMintedNftsWithCollection(font, settings.LoopringApiKey, responseOnAccountId.accountId, minterAndCollection.TokenId);
-            font.SetTextToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count()} mints in this Collection.");
+            font.SetTextToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count} mints in this Collection.");
             counter = 0;
             Console.WriteLine();
             foreach (var nftDataSingle in nftDataList)
             {
-                do
-                {
-                    nftMetaDataLink = await ethereumService.GetMetadataLink(nftDataSingle.nftId, nftDataSingle.tokenAddress, 0);
-                    nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                    UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                } while (nftMetadata == null);
+                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDataSingle.nftId, nftDataSingle.tokenAddress);
                 if (nftMetadata != null)
                 {
                     Console.Write($"\r                                                                                                            ");
-                    font.SetTextToTertiaryInline($"\rAdding Nft: {++counter}/{nftDataList.Count()} {nftMetadata.name}");
+                    font.SetTextToTertiaryInline($"\rAdding Nft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
                     nftDataAndName.Add(new NftDataAndName
                     {
                         nftData = nftDataSingle.nftData,
@@ -323,7 +308,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 }
             }
 
-            excelFileName = $"NftDataFromCollection_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
             using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
@@ -356,18 +341,13 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             Console.WriteLine();
             font.SetTextToPrimary("Gathering information...");
             var walletsNftBalance = await loopringService.GetWalletsNfts(settings.LoopringApiKey, responseOnAccountId.accountId);
-            font.SetTextToPrimary($"{ensOrWalletAddress} has {walletsNftBalance.Count()} Nfts in their wallet.");
+            font.SetTextToPrimary($"{ensOrWalletAddress} has {walletsNftBalance.Count} Nfts in their wallet.");
 
             foreach (var singleNftBalance in walletsNftBalance)
             {
-                do
-                {
-                    nftMetaDataLink = await ethereumService.GetMetadataLink(singleNftBalance.nftId, singleNftBalance.tokenAddress, 0);
-                    nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                    UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                } while (nftMetadata == null);
+                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, singleNftBalance.nftId, singleNftBalance.tokenAddress);
                 Console.Write($"\r                                                                                                            ");
-                font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{walletsNftBalance.Count()} {nftMetadata.name}");
+                font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{walletsNftBalance.Count} {nftMetadata.name}");
                 if (nftMetadata != null)
                 {
                     nftDataAndName.Add(new NftDataAndName
@@ -378,7 +358,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 }
             }
 
-            excelFileName = $"NftDataFromWallet_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            excelFileName = $"NftDataFromWallet_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
             using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
@@ -402,7 +382,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             Console.WriteLine();
             font.SetTextToWhite("Let's get started.");
             howManyLines = Utils.CheckInputDotTxt(int.Parse(menuAndUtility.userResponseOnUtility), fileName, font);
-            using (StreamReader sr = new StreamReader($"./{fileName}"))
+            using (StreamReader sr = new($"./{fileName}"))
             {
                 sw = Stopwatch.StartNew();
                 Console.WriteLine();
@@ -415,12 +395,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     nftHoldersList = await loopringService.GetNftHoldersMultiple(settings.LoopringApiKey, nftData);
 
                     var minterFromNftDatas = await loopringService.GetNftInformationFromNftData(settings.LoopringApiKey, nftData);
-                    do
-                    {
-                        nftMetaDataLink = await ethereumService.GetMetadataLink(minterFromNftDatas.FirstOrDefault().nftId, minterFromNftDatas.FirstOrDefault().tokenAddress, 0);
-                        nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                        UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                    } while (nftMetadata == null);
+                    nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, minterFromNftDatas.FirstOrDefault().nftId, minterFromNftDatas.FirstOrDefault().tokenAddress);
                     var holderCounter = 0;
                     foreach (var nftHolder in nftHoldersList)
                     {
@@ -428,7 +403,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                         {
                             Console.Write($"\r                                                                                                            ");
                         }
-                        font.SetTextToTertiaryInline($"\rNft: {counter}/{howManyLines} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersList.Count()}");
+                        font.SetTextToTertiaryInline($"\rNft: {counter}/{howManyLines} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersList.Count}");
                         userAccountInformation = await loopringService.GetUserAccountInformation(nftHolder.accountId.ToString());
                         if (nftMetadata != null)
                         {
@@ -460,14 +435,14 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                         }
                     }
                 }
-                excelFileName = $"NftHolderFromNftData_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+                excelFileName = $"NftHolderFromNftData_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
                 using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteRecords(ownerAndAmount);
                 }
 
-                var excelFileNameTwo = $"NftHoldersAndTotals_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+                var excelFileNameTwo = $"NftHoldersAndTotals_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
                 using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
@@ -502,25 +477,18 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             Console.WriteLine();
             font.SetTextToPrimary("Gathering information...");
             nftDataList = await loopringService.GetUserMintedNfts(font, settings.LoopringApiKey, responseOnAccountId.accountId);
-            font.SetTextToTertiaryInline($"\r{userResponseOnMinter} has {nftDataList.Count()} mints");
+            font.SetTextToTertiaryInline(str: $"\r{userResponseOnMinter} has {nftDataList.Count} mints");
             foreach (var nftDatas in nftDataList)
             {
                 var nftHoldersAndTotal = await loopringService.GetNftHoldersMultiple(settings.LoopringApiKey, nftDatas.nftData);
-
-                //userNftToken = await loopringService.GetTokenId(settings.LoopringApiKey, mint.accountId, nftData);
-                do
-                { 
-                    nftMetaDataLink = await ethereumService.GetMetadataLink(nftDatas.nftId, nftDatas.tokenAddress, 0);
-                    nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                    UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                } while (nftMetadata == null);
+                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDatas.nftId, nftDatas.tokenAddress);
                 Console.Write($"\r                                                                                                            ");
-                font.SetTextToTertiaryInline($"\rNft: {++counter}/{nftDataList.Count()} {nftMetadata.name}");
+                font.SetTextToTertiaryInline($"\rNft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
                 var holderCounter = 0;
                 foreach (var item in nftHoldersAndTotal)
                 {
                     userAccountInformation = await loopringService.GetUserAccountInformation(item.accountId.ToString());
-                    font.SetTextToTertiaryInline($"\rNft: {counter}/{nftDataList.Count()} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersAndTotal.Count()}");
+                    font.SetTextToTertiaryInline($"\rNft: {counter}/{nftDataList.Count} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersAndTotal.Count}");
 
 
                     if (nftMetadata != null && userAccountInformation.owner.ToLower() != "0x000000000000000000000000000000000000dead" && userAccountInformation.owner.ToLower() != "0xdead000000000000000042069420694206942069")
@@ -535,7 +503,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     }
                 }
             }
-            excelFileName = $"NftHolderFromWalletAddress_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            excelFileName = $"NftHolderFromWalletAddress_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
             using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
@@ -561,7 +529,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             sw = Stopwatch.StartNew();
             Console.WriteLine();
             font.SetTextToPrimary("Gathering information...");
-            using (StreamReader sr = new StreamReader("./Input.txt"))
+            using (StreamReader sr = new("./Input.txt"))
             {
                 while ((nftData = sr.ReadLine()) != null)
                 {
@@ -574,7 +542,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             foreach (var data in allNftData)
             {
                 font.SetTextToTertiaryInline($"\rNft: {++counter}/{howManyLines}");
-                originalalletHolderList.AddRange(await loopringService.GetNftHolderIncludeNftData(font, settings.LoopringApiKey, data, environmentUrl, counter, howManyLines));
+                originalalletHolderList.AddRange(await loopringService.GetNftHolderIncludeNftData(font, loopringService, nftMetadataService, ethereumService, settings.LoopringApiKey, data, environmentUrl, counter, howManyLines));
             }
             Console.Write($"\r                                                                                                            ");
             counter = 0;
@@ -593,7 +561,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 }
             }
 
-            excelFileName = $"AllNftHolders_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            excelFileName = $"AllNftHolders_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
             using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
@@ -621,7 +589,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             sw = Stopwatch.StartNew();
             Console.WriteLine();
             font.SetTextToPrimary("Gathering information...");
-            using (StreamReader sr = new StreamReader("./Input.txt"))
+            using (StreamReader sr = new("./Input.txt"))
             {
                 while ((nftData = sr.ReadLine()) != null)
                 {
@@ -634,7 +602,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             foreach (var data in allNftData)
             {
                 font.SetTextToTertiaryInline($"\rNft: {++counter}/{howManyLines}");
-                originalalletHolderList.AddRange(await loopringService.GetNftHolderIncludeNftData(font, settings.LoopringApiKey, data, environmentUrl, counter, howManyLines));
+                originalalletHolderList.AddRange(await loopringService.GetNftHolderIncludeNftData(font, loopringService, nftMetadataService, ethereumService, settings.LoopringApiKey, data, environmentUrl, counter, howManyLines));
             }
             Console.Write($"\r                                                                                                            ");
             counter = 0;
@@ -653,7 +621,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 }
             }
 
-            excelFileName = $"AllNftHoldersWithMinimum_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            excelFileName = $"AllNftHoldersWithMinimum_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
             using (var writer = new StreamWriter($"./OutputFiles/{excelFileName}"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
@@ -667,10 +635,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
         case "9":
             int nftTokenId;
             string nftAmount;
-            var gasFeeTotal = 0m;
-            var transactionFeeTotal = 0m;
             string userResponseOnNftData;
-            string transferMemo = "";
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(9).Value} -");
             font.SetTextToDarkGray("Here you will drop an Nft to many users.");
             font.SetTextToDarkGray("You will need nft data and wallet address or ens.");
@@ -715,16 +680,11 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 userNftToken = await loopringService.GetTokenId(settings.LoopringApiKey, settings.LoopringAccountId, nftData);
                 nftTokenId = userNftToken.data[0].tokenId;
             }
-            do
-            { 
-                nftMetaDataLink = await ethereumService.GetMetadataLink(userNftToken.data[0].nftId, userNftToken.data[0].tokenAddress, 0);
-                nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-            } while (nftMetadata == null);
+            nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, userNftToken.data[0].nftId, userNftToken.data[0].tokenAddress);
             font.SetTextToTertiary($"How many '{nftMetadata.name}' do you want to transfer to each address? You own {userNftToken.data[0].total}");
             nftAmount = Utils.CheckNftSendAmount(howManyLines, userNftToken.data[0].total, fileName, font);
 
-            transferMemo = UtilsLoopring.CheckMemoLimit(font);
+            var transferMemo = UtilsLoopring.CheckMemoLimit(font);
             Console.WriteLine();
             font.SetTextToDarkGray($"You are about to transfer {int.Parse(nftAmount) * howManyLines} '{nftMetadata.name}' to {howManyLines} wallets");
             font.SetTextToDarkGray($"with a memo of: {transferMemo}");
@@ -792,14 +752,11 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAudit(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, null, nftTransferAuditInformation.alreadyActivatedAddress, nftMetadata.name, nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);
             break;
         #endregion case 9
         #region case 10
         case "10":
-            gasFeeTotal = 0m;
-            transactionFeeTotal = 0m;
-            transferMemo = "";
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(10).Value} -");
             font.SetTextToDarkGray("Here you will drop an Nft to many users with different amounts.");
             font.SetTextToDarkGray("You will need nft data and wallet address or ens.");
@@ -845,12 +802,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 userNftToken = await loopringService.GetTokenId(settings.LoopringApiKey, settings.LoopringAccountId, nftData);
                 nftTokenId = userNftToken.data[0].tokenId;
             }
-            do
-            {
-                nftMetaDataLink = await ethereumService.GetMetadataLink(userNftToken.data[0].nftId, userNftToken.data[0].tokenAddress, 0);
-                nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-            } while (nftMetadata == null);
+            nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, userNftToken.data[0].nftId, userNftToken.data[0].tokenAddress);
             Utils.CheckNftSendAmountTwoInputs(int.Parse(menuAndUtility.userResponseOnUtility), fileAmounts.nftAmount, userNftToken.data[0].total, fileName, font);
             transferMemo = UtilsLoopring.CheckMemoLimit(font);
             Console.WriteLine();
@@ -917,14 +869,11 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAudit(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, null, nftTransferAuditInformation.alreadyActivatedAddress, nftMetadata.name, nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);
             break;
         #endregion case 10
         #region case 11
         case "11":
-            gasFeeTotal = 0m;
-            transactionFeeTotal = 0m;
-            transferMemo = "";
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(11).Value} -");
             font.SetTextToDarkGray("Here you will drop any Nfts to any users.");
             font.SetTextToDarkGray("You will need nft data and wallet address or ens.");
@@ -1005,14 +954,13 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAudit(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, nftTransferAuditInformation.invalidNftData, nftTransferAuditInformation.alreadyActivatedAddress, null, nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);
             break;
         #endregion case 11
         #region case 12
         case "12":
-            gasFeeTotal = 0m;
-            transactionFeeTotal = 0m;
-            transferMemo = "";
+            transferMemo = "Sent to the Dead Address by Maize";
+
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(12).Value} -");
             font.SetTextToDarkGray("Here you will send all Nfts minted by those in the banish file to the dead address.");
             font.SetTextToDarkGray("You will need wallet address or ens.");
@@ -1036,20 +984,15 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             }
             foreach (var nft in banishedNfts)
             {
-                do
-                {
-                    nftMetaDataLink = await ethereumService.GetMetadataLink(nft.nftId, nft.tokenAddress, 0);
-                    nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                    UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                } while (nftMetadata == null);
+                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nft.nftId, nft.tokenAddress);
                 font.SetTextToPrimary($"{nftMetadata.name} will be transfered.");
             }
 
             offChainFeeCheck = await loopringService.GetOffChainFee(loopringApiKey, fromAccountId, 11, "0");
             feeAmountCheck = offChainFeeCheck.fees.Where(w => w.token == maxFeeToken.ToString()).First().fee;
             Console.WriteLine();
-            font.SetTextToDarkGray($"Gas fees will be around {(decimal.Parse(feeAmountCheck) / 1000000000000000000m) * Convert.ToDecimal(banishedNfts.Count())} {maxFeeToken}.");
-            font.SetTextToPrimary($"Transaction fee will be around {Convert.ToDecimal(banishedNfts.Count()) * lcrTransactionFee} {maxFeeToken}.");
+            font.SetTextToDarkGray($"Gas fees will be around {(decimal.Parse(feeAmountCheck) / 1000000000000000000m) * Convert.ToDecimal(banishedNfts.Count)} {maxFeeToken}.");
+            font.SetTextToPrimary($"Transaction fee will be around {Convert.ToDecimal(banishedNfts.Count) * lcrTransactionFee} {maxFeeToken}.");
 
             font.SetTextToTertiary("Would you like to send the above Nfts to the dead Address?");
             font.SetTextToTertiary("Enter 'yes' for the transfers to start or 'no' to start over.");
@@ -1078,7 +1021,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 maxFeeTokenId,
                 fromAddress,
                 banishFile,
-                banishedNfts.Count(),
+                banishedNfts.Count,
                 0,
                 "0",
                 validUntil,
@@ -1111,16 +1054,13 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAuditDead(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, nftTransferAuditInformation.invalidNftData, nftMetadata.name, nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);              
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);              
 
             break;
         #endregion case 12
         #region case 13
         case "13":
             decimal amountToTransfer = 0m;
-            gasFeeTotal = 0m;
-            transactionFeeTotal = 0m;
-            transferMemo = "";
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(13).Value} -");
             font.SetTextToDarkGray("Here you will airdrop LRC to many users.");
             font.SetTextToDarkGray("You will need wallet address or ens.");
@@ -1185,7 +1125,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 MMorGMEPrivateKey,
                 fromAccountId,
                 nftTransferAuditInformation.transactionFeeTotal,
-                nftTransferAuditInformation.validAddress.Count(),
+                validAddressCount: nftTransferAuditInformation.validAddress.Count,
                 maxFeeToken,
                 maxFeeTokenId,
                 myAddress,
@@ -1195,16 +1135,12 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAudit(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, nftTransferAuditInformation.invalidNftData, nftTransferAuditInformation.alreadyActivatedAddress, "LRC", nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);
 
             break;
         #endregion case 13
         #region case 14
         case "14":
-            //decimal amountToTransfer = 0m;
-            gasFeeTotal = 0m;
-            transactionFeeTotal = 0m;
-            transferMemo = "";
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(14).Value} -");
             font.SetTextToDarkGray("Here you will airdrop LRC to many users with different amounts.");
             font.SetTextToDarkGray("You will need wallet address or ens.");
@@ -1266,7 +1202,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 MMorGMEPrivateKey,
                 fromAccountId,
                 nftTransferAuditInformation.transactionFeeTotal,
-                nftTransferAuditInformation.validAddress.Count(),
+                nftTransferAuditInformation.validAddress.Count,
                 maxFeeToken,
                 maxFeeTokenId,
                 myAddress,
@@ -1276,18 +1212,12 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAudit(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, nftTransferAuditInformation.invalidNftData, nftTransferAuditInformation.alreadyActivatedAddress, "LRC", nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);
             break;
         #endregion case 14
         #region case 15
         case "15":
             amountToTransfer = 0.000000000000000001m;
-            transferMemo = "";
-            var transferTokenId = 1;
-            var transferTokenSymbol = "LRC";
-            gasFeeTotal = 0m;
-            transactionFeeTotal = 0m;
-            transferMemo = "";
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(15).Value} -");
             font.SetTextToDarkGray("Here you will pay the activation fee for the given wallet addresses.");
             font.SetTextToDarkGray("A transaction has to be sent to do this. You will be sending 0.000000000000000001 LRC to each wallet.");
@@ -1335,7 +1265,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
 
             excelFileName = Utils.ShowAirdropAudit(nftTransferAuditInformation.validAddress, nftTransferAuditInformation.invalidAddress, nftTransferAuditInformation.banishAddress, nftTransferAuditInformation.invalidNftData, nftTransferAuditInformation.alreadyActivatedAddress, "LRC", nftTransferAuditInformation.gasFeeTotal, maxFeeToken, nftTransferAuditInformation.transactionFeeTotal);
             sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count(), font);
+            Utils.FunctionalityProcessTime(sw, excelFileName, nftTransferAuditInformation.validAddress.Count, font);
             break;
         #endregion case 15
         #region case 16
@@ -1421,7 +1351,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             string header = "name~description~image~total~nftData~nftId~minter~tokenAddress~royaltyPercentage";
             ownerAndTotal = new List<OwnerAndTotal>();
             currentOverallTotal = 0;
-            StringBuilder collectionNftInformation = new StringBuilder();
+            StringBuilder collectionNftInformation = new();
             var collectionNftHolders = new List<NftHolder>();
             ownerAndAmount = new List<OwnerAndAmount>();
             font.SetTextToPrimary($" - {menuAndUtility.allUtilities.ElementAt(17).Value} -");
@@ -1461,16 +1391,11 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 {
                     var deadAddress = 0;
                     var nftHolders = await loopringService.GetNftHoldersMultiple(loopringApiKey, item.nftData);
-                    if ((nftHolders.Where(x => x.accountId == 38482).Count() == 1 || nftHolders.Where(x => x.accountId == 92023).Count() == 1) && nftHolders.Count() == 1)
+                    if ((nftHolders.Where(x => x.accountId == 38482).Count() == 1 || nftHolders.Where(x => x.accountId == 92023).Count() == 1) && nftHolders.Count == 1)
                         continue;
                     currentOverallTotal += item.total;
                     collectionNftHolders.AddRange(nftHolders);
-                    do
-                    {
-                        nftMetaDataLink = await ethereumService.GetMetadataLink(item.nftId, item.tokenAddress, 0);
-                        nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                        UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                    } while (nftMetadata == null);
+                    nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, item.nftId, item.tokenAddress);
                     Console.Write($"\r                                                                                                            ");
                     font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{userCollectionInformation.nftTokenInfos.Count} {nftMetadata.name}");
                     // added the below
@@ -1478,7 +1403,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     foreach (var nftHolder in nftHolders)
                     {
                         Console.Write($"\r                                                                                                            ");
-                        font.SetTextToTertiaryInline($"\rChecking Nft: {counter}/{userCollectionInformation.nftTokenInfos.Count} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHolders.Count()}");
+                        font.SetTextToTertiaryInline($"\rChecking Nft: {counter}/{userCollectionInformation.nftTokenInfos.Count} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHolders.Count}");
                         userAccountInformation = await loopringService.GetUserAccountInformation(nftHolder.accountId.ToString());
 
                         if(nftMetadata != null)
@@ -1527,13 +1452,13 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                         if (nftMetadata.attributes is not null)
                             if (nftMetadata.attributes.Count > 0)
                             {
-                                collectionNftInformation.Append("~");
+                                collectionNftInformation.Append('~');
                                 header += "~";
                                 foreach (var a in nftMetadata.attributes)
                                 {
                                     collectionNftInformation.Append($"Attribute {++attributeCounter}");
                                     header += $"Attribute {attributeCounter}";
-                                    if (attributeCounter != nftMetadata.attributes.Count())
+                                    if (attributeCounter != nftMetadata.attributes.Count)
                                     {
                                         collectionNftInformation.Append('~');
                                         header += "~";
@@ -1542,23 +1467,23 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                             }
                         collectionNftInformation.Append($"\r\n");
                         if (nftMetadata.attributes is not null)
-                            maxAttributeCount = nftMetadata.attributes.Count();
+                            maxAttributeCount = nftMetadata.attributes.Count;
                     }
                     if (nftMetadata.attributes is not null)
-                        if (nftMetadata.attributes.Count() > maxAttributeCount)
+                        if (nftMetadata.attributes.Count > maxAttributeCount)
                         {
                             string newHeader = header;
-                            for (int i = maxAttributeCount; i < nftMetadata.attributes.Count(); i++)
+                            for (int i = maxAttributeCount; i < nftMetadata.attributes.Count; i++)
                             {
                                 newHeader += $"~Attribute {++attributeCounter}";
                             }
                             collectionNftInformation.Replace(header, newHeader);
-                            maxAttributeCount = nftMetadata.attributes.Count();
+                            maxAttributeCount = nftMetadata.attributes.Count;
                             header = newHeader;
                         }
                     collectionNftInformation.Append($"{nftMetadata.name}~{nftMetadata.description}~{nftMetadata.image}~{item.total}~{item.nftData}~{item.nftId}~{item.minter}~{item.tokenAddress}~{item.royaltyPercentage}");
                     if (nftMetadata.attributes is not null)
-                        if (nftMetadata.attributes.Count() > 0)
+                        if (nftMetadata.attributes.Count > 0)
                         {
                             collectionNftInformation.Append('~');
                             foreach (var a in nftMetadata.attributes)
@@ -1570,10 +1495,10 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                                 }
                             }
                         }
-                    if (counter != userCollectionInformation.nftTokenInfos.Count())
+                    if (counter != userCollectionInformation.nftTokenInfos.Count)
                         collectionNftInformation.Append($"\r\n");
                 }
-                excelFileName = $"{userCollection}_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.xlsx";
+                excelFileName = $"{userCollection}_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.xlsx";
                 ExcelFile.CreateExcelFile(font, ownerAndTotal,ownerAndAmount, userCollectionSingle, userCollectionInformation, collectionNftHolders, collectionNftInformation, excelFileName);
                 Console.WriteLine();
                 Console.WriteLine();
@@ -1632,16 +1557,11 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 {
                     var deadAddress = 0;
                     var nftHolders = await loopringService.GetNftHoldersMultiple(loopringApiKey, item.nftData);
-                    if ((nftHolders.Where(x => x.accountId == 38482).Count() == 1 || nftHolders.Where(x => x.accountId == 92023).Count() == 1) && nftHolders.Count() == 1)
+                    if ((nftHolders.Where(x => x.accountId == 38482).Count() == 1 || nftHolders.Where(x => x.accountId == 92023).Count() == 1) && nftHolders.Count == 1)
                         continue;
                     currentOverallTotal += item.total;
                     collectionNftHolders.AddRange(nftHolders);
-                    do
-                    {
-                        nftMetaDataLink = await ethereumService.GetMetadataLink(item.nftId, item.tokenAddress, 0);
-                        nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                        UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                    } while (nftMetadata == null);
+                    nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, item.nftId, item.tokenAddress);
                     Console.Write($"\r                                                                                                            ");
                     font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{userCollectionInformation.nftTokenInfos.Count} {nftMetadata.name}");
                     // added the below
@@ -1649,7 +1569,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     foreach (var nftHolder in nftHolders)
                     {
                         Console.Write($"\r                                                                                                            ");
-                        font.SetTextToTertiaryInline($"\rChecking Nft: {counter}/{userCollectionInformation.nftTokenInfos.Count} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHolders.Count()}");
+                        font.SetTextToTertiaryInline($"\rChecking Nft: {counter}/{userCollectionInformation.nftTokenInfos.Count} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHolders.Count}");
                         userAccountInformation = await loopringService.GetUserAccountInformation(nftHolder.accountId.ToString());
                         if (nftMetadata != null)
                             if (userAccountInformation.owner.ToLower() != "0x000000000000000000000000000000000000dead" && userAccountInformation.owner.ToLower() != "0xdead000000000000000042069420694206942069")
@@ -1697,7 +1617,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                         if (nftMetadata.attributes is not null)
                             if (nftMetadata.attributes.Count > 0)
                             {
-                                collectionNftInformation.Append("~");
+                                collectionNftInformation.Append('~');
                                 header += "~";
                                 foreach (var a in nftMetadata.attributes)
                                 {
@@ -1744,7 +1664,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                         collectionNftInformation.Append($"\r\n");
 
                 }
-                excelFileName = $"{userCollection}_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.xlsx";
+                excelFileName = $"{userCollection}_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.xlsx";
                 ExcelFile.CreateExcelFile(font, ownerAndTotal, ownerAndAmount, userCollectionSingle, userCollectionInformation, collectionNftHolders, collectionNftInformation, excelFileName);
                 Console.WriteLine();
                 Console.WriteLine();
@@ -1790,31 +1710,26 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             nftDataList = await loopringService.GetUserMintedNftsWithCollection(font, settings.LoopringApiKey, responseOnAccountId.accountId, minterAndCollection.TokenId);
             var specificCollectionSingle = await loopringService.GetNftCollectionPublic(loopringApiKey, nftDataList.First().nftData);
             var specificCollectionInformation = await loopringService.GetNftCollectionInformation(loopringApiKey, specificCollectionSingle.id.ToString());
-            font.SetTextToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count()} mints in this Collection.");
+            font.SetTextToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count} mints in this Collection.");
             counter = 0;
             Console.WriteLine();
             foreach (var nftDataSingle in nftDataList)
             {
                 var deadAddress = 0;
                 var nftHolders = await loopringService.GetNftHoldersMultiple(loopringApiKey, nftDataSingle.nftData);
-                if ((nftHolders.Where(x => x.accountId == 38482).Count() == 1 || nftHolders.Where(x => x.accountId == 92023).Count() == 1) && nftHolders.Count() == 1)
+                if ((nftHolders.Where(x => x.accountId == 38482).Count() == 1 || nftHolders.Where(x => x.accountId == 92023).Count() == 1) && nftHolders.Count == 1)
                     continue;
                 //currentOverallTotal += item.total;
                 collectionNftHolders.AddRange(nftHolders);
-                do
-                {
-                    nftMetaDataLink = await ethereumService.GetMetadataLink(nftDataSingle.nftId, nftDataSingle.tokenAddress, 0);
-                    nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
-                    UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
-                } while (nftMetadata == null);
+                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDataSingle.nftId, nftDataSingle.tokenAddress);
                 Console.Write($"\r                                                                                                            ");
-                font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{nftDataList.Count()} {nftMetadata.name}");
+                font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
                 // added the below
                 var holderCounter = 0;
                 foreach (var nftHolder in nftHolders)
                 {
                     Console.Write($"\r                                                                                                            ");
-                    font.SetTextToTertiaryInline($"\rChecking Nft: {counter}/{nftDataList.Count()} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHolders.Count()}");
+                    font.SetTextToTertiaryInline(str: $"\rChecking Nft: {counter}/{nftDataList.Count} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHolders.Count}");
                     userAccountInformation = await loopringService.GetUserAccountInformation(nftHolder.accountId.ToString());
                     if (nftMetadata != null)
                         if (userAccountInformation.owner.ToLower() != "0x000000000000000000000000000000000000dead" && userAccountInformation.owner.ToLower() != "0xdead000000000000000042069420694206942069")
@@ -1862,7 +1777,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     if (nftMetadata.attributes is not null)
                         if (nftMetadata.attributes.Count > 0)
                         {
-                            collectionNftInformation.Append("~");
+                            collectionNftInformation.Append('~');
                             header += "~";
                             foreach (var a in nftMetadata.attributes)
                             {
@@ -1905,12 +1820,12 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                             }
                         }
                     }
-                if (counter != nftDataList.Count())
+                if (counter != nftDataList.Count)
                     collectionNftInformation.Append($"\r\n");
             
             }
 
-            excelFileName = $"{specificCollectionSingle.name.Replace(" ","")}_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.xlsx";
+            excelFileName = $"{specificCollectionSingle.name.Replace(" ","")}_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.xlsx";
             ExcelFile.CreateExcelFile(font, ownerAndTotal, ownerAndAmount, specificCollectionSingle, specificCollectionInformation, collectionNftHolders, collectionNftInformation, excelFileName);
             Console.WriteLine();
             Console.WriteLine();

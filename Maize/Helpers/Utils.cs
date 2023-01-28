@@ -7,6 +7,7 @@ using PoseidonSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -15,6 +16,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using static Maize.TransferTypedData;
 
 namespace Maize
 {
@@ -766,6 +768,18 @@ namespace Maize
             TimeSpan tsEnding = endDate.Subtract(epoch);
             string result = tsEnding.TotalMilliseconds.ToString();
             return result;
+        }
+        public static async Task<NftMetadata> GetNftMetadata(Font font, IEthereumService ethereumService, 
+            INftMetadataService nftMetadataService, string nftId, string collectionAddress)
+        {
+            NftMetadata nftMetadata;
+            do
+            {
+                var nftMetaDataLink = await ethereumService.GetMetadataLink(nftId, collectionAddress, 0);
+                nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
+                UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
+            } while (nftMetadata == null);
+            return nftMetadata;
         }
     }
 }
