@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
+using System.Threading;
 
 namespace Maize
 {
@@ -361,6 +362,7 @@ namespace Maize
             {
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<EnsResult>(response.Content!);
+                Thread.Sleep(100);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -583,7 +585,7 @@ namespace Maize
                 var nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftInformation.FirstOrDefault().nftId, nftInformation.FirstOrDefault().tokenAddress);
                 foreach (var item in allData)
                 {
-                    Console.Write($"\r                                                                                                            ");
+                    Utils.ClearLine();
                     font.SetTextToTertiaryInline($"\rNft: {counter}/{max} {nftMetadata.name} Nft Holder: {++holderCounter}/{allData.Count}");
                     var walletAddress = await loopringService.GetUserAccountInformation(item.accountId.ToString());
                     allDataAndHolders.Add(new NftHolderAndNftData
@@ -745,7 +747,7 @@ namespace Maize
                 var total = data.totalNum;
                 allDataMintsAndTotal.Add(data);
                 allDataMints.AddRange(data.mints);
-                Console.Write($"\r                                                                                                            ");
+                Utils.ClearLine();
                 font.SetTextToTertiaryInline($"\rGrabbing all mints");
                 while (total >= 50)
                 {
@@ -790,7 +792,7 @@ namespace Maize
                 var total = data.totalNum;
                 allDataMintsAndTotal.Add(data);
                 allDataMints.AddRange(data.mints);
-                Console.Write($"\r                                                                                                            ");
+                Utils.ClearLine();
                 font.SetTextToTertiaryInline($"\rGrabbing all mints");
                 while (total >= 50)
                 {
@@ -1062,6 +1064,10 @@ namespace Maize
             else if (nftOrLrc == 1)
             {
                 transferMemo = $"Crypto sent {nftSentTotal}";
+            }
+            else if (nftOrLrc == 2)
+            {
+                transferMemo = $"Nfts minted {nftSentTotal}";
             }
             var amount = (transactionFeeTotal * 1000000000000000000m).ToString("0");
             var transferFeeAmountResult = await loopringService.GetOffChainTransferFee(loopringApiKey, fromAccountId, 3, maxFeeToken, amount); //3 is the request type for crypto transfers

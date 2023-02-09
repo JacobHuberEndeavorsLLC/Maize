@@ -89,16 +89,15 @@ namespace Maize.Helpers
 
                 // ============================================================================================
                 var nftsDistinct = ownerAndAmount.DistinctBy(x => x.nftName);
-                var counter = 0;
                 foreach (var item in nftsDistinct)
                 {
                     if (item.nftName != null)
                     {
-                        if (ownerAndAmount.Where(x=>x.nftName == item.nftName).Count() > 1)
-                        {
-                            item.nftName += counter;
-                            counter++;
-                        }
+                        //if (ownerAndAmount.Where(x=>x.nftName == item.nftName).Count() > 1)
+                        //{
+                        //    item.nftName += counter;
+                        //    counter++;
+                        //}
                         ws = package.Workbook.Worksheets.Add($"{item.nftName.Replace(" ","")}");
                         CreateHeader(ws, userCollection, userCollectionInformation, collectionNftHolders, ownerAndTotal, ownerAndAmount);
                         range = ws.Cells["A6"].LoadFromCollection(ownerAndAmount.Where(x => x.nftName == item.nftName).OrderByDescending(x => x.ownerAmountOwned), true, TableStyles.Medium1);

@@ -33,7 +33,7 @@ namespace Maize.Helpers
             font.SetTextToPrimary(@"          M::::::M               M::::::Ma::::a    a:::::a i::::::i  z::::::zzzzzzzze::::::::e          ");
             font.SetTextToPrimary(@"          M::::::M               M::::::Ma:::::aaaa::::::a i::::::i z::::::::::::::z e::::::::eeeeeeee  ");
             font.SetTextToPrimary(@"          M::::::M               M::::::M a::::::::::aa:::ai::::::iz:::::::::::::::z  ee:::::::::::::e  ");
-            font.SetVersionFontColor(@"          MMMMMMMM","       v0.0.10"," MMMMMMMM  aaaaaaaaaa  aaaaiiiiiiiizzzzzzzzzzzzzzzzz    eeeeeeeeeeeeee  ");
+            font.SetVersionFontColor(@"          MMMMMMMM","       v0.1.0"," MMMMMMMM  aaaaaaaaaa  aaaaiiiiiiiizzzzzzzzzzzzzzzzz    eeeeeeeeeeeeee  ");
             font.SetTextToSecondary("= = = Analytics and Airdrops for your Crypto and Nfts = = = = = = = = = = = = = = = = = = = = = = = = = = =");
             Console.WriteLine();
             font.SetBraggingFont($"Maize ", "has completed ", usersTransactionsAndNftsSent.Sum(x => x.transactionCount).ToString(), " transactions and sent ", usersTransactionsAndNftsSent.Sum(x => x.nftAmountSent).ToString(), " Nfts.");
@@ -48,51 +48,52 @@ namespace Maize.Helpers
             var allUtilities = new Dictionary<string, string>()
             {
                 {"utilityZero", "General tips and FAQs"},
-                {"utilityOne", "Find Nft Data for a single Nft"},
-                {"utilityTwo", "Find Nft Data from Nft Id"},
-                {"utilityThree", "Find Nft Data from a Collection"},
-                {"utilityFour", "Find Nft Data from a Wallet"},
-                {"utilityFive", "Find Holders from Nft Data"},
-                {"utilitySix", "Find Holders from a minter"},
-                {"utilitySeven", "Find Holders who own all Nfts"},
-                {"utilityEight", "Find Holders who own all Nfts w/min set amount"},
-                {"utilityNine", "Send an NFT to any users"},
-                {"utilityTen", "Send an NFT to any users w/different amounts"},
-                {"utilityEleven", "Send unique NFTs to any users"},
-                {"utilityTwelve", "Send Nfts minted by banished addresses to the dead address"},
-                {"utilityThirteen", "Send LRC to any users"},
-                {"utilityFourteen", "Send LRC to any users with different amounts"},
-                {"utilityFifteen", "Pay Loopring activation fee for wallets"},
-                {"utilitySixteen", "Nft Transfer Leaderboards"},
-                {"utilitySeventeen", "Minted Collection Analytics"},
-                {"utilityEighteen", "Owned Collection Analytics"},
-                {"utilityNineteen", "Specific Collection Analytics"},
+                {"utilityOne", "Create a Collection"},
+                {"utilityTwo", "Mint Nfts"},
+                {"utilityThree", "Find Nft Data for a single Nft"},
+                {"utilityFour", "Find Nft Data from Nft Id"},
+                {"utilityFive", "Find Nft Data from a Collection"},
+                {"utilitySix", "Find Nft Data from a Wallet"},
+                {"utilitySeven", "Find Holders from Nft Data"},
+                {"utilityEight", "Find Holders from a minter"},
+                {"utilityNine", "Find Holders who own all Nfts"},
+                {"utilityTen", "Find Holders who own all Nfts w/min set amount"},
+                {"utilityEleven", "Send to any users"},
+                {"utilityTwelve", "Send to any users (include amounts)"},
+                {"utilityThirteen", "Send unique NFTs to any users"},
+                {"utilityFourteen", "Send Nfts to the Dead address"},
+                {"utilityFifteen", "Send LRC to any users"},
+                {"utilitySixteen", "Send LRC to any users with different amounts"},
+                {"utilitySeventeen", "Pay Loopring activation fee for wallets"},
+                {"utilityEighteen", "Nft Transfer Leaderboards"},
+                {"utilityNineteen", "Minted Collection Analytics"},
+                {"utilityTwenty", "Owned Collection Analytics"},
+                {"utilityTwentyone", "Specific Collection Analytics"},
             };
             font.SetTextToPrimary(@"          ___");
             font.SetTextToPrimary(@"= = |\/| |___ |\ | |  | = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =");
             font.SetTextToPrimary(@"= = |  | |___ | \| |__| = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =");
             Console.WriteLine();
+            font.SetTextToPrimary("      = Minting =");
+            font.SetTextToWhite($"\t 1. {allUtilities.ElementAt(1).Value}");
+            font.SetTextToWhite($"\t 2. {allUtilities.ElementAt(2).Value}");
             font.SetTextToPrimary("      = LOOKUPS =");
             font.SetTextToSecondary("        Nft Data                                Nft Holders");
-            font.SetTextToWhite($"\t 1. {allUtilities.ElementAt(1).Value}\t 5. {allUtilities.ElementAt(5).Value}");
-            font.SetTextToWhite($"\t 2. {allUtilities.ElementAt(2).Value}\t\t 6. {allUtilities.ElementAt(6).Value}");
             font.SetTextToWhite($"\t 3. {allUtilities.ElementAt(3).Value}\t 7. {allUtilities.ElementAt(7).Value}");
             font.SetTextToWhite($"\t 4. {allUtilities.ElementAt(4).Value}\t\t 8. {allUtilities.ElementAt(8).Value}");
+            font.SetTextToWhite($"\t 5. {allUtilities.ElementAt(5).Value}\t 9. {allUtilities.ElementAt(9).Value}");
+            font.SetTextToWhite($"\t 6. {allUtilities.ElementAt(6).Value}\t        10. {allUtilities.ElementAt(10).Value}");
             font.SetTextToPrimary("      = AIRDROPS =");
-            font.SetTextToSecondary("        Nfts");
-            font.SetTextToWhite($"\t 9. {allUtilities.ElementAt(9).Value}");
-            font.SetTextToWhite($"\t10. {allUtilities.ElementAt(10).Value}");
-            font.SetTextToWhite($"\t11. {allUtilities.ElementAt(11).Value}");
-            font.SetTextToWhite($"\t12. {allUtilities.ElementAt(12).Value}");
-            font.SetTextToSecondary("        Crypto");
-            font.SetTextToWhite($"\t13. {allUtilities.ElementAt(13).Value}");
+            font.SetTextToSecondary("        Nfts                                   Crypto");
+            font.SetTextToWhite($"\t11. {allUtilities.ElementAt(11).Value}\t\t\t15. {allUtilities.ElementAt(15).Value}");
+            font.SetTextToWhite($"\t12. {allUtilities.ElementAt(12).Value}\t16. {allUtilities.ElementAt(16).Value}");
+            font.SetTextToWhite($"\t13. {allUtilities.ElementAt(13).Value}\t17. {allUtilities.ElementAt(17).Value}");
             font.SetTextToWhite($"\t14. {allUtilities.ElementAt(14).Value}");
-            font.SetTextToWhite($"\t15. {allUtilities.ElementAt(15).Value}");
             font.SetTextToPrimary("      = ANALYTICS =");
-            font.SetTextToWhite($"\t16. {allUtilities.ElementAt(16).Value}");
-            font.SetTextToWhite($"\t17. {allUtilities.ElementAt(17).Value}");
             font.SetTextToWhite($"\t18. {allUtilities.ElementAt(18).Value}");
             font.SetTextToWhite($"\t19. {allUtilities.ElementAt(19).Value}");
+            font.SetTextToWhite($"\t20. {allUtilities.ElementAt(20).Value}");
+            font.SetTextToWhite($"\t21. {allUtilities.ElementAt(21).Value}");
             font.SetTextToPrimary("      = Tips/FAQs =");
             font.SetTextToWhite($"\t 0. {allUtilities.ElementAt(0).Value}");
             Console.WriteLine();
@@ -123,6 +124,22 @@ namespace Maize.Helpers
             font.SetTextToTertiary("Start a new functionality?");
             var userResponseReadyToMoveOn = Utils.CheckYesOrNo(font);
             return userResponseReadyToMoveOn;
+        }
+        public static void UtilityHeader(Font font, string utilityTitle, string utilityDescription, string utilityNeeds, string? optionalInformation, bool transactionDisclaimer)
+        {
+            font.SetTextToPrimary($" - {utilityTitle} -");
+            font.SetTextToSecondary(utilityDescription);
+            font.SetTextToSecondary(utilityNeeds);
+            if(optionalInformation != null)
+                font.SetTextToSecondary(optionalInformation);
+            if (transactionDisclaimer == true)
+            {
+                font.SetTextToPrimary($"Each batch mint will cost 0.000000000000000001 LRC.");
+                font.SetTextToPrimary($"This will only occur if at least one mint was successful.");
+            }
+            Console.WriteLine();
+            font.SetTextToPrimary("Let's get started.");
+            Console.WriteLine();
         }
 
         //public static void ColorfulAnimation()

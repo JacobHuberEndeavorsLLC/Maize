@@ -27,7 +27,7 @@ namespace Maize.Helpers
             {
                 if (nftMetadata.description == "Request failed with status code Forbidden")
                 {
-                    Console.Write($"\r                                                                                                            ");
+                    Utils.ClearLine();
                     font.SetTextToTertiaryInline($"\rIPFS timeout issue...I sleep for 5 min.");
                     Thread.Sleep(60000);
                     font.SetTextToTertiaryInline($"\rIPFS timeout issue...I sleep for 4 min.");

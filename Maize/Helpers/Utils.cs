@@ -22,7 +22,10 @@ namespace Maize
 {
     public static class Utils
     {
-
+        public static void ClearLine()
+        {
+            Console.Write($"\r                                                                                                            ");
+        }
         public static BigInteger ParseHexUnsigned(string toParse)
         {
             toParse = toParse.Replace("0x", "");
@@ -402,7 +405,7 @@ namespace Maize
             string nftAmount;
             do
             {
-                nftAmount = ReadLineWarningNoNullsForceInt("How many Nfts do you want to transfer to each address?", font);
+                nftAmount = ReadLineWarningNoNullsForceInt("How many Nfts do you want to transfer to each address?", font, null, null);
             } while (nftAmount == null);
             while ((howManyWallets * int.Parse(nftAmount)) > int.Parse(userNftTokentotalNum))
             {
@@ -411,7 +414,7 @@ namespace Maize
                 font.SetTextToYellow("How many of your Nft do you want to transfer to each address?");
                 do
                 {
-                    nftAmount = ReadLineWarningNoNullsForceInt("How many Nfts do you want to transfer to each address?", font);
+                    nftAmount = ReadLineWarningNoNullsForceInt("How many Nfts do you want to transfer to each address?", font, null, null);
                 } while (nftAmount == null);
                 howManyWallets = GetInputDotTxtLines(fileName);
             }
@@ -438,42 +441,46 @@ namespace Maize
             switch (utility)
             {
                 case 2:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Ids. You will have one Nft Id per line.");
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add CIDs from your json files. You will have one CID per line.");
                     Console.WriteLine();
                     break;
-                case 5:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
+                case 4:
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Ids. You will have one Nft Id per line.");
                     Console.WriteLine();
                     break;
                 case 7:
                     font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
                     Console.WriteLine();
                     break;
-                case 8:
+                case 9:
                     font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
                     Console.WriteLine();
                     break;
-                case 9:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
-                    Console.WriteLine();
-                    break;
                 case 10:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet address a comma and then the amount you want to send (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,2). You will have one wallet address and one amount per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
                     Console.WriteLine();
                     break;
                 case 11:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet address a comma and then the nft data (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,0x103cb20d3b310873f711d25758d57f18ba77a6b7842ae605d662e0ddd908ed5a). You will have one wallet address and nft data per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 case 12:
-                    font.SetTextToSecondary("In the Banish.txt located in the project directory add the minter wallet address whose Nfts you want to remove from your wallet. You will have one wallet address per line and you can add a long wallet address or the ENS.");
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet address a comma and then the amount you want to send (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,2). You will have one wallet address and one amount per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 case 13:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC/ETH. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet address a comma and then the nft data (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,0x103cb20d3b310873f711d25758d57f18ba77a6b7842ae605d662e0ddd908ed5a). You will have one wallet address and nft data per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    Console.WriteLine();
+                    break;
+                case 14:
+                    font.SetTextToSecondary("In the Banish.txt located in the project directory add the minter wallet address whose Nfts you want to remove from your wallet. You will have one wallet address per line and you can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 case 15:
+                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC/ETH. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    Console.WriteLine();
+                    break;
+                case 17:
                     font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC/ETH. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
@@ -492,18 +499,29 @@ namespace Maize
             }
             return s;
         }
-        public static string ReadLineWarningNoNullsForceInt(string message, Font font)
+        public static string ReadLineWarningNoNullsForceInt(string message, Font font, int? min, int? max)
         
         {
+            var counter = 0;
+            bool number;
             var s = Console.ReadLine();
             int i;
-            bool number = int.TryParse(s, out i);
-            while (string.IsNullOrEmpty(s) || number == false)
+            do
             {
-                font.SetTextToYellow($"Please, {message}");
-                s = Console.ReadLine();
+                if (counter > 0)
+                {
+                    font.SetTextToYellow($"Please, {message} ");
+                    s = Console.ReadLine();
+                }
                 number = int.TryParse(s, out i);
-            }
+                number = int.TryParse(s, out i);
+                if (min != null & max != null)
+                    if (number == true && (i > max || i < min))
+                        number = false;
+                counter++;
+            } while ((string.IsNullOrEmpty(s) || number == false));
+
+
             return i.ToString();
         } 
         public static string ReadLineWarningNoNullsForceCollection(string message, Font font, List<string> collections)
@@ -725,13 +743,13 @@ namespace Maize
         {
             if (validAddresses > 0)
             {
-                Console.Write($"\r                                                                                                            ");
+                Utils.ClearLine();
                 font.SetTextToSecondaryInline($"\rFinished ");
                 font.SetTextToPrimaryInline($"\rThere were {validAddresses} complete transactions.");
             }
             else
             {
-                Console.Write($"\r                                                                                                            ");
+                Utils.ClearLine();
                 font.SetTextToSecondaryInline($"\rFinished. ");
             }
             font.SetTextToPrimary($"This took {Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m} seconds or {Math.Round(Convert.ToDecimal((sw.ElapsedMilliseconds) / 1000m) / 60, 3)} minutes to complete.");

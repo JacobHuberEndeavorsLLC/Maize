@@ -1,4 +1,5 @@
 ﻿using Maize.Models;
+using Nethereum.RLP;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -58,7 +59,7 @@ namespace Maize.Helpers
         public static void DisplayContestants(Font font, List<Leaderboard> leaderBoardContestants, IEnumerable<Leaderboard> userInformation, string fromAddress, string leaderboardHeader)
         {
             font.SetTextToPrimary(String.Format($" - {leaderboardHeader} - "));
-            font.SetTextToTertiary($"{leaderBoardContestants.Count()} wallets counted.");
+            font.SetTextToTertiary($"{leaderBoardContestants.Count()} wallets counted with {leaderBoardContestants.Sum(x=>x.transactionCount)} transactions and {leaderBoardContestants.Sum(x => x.nftAmountSent)} Nfts sent.");
             font.SetTextToPrimary(String.Format("|{0,42}|{1,12}|{2,10}|", "User", "Transactions", "Nfts Sent"));
             var counter = 0;
             foreach (var item in leaderBoardContestants.OrderByDescending(x => x.transactionCount).Take(10))
@@ -78,6 +79,10 @@ namespace Maize.Helpers
                 font.SetTextToWhite(String.Format("|{0,42}|{1,12}|{2,10}|", userInformation.First().owner, userInformation.First().transactionCount, userInformation.First().nftAmountSent));
             }
             Console.WriteLine();
+            //foreach (var item in leaderBoardContestants)
+            //{
+            //    Console.WriteLine(item.owner);
+            //}
         }
     }
 }
