@@ -54,7 +54,7 @@ You will need to change the both the main and test appsettings.json" file in the
   }
 }
 ```
-After setting up the appsettings.json, launch Maize and get started.
+After setting up the 2 appsettings.json, launch Maize and get started.
 
 ## Banish.txt setup
 In the Banish.txt located in the project directory add wallet addresses that you do not want to send to. If you have a wallet address that you never want to airdrop an Nft to or send crypto to then you can place them on this list. The application checks this list before sending Nfts or crypto. You can add a long wallet address or the ENS.
