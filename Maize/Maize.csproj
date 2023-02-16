@@ -37,37 +37,43 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AAAtestnetappsettings.json">
+    <None Update="Input\Environment\AAAtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="AAAmainnetappsettings.json">
+    <None Update="Input\Environment\AAAmainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="AAAmainnetappsettings.json">
+    <None Update="Input\Environment\AAAmainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="AAAtestnetappsettings.json">
+    <None Update="Input\Environment\AAAtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="mainnetappsettings.json">
+    <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="testnetappsettings.json">
+    <None Update="Input\Files\WannaCollab.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Files\WannaCollab.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TESTtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Banish.txt">
+    <None Update="Input\Banish.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input.txt">
+    <None Update="Input\Input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="OutputFiles\" />
+    <Folder Include="Output\" />
   </ItemGroup>
 
 </Project>

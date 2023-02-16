@@ -94,7 +94,7 @@ namespace Maize
             var userResponse = Console.ReadLine().ToLower();
             while ((userResponse != "yes") && (userResponse != "no") && (userResponse != "y") && (userResponse != "n"))
             {
-                font.SetTextToYellow("Please answer yes (y) or no (n).");
+                font.ToYellow("Please answer yes (y) or no (n).");
                 userResponse = Console.ReadLine().ToLower();
             }
             return userResponse;
@@ -104,7 +104,7 @@ namespace Maize
             var userResponse = Console.ReadLine().ToLower();
             while ((userResponse != "yes") && (userResponse != "help") && (userResponse != "y") && (userResponse != "h"))
             {
-                font.SetTextToYellow("Please answer yes (y) or help (h).");
+                font.ToYellow("Please answer yes (y) or help (h).");
                 userResponse = Console.ReadLine().ToLower();
             }
             return userResponse;
@@ -115,7 +115,7 @@ namespace Maize
             var userResponse = Console.ReadLine().ToLower();
             while ((userResponse != "one") && (userResponse != "many"))
             {
-                font.SetTextToYellow("Please answer one or many.");
+                font.ToYellow("Please answer one or many.");
                 userResponse = Console.ReadLine().ToLower();
             }
             return userResponse;
@@ -125,9 +125,13 @@ namespace Maize
             var userResponse = Console.ReadLine().ToLower();
             while ((userResponse != "mainnet") && (userResponse != "m") && (userResponse != "testnet") && (userResponse != "t"))
             {
-                font.SetTextToYellow("Please answer mainnet (m) or testnet (t).");
+                font.ToYellow("Please answer mainnet (m) or testnet (t).");
                 userResponse = Console.ReadLine().ToLower();
             }
+            if (userResponse == "m")
+                userResponse = "mainnet";
+            else if (userResponse == "t")
+                userResponse = "testnet";
             return userResponse;
         }
 
@@ -136,7 +140,7 @@ namespace Maize
             var userResponse = Console.ReadLine().ToLower();
             while (userResponse != "yes" && userResponse != "y")
             {
-                font.SetTextToYellow("Please answer yes (y) when you are ready.");
+                font.ToYellow("Please answer yes (y) when you are ready.");
                 userResponse = Console.ReadLine().ToLower();
             }
             return userResponse;
@@ -150,7 +154,7 @@ namespace Maize
                 checkNumber = int.TryParse(Console.ReadLine(), out userResponse);
                 if (checkNumber == false || userResponse > maxUtilityNumber || userResponse < 0)
                 {
-                    font.SetTextToYellow($"Please enter a number between 0 and {maxUtilityNumber}.");
+                    font.ToYellow($"Please enter a number between 0 and {maxUtilityNumber}.");
 
                 }
             } while (checkNumber == false || userResponse > maxUtilityNumber || userResponse < 0);
@@ -169,7 +173,7 @@ namespace Maize
                 }
                 else
                 {
-                    font.SetTextToYellow("Please answer 0 or 1.");
+                    font.ToYellow("Please answer 0 or 1.");
                     validOrNot = int.TryParse(Console.ReadLine()?.ToLower().Trim(), out userResponse);
                 }
             } while (((userResponse != 0) && (userResponse != 1)) || validOrNot == false);
@@ -177,7 +181,7 @@ namespace Maize
             return userResponse;
         }
 
-        public static int CheckInputDotTxt(int utility, string fileName, Font font)
+        public static int CheckInputDotTxt(int utility, string fileName, string inputPath, Font font)
         {
             StreamReader sr;
             string walletAddresses;
@@ -188,24 +192,23 @@ namespace Maize
             {
                 if (counter == 0)
                 {
-                    font.SetTextToTertiaryInline($"Did you setup your {fileName}? ");
-                    font.SetTextToDarkGray("Type help for file setup.");
-                    //font.SetREADMEFontColorDarkGray("Check the ", "README", $" for {fileName} setup.");
+                    font.ToTertiaryInline($"Did you setup your {fileName}? ");
+                    font.ToDarkGray("Type help for file setup.");
                     userResponseOnWalletSetup = CheckYesOrHelp(font);
                     if (userResponseOnWalletSetup == "help" || userResponseOnWalletSetup == "h")
                     {
                         InputFileHelp(utility, font);
-                        font.SetTextToTertiary($"Did you setup your {fileName}?");
+                        font.ToTertiary($"Did you setup your {fileName}?");
                         userResponseOnWalletSetup = CheckYes(font);
                     }
-                    sr = new StreamReader($"./{fileName}");
+sr = new StreamReader($"./{inputPath}/{fileName}");
                     counter++;
                 }
                 else
                 {
                     font.SetREADMEFontColorYellow("It doesn't look like you did. Please refer to the ","README", " and respond yes (y) when you are ready.");
                     userResponseOnWalletSetup = CheckYes(font);
-                    sr = new StreamReader($"./{fileName}");
+sr = new StreamReader($"./{inputPath}/{fileName}");
                 }
                 walletAddresses = sr.ReadToEnd().Replace("\r\n", "\r");
                 howManyLines = walletAddresses.Split('\r').Length;
@@ -221,7 +224,7 @@ namespace Maize
             } while (walletAddresses == "");
             return howManyLines;
         }
-        public static FileAmountsNft CheckInputDotTxtTwoInputsNft(int utility, string fileName, Font font)
+        public static FileAmountsNft CheckInputDotTxtTwoInputsNft(int utility, string fileName, string inputPath, Font font)
         {
             StreamReader sr;
             string walletAddresses;
@@ -234,17 +237,16 @@ namespace Maize
             {
                 if (counter == 0)
                 {
-                    font.SetTextToTertiaryInline($"Did you setup your {fileName}? ");
-                    font.SetTextToDarkGray("Type help for file setup.");
-                    //font.SetREADMEFontColorDarkGray("Check the ", "README", $" for {fileName} setup.");
+                    font.ToTertiaryInline($"Did you setup your {fileName}? ");
+                    font.ToDarkGray("Type help for file setup.");
                     helpSetup = CheckYesOrHelp(font);
                     if (helpSetup == "help" || helpSetup == "h")
                     {
                         InputFileHelp(utility, font);
-                        font.SetTextToTertiary($"Did you setup your {fileName}?");
+                        font.ToTertiary($"Did you setup your {fileName}?");
                         helpSetup = CheckYes(font);
                     }
-                    sr = new StreamReader($"./{fileName}");
+                    sr = new StreamReader($"./{inputPath}/{fileName}");
                     counter++;
                 }
                 else
@@ -254,7 +256,7 @@ namespace Maize
                         font.SetREADMEFontColorYellow("It doesn't look like you did. Please refer to the ", "README", " and respond yes (y) when you are ready.");
                     }
                     CheckYes(font);
-                    sr = new StreamReader($"./{fileName}");
+                    sr = new StreamReader($"./{inputPath}/{fileName}");
                 }
                 walletAddresses = sr.ReadToEnd().Replace("\r\n", "\r");
                 howManyLines = walletAddresses.Split('\r').Length;
@@ -267,7 +269,7 @@ namespace Maize
                     } while (walletAddresses.EndsWith('\r'));
                 }
                 sr.Dispose();
-                sr = new StreamReader($"./{fileName}");
+                sr = new StreamReader($"{AppDomain.CurrentDomain.BaseDirectory}{inputPath}/{fileName}");
                 try
                 {
                     totalNftAmount = 0;
@@ -284,8 +286,8 @@ namespace Maize
                 }
                 catch (Exception)
                 {
-                    font.SetTextToYellow($"It looks like your {fileName} needs the walletAddress,nftAmount.");
-                    font.SetTextToTertiary("Respond yes (y) when you are ready.");
+                    font.ToYellow($"It looks like your {fileName} needs the walletAddress,nftAmount.");
+                    font.ToTertiary("Respond yes (y) when you are ready.");
                     walletAddresses = "";
                     noDoubleWarning = true;
                 }
@@ -298,7 +300,7 @@ namespace Maize
             };
             return finalAmounts; 
         }
-        public static FileAmountsLrc CheckInputDotTxtTwoInputsLrc(int utility, string fileName, Font font)
+        public static FileAmountsLrc CheckInputDotTxtTwoInputsLrc(int utility, string fileName, string inputPath, Font font)
         {
             StreamReader sr;
             string walletAddresses;
@@ -311,17 +313,17 @@ namespace Maize
             {
                 if (counter == 0)
                 {
-                    font.SetTextToTertiaryInline($"Did you setup your {fileName}? ");
-                    font.SetTextToDarkGray("Type help for file setup.");
+                    font.ToTertiaryInline($"Did you setup your {fileName}? ");
+                    font.ToDarkGray("Type help for file setup.");
                     //font.SetREADMEFontColorDarkGray("Check the ", "README", $" for {fileName} setup.");
                     helpSetup = CheckYesOrHelp(font);
                     if (helpSetup == "help" || helpSetup == "h")
                     {
                         InputFileHelp(utility, font);
-                        font.SetTextToTertiary($"Did you setup your {fileName}?");
+                        font.ToTertiary($"Did you setup your {fileName}?");
                         helpSetup = CheckYes(font);
                     }
-                    sr = new StreamReader($"./{fileName}");
+    sr = new StreamReader($"./{inputPath}/{fileName}");
                     counter++;
                 }
                 else
@@ -331,7 +333,7 @@ namespace Maize
                         font.SetREADMEFontColorYellow("It doesn't look like you did. Please refer to the ", "README", " and respond yes (y) when you are ready.");
                     }
                     CheckYes(font);
-                    sr = new StreamReader($"./{fileName}");
+    sr = new StreamReader($"./{inputPath}/{fileName}");
                 }
                 walletAddresses = sr.ReadToEnd().Replace("\r\n", "\r");
                 howManyLines = walletAddresses.Split('\r').Length;
@@ -344,7 +346,7 @@ namespace Maize
                     } while (walletAddresses.EndsWith('\r'));
                 }
                 sr.Dispose();
-                sr = new StreamReader($"./{fileName}");
+sr = new StreamReader($"./{inputPath}/{fileName}");
                 try
                 {
                     totalLrcAmount = 0;
@@ -361,8 +363,8 @@ namespace Maize
                 }
                 catch (Exception)
                 {
-                    font.SetTextToYellow($"It looks like your {fileName} needs the walletAddress,nftAmount.");
-                    font.SetTextToTertiary("Respond yes (y) when you are ready.");
+                    font.ToYellow($"It looks like your {fileName} needs the walletAddress,nftAmount.");
+                    font.ToTertiary("Respond yes (y) when you are ready.");
                     walletAddresses = "";
                     noDoubleWarning = true;
                 }
@@ -376,7 +378,7 @@ namespace Maize
             return finalAmounts;
         }
 
-        public static int GetInputDotTxtLines(string fileName)
+        public static int GetInputDotTxtLines(string fileName, string inputPath)
         {
             StreamReader sr;
             string walletAddresses;
@@ -384,7 +386,7 @@ namespace Maize
             do
             {
 
-                sr = new StreamReader($"./{fileName}");
+sr = new StreamReader($"./{inputPath}/{fileName}");
                 walletAddresses = sr.ReadToEnd().Replace("\r\n", "\r");
                 howManyLines = walletAddresses.Split('\r').Length;
                 if (walletAddresses.EndsWith('\r'))
@@ -400,7 +402,7 @@ namespace Maize
             return howManyLines;
         }
 
-        public static string CheckNftSendAmount(int howManyWallets, string userNftTokentotalNum, string fileName, Font font)
+        public static string CheckNftSendAmount(int howManyWallets, string userNftTokentotalNum, string fileName, string inputPath, Font font)
         {
             string nftAmount;
             do
@@ -409,30 +411,30 @@ namespace Maize
             } while (nftAmount == null);
             while ((howManyWallets * int.Parse(nftAmount)) > int.Parse(userNftTokentotalNum))
             {
-                font.SetTextToRed($"Math Error. You have {userNftTokentotalNum} of this Nft in your wallet and want to " +
+                font.ToRed($"Math Error. You have {userNftTokentotalNum} of this Nft in your wallet and want to " +
                     $"send to {nftAmount} of them to {howManyWallets} wallets each.");
-                font.SetTextToYellow("How many of your Nft do you want to transfer to each address?");
+                font.ToYellow("How many of your Nft do you want to transfer to each address?");
                 do
                 {
                     nftAmount = ReadLineWarningNoNullsForceInt("How many Nfts do you want to transfer to each address?", font, null, null);
                 } while (nftAmount == null);
-                howManyWallets = GetInputDotTxtLines(fileName);
+                howManyWallets = GetInputDotTxtLines(fileName, inputPath);
             }
             return nftAmount;
         }        
-        public static void CheckNftSendAmountTwoInputs(int utility, int nftTransferAmount, string userNftTokentotalNum, string fileName, Font font)
+        public static void CheckNftSendAmountTwoInputs(int utility, int nftTransferAmount, string userNftTokentotalNum, string fileName, string inputPath, Font font)
         {
             while ((nftTransferAmount) > int.Parse(userNftTokentotalNum))
             {
                 do
                 {
-                    font.SetTextToRed($"Math Error. You have {userNftTokentotalNum} of this Nft in your wallet and want to " +
+                    font.ToRed($"Math Error. You have {userNftTokentotalNum} of this Nft in your wallet and want to " +
                     $"send to {nftTransferAmount} of them.");
-                    font.SetTextToYellow("Please adjust your input file.");
-                    var fileAmounts = Utils.CheckInputDotTxtTwoInputsNft(utility, fileName, font);
+                    font.ToYellow("Please adjust your input file.");
+                    var fileAmounts = Utils.CheckInputDotTxtTwoInputsNft(utility, fileName, inputPath, font);
                     nftTransferAmount = fileAmounts.nftAmount;
                 } while ((nftTransferAmount) > int.Parse(userNftTokentotalNum));
-                nftTransferAmount = GetInputDotTxtLines(fileName);
+                nftTransferAmount = GetInputDotTxtLines(fileName, inputPath);
             }
             //return nftTransferAmount;
         }
@@ -441,47 +443,51 @@ namespace Maize
             switch (utility)
             {
                 case 2:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add CIDs from your json files. You will have one CID per line.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add CIDs from your json files. You will have one CID per line.");
                     Console.WriteLine();
                     break;
-                case 4:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Ids. You will have one Nft Id per line.");
+                case 3:
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add a wallet address a comma and then the amount you want to send (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,2). You will have one wallet address and one amount per line. Each wallet address will be one transfer. Be sure to have enough LRC for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
-                case 7:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
+                case 5:
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add Nft Ids. You will have one Nft Id per line.");
                     Console.WriteLine();
                     break;
-                case 9:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
+                case 8:
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
                     Console.WriteLine();
                     break;
                 case 10:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
                     Console.WriteLine();
                     break;
                 case 11:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add Nft Data. You will have one Nft Data per line.");
                     Console.WriteLine();
                     break;
                 case 12:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet address a comma and then the amount you want to send (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,2). You will have one wallet address and one amount per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer. Be sure to have enough LRC for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 case 13:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet address a comma and then the nft data (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,0x103cb20d3b310873f711d25758d57f18ba77a6b7842ae605d662e0ddd908ed5a). You will have one wallet address and nft data per line. Each wallet address will be one transfer. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add a wallet address a comma and then the amount you want to send (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,2). You will have one wallet address and one amount per line. Each wallet address will be one transfer. Be sure to have enough LRC for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 case 14:
-                    font.SetTextToSecondary("In the Banish.txt located in the project directory add the minter wallet address whose Nfts you want to remove from your wallet. You will have one wallet address per line and you can add a long wallet address or the ENS.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add a wallet address a comma and then the nft data (example: 0x4a71e0267207cec67c78df8857d81c508d43b00d,0x103cb20d3b310873f711d25758d57f18ba77a6b7842ae605d662e0ddd908ed5a). You will have one wallet address and nft data per line. Each wallet address will be one transfer. Be sure to have enough LRC for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 case 15:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC/ETH. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Banish.txt located in the project directory add the minter wallet address whose Nfts you want to remove from your wallet. You will have one wallet address per line and you can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
-                case 17:
-                    font.SetTextToSecondary("In the Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC/ETH. Be sure to have enough LRC/ETH for each transfer. You can add a long wallet address or the ENS.");
+                case 16:
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC. Be sure to have enough LRCfor each transfer. You can add a long wallet address or the ENS.");
+                    Console.WriteLine();
+                    break;
+                case 18:
+                    font.ToSecondary($"In the {AppDomain.CurrentDomain.BaseDirectory}Input\\Input.txt located in the project directory add a wallet addresses. You will have one wallet address per line. Each wallet address will be one transfer of LRC. Be sure to have enough LRC for each transfer. You can add a long wallet address or the ENS.");
                     Console.WriteLine();
                     break;
                 default:
@@ -494,7 +500,7 @@ namespace Maize
             var s = Console.ReadLine();
             while (string.IsNullOrEmpty(s))
             {
-                font.SetTextToYellow($"Please, {message}");
+                font.ToYellow($"Please, {message}");
                 s = Console.ReadLine();
             }
             return s;
@@ -510,7 +516,7 @@ namespace Maize
             {
                 if (counter > 0)
                 {
-                    font.SetTextToYellow($"Please, {message} ");
+                    font.ToYellow($"Please, {message} ");
                     s = Console.ReadLine();
                 }
                 number = int.TryParse(s, out i);
@@ -532,7 +538,7 @@ namespace Maize
 
             while (string.IsNullOrEmpty(s) || contains == false)
             {
-                font.SetTextToYellow($"Please, {message}");
+                font.ToYellow($"Please, {message}");
                 s = Console.ReadLine();
                 contains = collections.Contains(s);
             }
@@ -547,7 +553,7 @@ namespace Maize
             bool number = decimal.TryParse(s, out i);
             while (string.IsNullOrEmpty(s) || number == false)
             {
-                font.SetTextToYellow($"Please, {message}");
+                font.ToYellow($"Please, {message}");
                 s = Console.ReadLine();
                 number = decimal.TryParse(s, out i);
             }
@@ -564,7 +570,7 @@ namespace Maize
             {
                 if (counter == 0)
                 {
-                    font.SetTextToTertiary("For a monthly leaderboard enter the month number from 1 to 12. Enter 0 to exit.");
+                    font.ToTertiary("For a monthly leaderboard enter the month number from 1 to 12. Enter 0 to exit.");
                     counter++;
                 }
                 string sMonth = Console.ReadLine();
@@ -572,7 +578,7 @@ namespace Maize
                 // try to get a number from the string
                 if (!int.TryParse(sMonth, out iMonth))
                 {
-                    font.SetTextToYellow("You did not enter a number.");
+                    font.ToYellow("You did not enter a number.");
                     iMonth = -1; // so we continue the loop
                     continue;
                 }
@@ -583,7 +589,7 @@ namespace Maize
                 // not a month
                 if (iMonth < 1 || iMonth > 12)
                 {
-                    font.SetTextToYellow("The number must be from 1 to 12.");
+                    font.ToYellow("The number must be from 1 to 12.");
                     continue;
                 }
                 return iMonth;
@@ -631,7 +637,7 @@ namespace Maize
                 }
                 else
                 {
-                    csv.AppendLine($"The following did not receive {nftMetadataName}. They are invalid addresses or do not have an active Loopring account.");
+                    csv.AppendLine($"The following did not receive {nftMetadataName}.");
                 }
                 foreach (var address in invalidAddress)
                 {
@@ -684,7 +690,7 @@ namespace Maize
             csv.AppendLine($"Total Gas Fee: {(gasFeeTotal / 1000000000000000000m).ToString()} {maxFeeToken}");
             csv.AppendLine($"Total Transaction Fee: {transactionFeeTotal} {maxFeeToken}");
             csv.AppendLine($"Total LRC Spent: {transactionFeeTotal + ((gasFeeTotal / 1000000000000000000m))} {maxFeeToken}");
-            File.WriteAllText($"{AppDomain.CurrentDomain.BaseDirectory}OutputFiles\\{excelFileName}", csv.ToString());
+            File.WriteAllText($"{AppDomain.CurrentDomain.BaseDirectory}Output\\{excelFileName}", csv.ToString());
             return excelFileName;
         }
         public static string ShowAirdropAuditDead(List<string> validAddress, List<string> invalidAddress, List<string> banishAddress, List<string> invalidNftData, string? nftMetadataName, decimal gasFeeTotal, string maxFeeToken, decimal transactionFeeTotal)
@@ -735,7 +741,7 @@ namespace Maize
             csv.AppendLine($"Total Gas Fee: {(gasFeeTotal / 1000000000000000000m).ToString()} {maxFeeToken}");
             csv.AppendLine($"Total Transaction Fee: {transactionFeeTotal} {maxFeeToken}");
             csv.AppendLine($"Total LRC Spent: {transactionFeeTotal + ((gasFeeTotal / 1000000000000000000m))} {maxFeeToken}");
-            File.WriteAllText($"{AppDomain.CurrentDomain.BaseDirectory}OutputFiles\\{excelFileName}", csv.ToString());
+            File.WriteAllText($"{AppDomain.CurrentDomain.BaseDirectory}Output\\{excelFileName}", csv.ToString());
             return excelFileName;
         }
 
@@ -744,17 +750,17 @@ namespace Maize
             if (validAddresses > 0)
             {
                 Utils.ClearLine();
-                font.SetTextToSecondaryInline($"\rFinished ");
-                font.SetTextToPrimaryInline($"\rThere were {validAddresses} complete transactions.");
+                font.ToSecondaryInline($"\rFinished ");
+                font.ToPrimaryInline($"\rThere were {validAddresses} complete transactions.");
             }
             else
             {
                 Utils.ClearLine();
-                font.SetTextToSecondaryInline($"\rFinished. ");
+                font.ToSecondaryInline($"\rFinished. ");
             }
-            font.SetTextToPrimary($"This took {Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m} seconds or {Math.Round(Convert.ToDecimal((sw.ElapsedMilliseconds) / 1000m) / 60, 3)} minutes to complete.");
+            font.ToPrimary($"This took {Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m} seconds or {Math.Round(Convert.ToDecimal((sw.ElapsedMilliseconds) / 1000m) / 60, 3)} minutes to complete.");
             Console.WriteLine();
-            font.SetTextToWhite($@"An audit file can be found at: {AppDomain.CurrentDomain.BaseDirectory}OutputFiles\{excelFileName}");
+            font.ToWhite($@"An audit file can be found at: {AppDomain.CurrentDomain.BaseDirectory}Output\{excelFileName}");
         }
 
         public static int GetUnixTimestamp() => (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -798,6 +804,26 @@ namespace Maize
                 UtilsLoopring.CheckIpfsForbidden(font, nftMetadata);
             } while (nftMetadata == null);
             return nftMetadata;
+        }
+        public static async Task<FileInfo[]> GetTwoFilesInDirectory(Font font, string filePath)
+        {
+            font.ToSecondary("Did you setup your files?");
+            CheckYes(font);
+            FileInfo[] nftImageDirectoryFileNames;
+            do
+            {
+                nftImageDirectoryFileNames = Directory.GetFiles(filePath).Select(fn => new FileInfo(fn)).ToArray();
+
+                if (nftImageDirectoryFileNames.Count() != 2)
+                {
+                    font.ToRed("Please have 2 files in the Files folder: 1 image and 1 metadata.");
+                    font.ToSecondary("Did you fix it?");
+                    CheckYes(font);
+                }
+
+            } while (nftImageDirectoryFileNames.Count() != 2);
+
+            return nftImageDirectoryFileNames;
         }
     }
 }

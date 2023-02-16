@@ -69,7 +69,7 @@ namespace Maize
             var jObject = JObject.Parse(JsonConvert.SerializeObject(dataToSig));
             var jObjectFlattened = jObject.Flatten();
             var parameterString = JsonConvert.SerializeObject(jObjectFlattened);
-            if (nftFactory == "0xc852aC7aAe4b0f0a0Deb9e8A391ebA2047d80026")
+            if (nftFactory == "0xc852aC7aAe4b0f0a0Deb9e8A391ebA2047d80026" || nftFactory == "0x97BE94250AEF1Df307749aFAeD27f9bc8aB911db")
             {
                 signatureBase += Utils.UrlEncodeUpperCase("https://api3.loopring.io/api/v3/nft/collection") + "&";
             }

@@ -34,7 +34,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting storage id: {httpException.Message}");
+                _font.ToWhite($"Error getting storage id: {httpException.Message}");
                 return null;
             }
         }

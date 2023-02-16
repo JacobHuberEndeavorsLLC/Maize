@@ -6,6 +6,8 @@
     "LoopringAddress": "0xasdfasdfasdfasdf", //Your loopring address
     "LoopringAccountId": 1234, //Your loopring account id
     "ValidUntil": 1700000000, //How long this transfer should be valid for. Shouldn't have to change this value
-    "Environment": 5 // 1 = mainnet or 5 = Goerli
+    "Environment": 5, // 1 = mainnet or 5 = Goerli
+    "pinataJwt": "asdfasdfasdfasdf", // pinata jwt needed for uploading metadata. https://app.pinata.cloud/developers/api-keys
+    "nftStorageApiKey": "asdfasdfasdfasdf" // nft.storage api key needed for uploading image https://nft.storage/manage/
   }
 }

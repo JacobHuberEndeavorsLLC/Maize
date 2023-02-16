@@ -18,7 +18,7 @@ namespace Maize
             if (tokenId == null) return null;
             //call erc1155 or erc 721 contract depending on type 
             string? metadataLink = nftType == 0
-                ? await GetMetadataLink(tokenId, tokenAddress, "function uri(uint256 id) external view returns (string memory)", "uri") 
+                ? await GetMetadataLink(tokenId, tokenAddress, "function uri(uint256 id) external view returns (string memory)", "uri")
                 : await GetMetadataLink(tokenId, tokenAddress, "function tokenURI(uint256 tokenId) public view virtual override returns (string memory)", "tokenURI");
             if (metadataLink == null)
                 metadataLink = await GetMetadataLink(tokenId, CF_NFTTokenAddress, "function uri(uint256 id) external view returns (string memory)", "uri"); //call counterfactual nft contract
@@ -47,7 +47,7 @@ namespace Maize
         {
 
             var ensService = new ENSService(web3);
-           
+
             try
             {
                 return await ensService.ResolveAddressAsync(ens);

@@ -24,6 +24,8 @@ namespace Maize.Models
 
         public string? JSONContent { get; set; }
         public string? Error { get; set; }
+        public string? URL { get; set; }
+        public string? GatewayURL { get; set; }
     }
 
     public class NftAttribute

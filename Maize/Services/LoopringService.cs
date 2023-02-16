@@ -49,7 +49,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting storage id: {httpException.Message}");
+                _font.ToWhite($"Error getting storage id: {httpException.Message}");
                 return null;
             }
         }
@@ -68,7 +68,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting storage id: {httpException.Message}");
+                _font.ToWhite($"Error getting storage id: {httpException.Message}");
                 return null;
             }
         }
@@ -88,7 +88,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -105,7 +105,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -122,7 +122,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -145,7 +145,7 @@ namespace Maize
                 {
                     return allBlockInformation;
                 }
-                _font.SetTextToWhite($"Error getting block: {httpException.Message}");
+                _font.ToWhite($"Error getting block: {httpException.Message}");
                 return null;
             }
         }
@@ -163,7 +163,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting collection: {httpException.Message}");
+                _font.ToWhite($"Error getting collection: {httpException.Message}");
                 return null;
             }
         }
@@ -194,7 +194,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting collection: {httpException.Message}");
+                _font.ToWhite($"Error getting collection: {httpException.Message}");
                 return null;
             }
         }
@@ -249,7 +249,7 @@ namespace Maize
                 {
                     return $"Can not transfer nft to {toAddress} as it does not have an opened account.";
                 }
-                _font.SetTextToWhite($"Error submitting nft transfer: {httpException.Message}");
+                _font.ToWhite($"Error submitting nft transfer: {httpException.Message}");
                 return null;
             }
         }
@@ -298,7 +298,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error submitting token transfer: {httpException.Message}");
+                _font.ToWhite($"Error submitting token transfer: {httpException.Message}");
                 return null;
             }
         }
@@ -348,7 +348,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error submitting token transfer: {httpException.Message}");
+                _font.ToWhite($"Error submitting token transfer: {httpException.Message}");
                 return null;
             }
         }
@@ -367,7 +367,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting ens: {httpException.Message}");
+                _font.ToWhite($"Error getting ens: {httpException.Message}");
                 return null;
             }
         }
@@ -387,7 +387,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting ens: {httpException.Message}");
+                _font.ToWhite($"Error getting ens: {httpException.Message}");
                 return null;
             }
         }
@@ -426,7 +426,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -445,7 +445,7 @@ namespace Maize
                 {
                     if (counter != 0)
                     {
-                        _font.SetTextToYellow("This is not an NftData or this Nft isn't in your wallet. Please enter a correct one.");
+                        _font.ToYellow("This is not an NftData or this Nft isn't in your wallet. Please enter a correct one.");
                         nftData = Console.ReadLine();
                         request.AddOrUpdateParameter("nftDatas", nftData);
                     }
@@ -457,7 +457,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -490,7 +490,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -513,10 +513,10 @@ namespace Maize
             {
                 if (httpException.Message == "Request failed with status code BadRequest")
                 {
-                    _font.SetTextToRed($"Nft Data not found for {nftId}, {minter}, {tokenAddress}");
+                    _font.ToRed($"Nft Data not found for {nftId}, {minter}, {tokenAddress}");
                     return null;
                 }
-                _font.SetTextToWhite($"Error getting NftData: {httpException.Message}");
+                _font.ToWhite($"Error getting NftData: {httpException.Message}");
                 return null;
             }
         }
@@ -550,7 +550,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -586,7 +586,7 @@ namespace Maize
                 foreach (var item in allData)
                 {
                     Utils.ClearLine();
-                    font.SetTextToTertiaryInline($"\rNft: {counter}/{max} {nftMetadata.name} Nft Holder: {++holderCounter}/{allData.Count}");
+                    font.ToTertiaryInline($"\rNft: {counter}/{max} {nftMetadata.name} Nft Holder: {++holderCounter}/{allData.Count}");
                     var walletAddress = await loopringService.GetUserAccountInformation(item.accountId.ToString());
                     allDataAndHolders.Add(new NftHolderAndNftData
                     {
@@ -601,7 +601,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -632,7 +632,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -650,7 +650,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -668,7 +668,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -690,7 +690,7 @@ namespace Maize
                 {
                     return null;
                 }
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -725,14 +725,14 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
 
         public async Task<List<NftData>> GetUserMintedNfts(Font font, string apiKey, int accountId)
         {
-            _font.SetTextToPrimary("This may take a while depending on the minter and collection.");
+            _font.ToPrimary("This may take a while depending on the minter and collection.");
             var allDataMintsAndTotal = new List<MintsAndTotal>();
             var allDataMints = new List<Mint>();
             var allDataMintsAndTotalInCollection = new List<NftData>();
@@ -748,7 +748,7 @@ namespace Maize
                 allDataMintsAndTotal.Add(data);
                 allDataMints.AddRange(data.mints);
                 Utils.ClearLine();
-                font.SetTextToTertiaryInline($"\rGrabbing all mints");
+                font.ToTertiaryInline($"\rGrabbing all mints");
                 while (total >= 50)
                 {
                     total -= 50;
@@ -763,7 +763,7 @@ namespace Maize
                 foreach (var mint in allDataMints)
                 {
                     allDataMintsAndTotalInCollection.AddRange(await GetNftInformationFromNftData(apiKey, mint.nftData));
-                    font.SetTextToTertiaryInline($"\rGrabbing Nft: {++counter}/{allDataMints.Count}");
+                    font.ToTertiaryInline($"\rGrabbing Nft: {++counter}/{allDataMints.Count}");
                 }
                 //allDataMintsAndTotalInCollection = allDataMintsAndTotalInCollection.Where(x => x.tokenAddress.ToLower() == collectionId.ToLower()).ToList();
 
@@ -771,7 +771,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -793,7 +793,7 @@ namespace Maize
                 allDataMintsAndTotal.Add(data);
                 allDataMints.AddRange(data.mints);
                 Utils.ClearLine();
-                font.SetTextToTertiaryInline($"\rGrabbing all mints");
+                font.ToTertiaryInline($"\rGrabbing all mints");
                 while (total >= 50)
                 {
                     total -= 50;
@@ -808,7 +808,7 @@ namespace Maize
                 foreach (var mint in allDataMints)
                 {
                     allDataMintsAndTotalInCollection.AddRange(await GetNftInformationFromNftData(apiKey, mint.nftData));
-                    font.SetTextToTertiaryInline($"\rChecking Nft: {++counter}/{allDataMints.Count}");
+                    font.ToTertiaryInline($"\rChecking Nft: {++counter}/{allDataMints.Count}");
                 }
                 allDataMintsAndTotalInCollection = allDataMintsAndTotalInCollection.Where(x => x.tokenAddress.ToLower() == collectionId.ToLower()).ToList();
 
@@ -816,7 +816,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -837,7 +837,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting transfer off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting transfer off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -855,7 +855,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting transfer off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting transfer off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -874,7 +874,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting transfer off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting transfer off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -891,7 +891,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting transfer off chain fee: {httpException.Message}");
+                _font.ToWhite($"Error getting transfer off chain fee: {httpException.Message}");
                 return null;
             }
         }
@@ -901,7 +901,7 @@ namespace Maize
             List<string> banishAddresses = new();
             bool banned;
             string banishAddress;
-            using (StreamReader sr = new("./Banish.txt"))
+            using (StreamReader sr = new("./Input/Banish.txt"))
             {
                 while ((banishAddress = sr.ReadLine()) != null)
                 {
@@ -916,7 +916,7 @@ namespace Maize
                         else
                         {
                             //invalidAddress.Add(toAddressInitial);
-                            font.SetTextToTertiary($"Invalid address: {banishAddress}. Could not find an associated wallet.");
+                            font.ToTertiary($"Invalid address: {banishAddress}. Could not find an associated wallet.");
                             //continue;
                         }
                     }
@@ -939,7 +939,7 @@ namespace Maize
             List<string> banishAddresses = new();
             bool banned;
 
-            using (StreamReader sr = new("./Banish.txt"))
+            using (StreamReader sr = new("./Input/Banish.txt"))
             {
                 string banishAddress;
                 while ((banishAddress = sr.ReadLine()) != null)
@@ -955,7 +955,7 @@ namespace Maize
                         else
                         {
                             //invalidAddress.Add(toAddressInitial);
-                            font.SetTextToTertiary($"Invalid address: {banishAddress}. Could not find an associated wallet.");
+                            font.ToTertiary($"Invalid address: {banishAddress}. Could not find an associated wallet.");
                             //continue;
                         }
                     }
@@ -999,7 +999,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -1032,7 +1032,7 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.SetTextToWhite($"Error getting TokenId: {httpException.Message}");
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
             }
         }
@@ -1249,6 +1249,7 @@ namespace Maize
             int maxFeeTokenId,
             string fromAddress, 
             string fileName,
+            string inputPath,
             int howManyLines,
             int nftTokenId,
             string? nftAmount,
@@ -1272,7 +1273,7 @@ namespace Maize
             List<string> alreadyActivatedAddress = new();
 
 
-            using (StreamReader sr = new($"./{fileName}"))
+            using (StreamReader sr = new($"./{inputPath}/{fileName}"))
             {
 
                 while ((toAddressInitial = sr.ReadLine()) != null)
@@ -1294,14 +1295,14 @@ namespace Maize
                         var userNftToken = await loopringService.GetTokenId(loopringApiKey, fromAccountId, nftData);
                         if (userNftToken.totalNum == 0)
                         {
-                            font.SetTextToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
+                            font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
                             invalidNftData.Add(nftData);
                             continue;
                         }
                         nftTokenId = userNftToken.data[0].tokenId;
                     }
 
-                    font.SetTextToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
+                    font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
 
                     var toAddress = toAddressInitial.ToLower().Trim();
                     var storageId = await loopringService.GetNextStorageId(loopringApiKey, fromAccountId, nftTokenId);
@@ -1543,7 +1544,7 @@ namespace Maize
                 var offChainFee = await loopringService.GetOffChainFee(loopringApiKey, fromAccountId, 11, "0");
                 var nftMetadataLink = await ethereumService.GetMetadataLink(banishedNft.nftId, banishedNft.tokenAddress, 0);
                 var nftMetadata = await nftMetadataService.GetMetadata(nftMetadataLink);
-                font.SetTextToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Nft: {nftMetadata.name}");
+                font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Nft: {nftMetadata.name}");
 
                 var toAddress = "0xdEAD000000000000000042069420694206942069";
 
@@ -1728,6 +1729,7 @@ namespace Maize
             int fromAccountId,
             string fromAddress,
             string fileName,
+            string inputPath,
             int howManyLines,
             decimal amountToTransfer,
             long validUntil,
@@ -1750,12 +1752,12 @@ namespace Maize
             List<string> alreadyActivatedAddress = new();
 
 
-            using (StreamReader sr = new($"./{fileName}"))
+            using (StreamReader sr = new($"./{inputPath}/{fileName}"))
             {
                 while ((toAddressInitial = sr.ReadLine()) != null)
                 {
 
-                    font.SetTextToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
+                    font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
 
                     if (amountToTransferInitial == 0)
                     {
@@ -1989,6 +1991,7 @@ namespace Maize
             int fromAccountId,
             string fromAddress,
             string fileName,
+            string inputPath,
             int howManyLines,
             decimal amountToTransfer,
             long validUntil,
@@ -2009,11 +2012,11 @@ namespace Maize
             List<string> invalidNftData = new();
             List<string> alreadyActivatedAddress = new();
 
-            using (StreamReader sr = new($"./{fileName}"))
+            using (StreamReader sr = new($"./{inputPath}/{fileName}"))
             {
                 while ((toAddressInitial = sr.ReadLine()) != null)
                 {
-                    font.SetTextToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
+                    font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
 
                     var toAddress = toAddressInitial.ToLower().Trim();
 

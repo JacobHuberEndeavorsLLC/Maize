@@ -16,7 +16,7 @@ namespace Maize.Helpers
             StringBuilder collectionNftInformation, string excelFileName)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var fileNameLocation = new FileInfo($@".\OutputFiles\{excelFileName}");
+            var fileNameLocation = new FileInfo($@".\Output\{excelFileName}");
 
             await SaveExcelFile(userCollection, ownerAndTotal, ownerAndAmount, userCollectionInformation, collectionNftHolders, collectionNftInformation, fileNameLocation);
 

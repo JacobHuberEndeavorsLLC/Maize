@@ -16,5 +16,7 @@ namespace Maize
         public int MaxFeeTokenId { get; set; }
         public int Environment { get; set; }
         public string MMorGMEPrivateKey { get; set; }
+        public string PinataJwt { get; set; }
+        public string NftStorageApiKey { get; set; }
     }
 }

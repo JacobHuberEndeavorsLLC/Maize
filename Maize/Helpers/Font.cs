@@ -20,37 +20,37 @@ namespace Maize
             _consoleForegroundColorSecondary = consoleForegroundColorSecondary;
             _consoleForegroundColorTertiary = consoleForegroundColorTertiary;
         }
-        public void SetTextToPrimary(string str)
+        public void ToPrimary(string str)
         {
             Console.ForegroundColor = _consoleForegroundColorPrimary;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToPrimaryInline(string str)
+        public void ToPrimaryInline(string str)
         {
             Console.ForegroundColor = _consoleForegroundColorPrimary;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToSecondary(string str)
+        public void ToSecondary(string str)
         {
             Console.ForegroundColor = _consoleForegroundColorSecondary;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToSecondaryInline(string str)
+        public void ToSecondaryInline(string str)
         {
             Console.ForegroundColor = _consoleForegroundColorSecondary;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToTertiary(string str)
+        public void ToTertiary(string str)
         {
             Console.ForegroundColor = _consoleForegroundColorTertiary;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToTertiaryInline(string str)
+        public void ToTertiaryInline(string str)
         {
             Console.ForegroundColor = _consoleForegroundColorTertiary;
             Console.Write($"{str}", Console.ForegroundColor);
@@ -59,20 +59,20 @@ namespace Maize
         public void SetVersionFontColor(string beginning, string readMe, string end)
         {
 
-            SetTextToPrimaryInline(beginning);
+            ToPrimaryInline(beginning);
             Console.ForegroundColor = _consoleForegroundColorSecondary;
             Console.Write($"{readMe}", Console.ForegroundColor);
             Console.ResetColor();
-            SetTextToPrimary(end);
+            ToPrimary(end);
         }
         public void SetBraggingFont(string maize, string beginning, string transactionAmount, string middle, string nftAmount, string end)
         {
-            SetTextToPrimaryInline(maize);
-            SetTextToSecondaryInline(beginning);
-            SetTextToPrimaryInline(transactionAmount);
-            SetTextToSecondaryInline(middle);
-            SetTextToPrimaryInline(nftAmount);
-            SetTextToSecondary(end);
+            ToPrimaryInline(maize);
+            ToSecondaryInline(beginning);
+            ToPrimaryInline(transactionAmount);
+            ToSecondaryInline(middle);
+            ToPrimaryInline(nftAmount);
+            ToSecondary(end);
         }
         public void SetREADMEFontColor(string beginning, string readMe, string end)
         {
@@ -85,29 +85,29 @@ namespace Maize
 
         public void SetREADMEFontColorPurple(string beginning, string readMe, string end)
         {
-            SetTextToPurpleInline(beginning);
+            ToPurpleInline(beginning);
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write($"{readMe}", Console.ForegroundColor);
             Console.ResetColor();
-            SetTextToPurple(end);
+            ToPurple(end);
         }
         public  void SetREADMEFontColorYellow(string beginning, string readMe, string end)
         {
-            SetTextToYellowInline(beginning);
+            ToYellowInline(beginning);
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write($"{readMe}", Console.ForegroundColor);
             Console.ResetColor();
-            SetTextToYellow(end);
+            ToYellow(end);
         }
         public void SetREADMEFontColorDarkGray(string beginning, string readMe, string end)
         {
-            SetTextToDarkGrayInline(beginning);
+            ToDarkGrayInline(beginning);
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write($"{readMe}", Console.ForegroundColor);
             Console.ResetColor();
-            SetTextToDarkGray(end);
+            ToDarkGray(end);
         }
-        public  void SetTextToBlue(string str) {
+        public  void ToBlue(string str) {
             try
             {
                 Console.ForegroundColor = ConsoleColor.Blue;
@@ -120,126 +120,144 @@ namespace Maize
             }
 
         }
-        public void SetTextToBlueInline(string str)
+        public void ToBlueInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkBlue(string str)
+        public void ToDarkBlue(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkBlue;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
 
-        public void SetTextToYellow(string str)
+        public void ToYellow(string str)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkYellow(string str)
+        public void ToDarkYellow(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToYellowInline(string str)
+        public void ToYellowInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkYellowInline(string str)
+        public void ToDarkYellowInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
 
-        public void SetTextToRed(string str)
+        public void ToRed(string str)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToRedInline(string str)
+        public void ToRedInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToGreen(string str)
+        public void ToDarkRed(string str)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.WriteLine($"{str}", Console.ForegroundColor);
+            Console.ResetColor();
+        }
+        public void ToDarkRedInline(string str)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write($"{str}", Console.ForegroundColor);
+            Console.ResetColor();
+        }
+        public void ToGreen(string str)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToGreenInline(string str)
+        public void ToGreenInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkGreen(string str)
+        public void ToDarkGreen(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkGreenInline(string str)
+        public void ToDarkGreenInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToPurple(string str)
+        public void ToPurple(string str)
         {
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
 
-        public void SetTextToPurpleInline(string str)
+        public void ToPurpleInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
 
-        public void SetTextToDarkPurple(string str)
+        public void ToDarkPurple(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
 
-        public void SetTextToGray(string str)
+        public void ToGray(string str)
         {
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkGray(string str)
+        public void ToGrayInline(string str)
+        {
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write($"{str}", Console.ForegroundColor);
+            Console.ResetColor();
+        }
+        public void ToDarkGray(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToDarkGrayInline(string str)
+        public void ToDarkGrayInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToWhite(string str)
+        public void ToWhite(string str)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"{str}", Console.ForegroundColor);
             Console.ResetColor();
         }
-        public void SetTextToWhiteInline(string str)
+        public void ToWhiteInline(string str)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($"{str}", Console.ForegroundColor);
@@ -247,11 +265,11 @@ namespace Maize
         }
         public void PowerToTheCreators(Font font)
         {
-            font.SetTextToRedInline("+-+-+-+-+-+-+-+-+-+-+-");
+            font.ToRedInline("+-+-+-+-+-+-+-+-+-+-+-");
             Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+");
-            font.SetTextToRedInline("|P|o|w|e|r| |t|o| |t|h");
+            font.ToRedInline("|P|o|w|e|r| |t|o| |t|h");
             Console.WriteLine("|e| |C|r|e|a|t|o|r|s|");
-            font.SetTextToRedInline("+-+-+-+-+-+-+-+-+-+-+-");
+            font.ToRedInline("+-+-+-+-+-+-+-+-+-+-+-");
             Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+");
         }
     }

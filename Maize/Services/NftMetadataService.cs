@@ -25,7 +25,7 @@ namespace Maize
 
         public NftMetadataService(string ipfsBaseUrl)
         {
-            _client = new RestClient(ipfsBaseUrl);
+            _client = new RestClient();
             _ipfsBaseUrl = ipfsBaseUrl;
             _client.AddDefaultHeader("Accept", "Accept: text/plain");
         }
@@ -42,7 +42,7 @@ namespace Maize
         {
             if (link == null) return null;
 
-            var modLink = 
+            var modLink =
                 link.StartsWith("ipfs://ipfs/") ? _ipfsBaseUrl + link.Remove(0, 12) : //handle ERC721 uri glitches with extra /ipfs prefix
                     link.StartsWith("ipfs://") ? _ipfsBaseUrl + link.Remove(0, 7) : link; //remove the ipfs portion and add base
 
@@ -83,22 +83,26 @@ namespace Maize
 
         public async Task<NftMetadata?> GetMetadata(string link, CancellationToken cancellationToken = default)
         {
-            link = MakeIPFSLink(link)!;
+            var modifiedLink = MakeIPFSLink(link)!;
             //there is a fallback for if the metadata fails on the first try because
             //loopring deployed two different contracts for the nfts so some
             //metadata.json needs to be referenced directly while others are in a folder in ipfs
-            NftMetadata? nmd = await GetMetadataFromURL(link, cancellationToken);
+            NftMetadata? nmd = await GetMetadataFromURL(modifiedLink, cancellationToken);
+            var trySubFolder = (nmd == null);
+            if (nmd != null)
+                //if we got metadata with an error, check if the JSONContent is an HTML page of a
+                //root CID folder and it mentions a metadata.json file in it
+                trySubFolder = ((nmd?.Error != null) && (nmd.JSONContent?.Contains("metadata.json", StringComparison.InvariantCultureIgnoreCase) ?? false));
+            //never add metadata.json if the URL already has it, #248
+            if (modifiedLink.Contains("metadata.json", StringComparison.InvariantCultureIgnoreCase))
+                trySubFolder = false;
+            if (trySubFolder)
+                nmd = await GetMetadataFromURL(modifiedLink + "/metadata.json", cancellationToken);
             if (nmd != null)
             {
-                var forbidden = (nmd.description == "Request failed with status code Forbidden");
-                if (forbidden)
-                    return nmd;
+                nmd.URL = link;
+                nmd.GatewayURL = modifiedLink;
             }
-            var trySubFolder = (nmd == null);
-            if (!trySubFolder)
-                trySubFolder = ((nmd?.Error != null) && (nmd.JSONContent?.Contains("metadata.json") ?? false));
-            if (trySubFolder)
-                nmd = await GetMetadataFromURL(link + "/metadata.json", cancellationToken);
             return nmd;
         }
 
@@ -139,7 +143,7 @@ namespace Maize
                                 }
                                 catch
                                 {
-                                    return null;
+
                                 }
                             }
                         }
@@ -153,29 +157,24 @@ namespace Maize
             }
             catch (Exception e)
             {
-                Trace.WriteLine(e.StackTrace + "\n" + e.Message);
+                Debug.WriteLine(e.StackTrace + "\n" + e.Message);
                 return null;
             }
         }
 
         private async Task<NftMetadata?> GetMetadataFromURL(string URL, CancellationToken cancellationToken = default)
         {
-            var requestUrl = URL.Split('/');
-            var request = new RestRequest($"{requestUrl[4]}");
+            var request = new RestRequest(URL);
             try
             {
                 request.Timeout = 10000; //we can't afford to wait forever here, 10s must be enough
+                request.AddHeader("Accept", "Accept: text/plain");
                 var response = await _client.GetAsync(request, cancellationToken);
                 return GetMetadataFromResponse(response.Content!);
             }
             catch (Exception e)
             {
-                if (e.Message == "Request failed with status code Forbidden")
-                {
-                    var info = new NftMetadata() { description = e.Message };
-                    return info;
-                }
-                Trace.WriteLine(e.StackTrace + "\n" + e.Message);
+                Debug.WriteLine(e.StackTrace + "\n" + e.Message);
                 return null;
             }
         }

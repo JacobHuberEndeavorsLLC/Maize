@@ -14,9 +14,9 @@ namespace Maize.Helpers
     {
         public static void DisplayLeaderboardBanner(Font font)
         {
-            font.SetTextToPrimary(@".     ___  __  ___   ___  ___  __   __   __   ___ ___   __ ");
-            font.SetTextToPrimary(@"|    |___ |__| |  \ |___ |__/ |__] |  | |__| |__/ |  \ [__  ");
-            font.SetTextToPrimary(@"|___ |___ |  | |__/ |___ |  \ |__] |__| |  | |  \ |__/ ___] ");
+            font.ToPrimary(@".     ___  __  ___   ___  ___  __   __   __   ___ ___   __ ");
+            font.ToPrimary(@"|    |___ |__| |  \ |___ |__/ |__] |  | |__| |__/ |  \ [__  ");
+            font.ToPrimary(@"|___ |___ |  | |__/ |___ |  \ |__] |__| |  | |  \ |__/ ___] ");
             Console.WriteLine();
         }
         public static List<Leaderboard> GetLeaderBoardContestants(List<Transaction> nftTransfers)
@@ -58,25 +58,25 @@ namespace Maize.Helpers
 
         public static void DisplayContestants(Font font, List<Leaderboard> leaderBoardContestants, IEnumerable<Leaderboard> userInformation, string fromAddress, string leaderboardHeader)
         {
-            font.SetTextToPrimary(String.Format($" - {leaderboardHeader} - "));
-            font.SetTextToTertiary($"{leaderBoardContestants.Count()} wallets counted with {leaderBoardContestants.Sum(x=>x.transactionCount)} transactions and {leaderBoardContestants.Sum(x => x.nftAmountSent)} Nfts sent.");
-            font.SetTextToPrimary(String.Format("|{0,42}|{1,12}|{2,10}|", "User", "Transactions", "Nfts Sent"));
+            font.ToPrimary(String.Format($" - {leaderboardHeader} - "));
+            font.ToTertiary($"{leaderBoardContestants.Count()} wallets counted with {leaderBoardContestants.Sum(x=>x.transactionCount)} transactions and {leaderBoardContestants.Sum(x => x.nftAmountSent)} Nfts sent.");
+            font.ToPrimary(String.Format("|{0,42}|{1,12}|{2,10}|", "User", "Transactions", "Nfts Sent"));
             var counter = 0;
             foreach (var item in leaderBoardContestants.OrderByDescending(x => x.transactionCount).Take(10))
             {
                 if (++counter <= 3 && leaderboardHeader != "Last 7 Days (Top 10)")
                 {
-                    font.SetTextToTertiary(String.Format("|{0,42}|{1,12}|{2,10}|", item.owner, item.transactionCount, item.nftAmountSent));
+                    font.ToTertiary(String.Format("|{0,42}|{1,12}|{2,10}|", item.owner, item.transactionCount, item.nftAmountSent));
                 }
                 else
                 {
-                    font.SetTextToWhite(String.Format("|{0,42}|{1,12}|{2,10}|", item.owner, item.transactionCount, item.nftAmountSent));
+                    font.ToWhite(String.Format("|{0,42}|{1,12}|{2,10}|", item.owner, item.transactionCount, item.nftAmountSent));
                 }
             }
             if (userInformation.Count() > 0 && leaderBoardContestants.OrderByDescending(x => x.transactionCount).Take(10).ToList().Where(x => x.owner.ToLower() == fromAddress.ToLower()).Count() == 0)
             {
-                font.SetTextToPrimary("Your Score: ");
-                font.SetTextToWhite(String.Format("|{0,42}|{1,12}|{2,10}|", userInformation.First().owner, userInformation.First().transactionCount, userInformation.First().nftAmountSent));
+                font.ToPrimary("Your Score: ");
+                font.ToWhite(String.Format("|{0,42}|{1,12}|{2,10}|", userInformation.First().owner, userInformation.First().transactionCount, userInformation.First().nftAmountSent));
             }
             Console.WriteLine();
             //foreach (var item in leaderBoardContestants)
