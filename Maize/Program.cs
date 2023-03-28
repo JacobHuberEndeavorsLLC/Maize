@@ -834,7 +834,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     foreach (var collection in userCollection.collections)
                     {
                         Console.WriteLine($"Name: {collection.collection.name}, ID: {collection.collection.id}");
-                        //collectionsDictionary.Add(collection.collection.id, collection.collection.name);
+                        collectionsDictionary.Add(collection.collection.id, collection.collection.name);
                     }
                 }
                 int collectionId = 0;
