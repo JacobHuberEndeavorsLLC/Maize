@@ -816,7 +816,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             font.ToDarkGray("You will need the minter and collection address.");
             Console.WriteLine();
             font.ToWhite("Let's get started.");
-            font.ToTertiary("You can choose to gather this data with either Option 1: By API or Option 2: By IPFS");
+            font.ToTertiary("You can choose to gather this data with either Option 1: By API or Option 2: By Infura & IPFS");
             string option = "";
             do
             {
@@ -848,10 +848,48 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                     if(collectionsDictionary.ContainsKey(collectionIdInt))
                     {
                         collectionIdString = collectionIdInt.ToString();
-                        Console.WriteLine($"Retrieving Nft Data for Collection: {collectionsDictionary[collectionIdInt]}...");
                     }
                 } 
                 while (collectionIdString == "");
+
+                sw = Stopwatch.StartNew();
+                Console.WriteLine($"Retrieving Nft Data for Collection: {collectionsDictionary[Int32.Parse(collectionIdString)]}...");
+                var nftsInCollection = await loopringService.GetNftCollectionItemsOfOwnAccount(settings.LoopringApiKey, collectionIdString);         
+                font.ToTertiaryInline($"\rYou have {nftsInCollection[0].totalNum} NFTs in this Collection.");
+                counter = 0;
+                Console.WriteLine();
+                foreach (var nftCollectionList in nftsInCollection)
+                {
+                    foreach(var nftItem in nftCollectionList.nftTokenInfos)
+                    {
+                        if(!string.IsNullOrEmpty(nftItem.metadata.basename.name))
+                        {
+                            nftDataAndName.Add(new NftDataAndName
+                            {
+                                nftData = nftItem.nftData,
+                                nftName = nftItem.metadata.basename.name
+                            });
+                        }
+                        else
+                        {
+                            nftDataAndName.Add(new NftDataAndName
+                            {
+                                nftData = nftItem.nftData,
+                                nftName = "Name could not be retrieved..."
+                            });
+                        }
+                    }
+                }
+
+                excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
+                using (var writer = new StreamWriter($"./Output/{excelFileName}"))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(nftDataAndName);
+                }
+                sw.Stop();
+                Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
+                break;
             }
             else if(option == "2")
             {

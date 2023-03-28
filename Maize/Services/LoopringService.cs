@@ -2280,6 +2280,44 @@ namespace Maize
             GC.SuppressFinalize(this);
         }
 
-
+        public async Task<List<NftCollectionItemsWithMetadata>> GetNftCollectionItemsOfOwnAccount(string apiKey, string collectionId)
+        {
+            List<NftCollectionItemsWithMetadata> collections = new List<NftCollectionItemsWithMetadata>();
+            var request = new RestRequest("/api/v3/nft/public/collection/items");
+            int offset = 0;
+            request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("id", Int32.Parse(collectionId));
+            request.AddParameter("metadata", "true");
+            request.AddParameter("limit", 50);
+            request.AddParameter("offset", offset);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<NftCollectionItemsWithMetadata>(response.Content!);
+                if (data.nftTokenInfos.Count != 0)
+                {
+                    collections.Add(data);
+                    Console.WriteLine($"{offset}/{data.totalNum} retrieved...");
+                }
+                while (data.nftTokenInfos.Count != 0)
+                {
+                    offset += 50;
+                    request.AddOrUpdateParameter("offset", offset);
+                    response = await _client.GetAsync(request);
+                    data = JsonConvert.DeserializeObject<NftCollectionItemsWithMetadata>(response.Content!);
+                    if (data.nftTokenInfos.Count != 0)
+                    {
+                        collections.Add(data);
+                        Console.WriteLine($"{offset}/{data.totalNum} retrieved...");
+                    }
+                }
+                return collections;
+            }
+            catch (HttpRequestException httpException)
+            {
+                _font.ToWhite($"Error getting collection items: {httpException.Message}");
+                return null;
+            }
+        }
     }
 }
