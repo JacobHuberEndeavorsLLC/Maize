@@ -2297,7 +2297,7 @@ namespace Maize
                 if (data.nftTokenInfos.Count != 0)
                 {
                     collections.Add(data);
-                    Console.WriteLine($"{offset}/{data.totalNum} retrieved...");
+                    Console.WriteLine($"{collections.Sum(x=> x.nftTokenInfos.Count)}/{data.totalNum} retrieved...");
                 }
                 while (data.nftTokenInfos.Count != 0)
                 {
@@ -2308,7 +2308,7 @@ namespace Maize
                     if (data.nftTokenInfos.Count != 0)
                     {
                         collections.Add(data);
-                        Console.WriteLine($"{offset}/{data.totalNum} retrieved...");
+                        Console.WriteLine($"{collections.Sum(x => x.nftTokenInfos.Count)}/{data.totalNum} retrieved...");
                     }
                 }
                 return collections;
