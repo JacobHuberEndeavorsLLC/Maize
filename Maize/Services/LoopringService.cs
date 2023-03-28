@@ -171,7 +171,7 @@ namespace Maize
         public async Task<List<UserCollections>> GetNftCollectionsOfOwnAccount(string apiKey, string owner)
         {
             List<UserCollections> collections = new List<UserCollections>();
-            var request = new RestRequest("/api/v3/nft/public/collection");
+            var request = new RestRequest("/api/v3/nft/collection");
             int offset = 0;
             request.AddHeader("x-api-key", apiKey);
             request.AddParameter("owner", owner);
@@ -181,11 +181,11 @@ namespace Maize
             {
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<UserCollections>(response.Content!);
-                while (data != null)
+                while (data.collections.Count != 0)
                 {
                     response = await _client.GetAsync(request);
                     data = JsonConvert.DeserializeObject<UserCollections>(response.Content!);
-                    if (data != null)
+                    if (data.collections.Count != 0)
                     {
                         collections.Add(data);
                     }
