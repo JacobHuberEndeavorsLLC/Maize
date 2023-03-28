@@ -820,12 +820,12 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             string option = "";
             do
             {
-                Console.WriteLine("Enter Option 1 or 2:", font);
+                Console.Write("Enter Option 1 or 2:", font);
                 option = Console.ReadLine();
             } while (option != "1" && option != "2");
             if(option == "1")
             {
-                font.ToPrimary("Retrieving collections...");
+                font.ToPrimary("Retrieving your collections...");
                 var userCollections = await loopringService.GetNftCollectionsOfOwnAccount(settings.LoopringApiKey, settings.LoopringAddress);
                 font.ToPrimary("Here are your collections.");
                 Dictionary<int, string> collectionsDictionary = new Dictionary<int, string>();
@@ -837,7 +837,21 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                         collectionsDictionary.Add(collection.collection.id, collection.collection.name);
                     }
                 }
-                int collectionId = 0;
+
+                string collectionIdString = "";
+                do
+                {
+                    Console.Write($"Enter a valid Collection ID: ");
+                    var collectionIdInputString = Console.ReadLine();
+                    int collectionIdInt;
+                    bool collectionIdConversion = Int32.TryParse(collectionIdInputString, out collectionIdInt);
+                    if(collectionsDictionary.ContainsKey(collectionIdInt))
+                    {
+                        collectionIdString = collectionIdInt.ToString();
+                        Console.WriteLine($"Retrieving Nft Data for Collection: {collectionsDictionary[collectionIdInt]}...");
+                    }
+                } 
+                while (collectionIdString == "");
             }
             else if(option == "2")
             {
