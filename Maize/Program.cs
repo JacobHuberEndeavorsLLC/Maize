@@ -828,13 +828,16 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 font.ToPrimary("Retrieving collections...");
                 var userCollections = await loopringService.GetNftCollectionsOfOwnAccount(settings.LoopringApiKey, settings.LoopringAddress);
                 font.ToPrimary("Here are your collections.");
+                Dictionary<int, string> collectionsDictionary = new Dictionary<int, string>();
                 foreach (var userCollection in userCollections)
                 {
                     foreach (var collection in userCollection.collections)
                     {
                         Console.WriteLine($"Name: {collection.collection.name}, ID: {collection.collection.id}");
+                        //collectionsDictionary.Add(collection.collection.id, collection.collection.name);
                     }
                 }
+                int collectionId = 0;
             }
             else if(option == "2")
             {

@@ -181,16 +181,20 @@ namespace Maize
             {
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<UserCollections>(response.Content!);
+                if (data.collections.Count != 0)
+                {
+                    collections.Add(data);
+                }
                 while (data.collections.Count != 0)
                 {
+                    offset += 12;
+                    request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
                     data = JsonConvert.DeserializeObject<UserCollections>(response.Content!);
                     if (data.collections.Count != 0)
                     {
                         collections.Add(data);
                     }
-                    request.AddOrUpdateParameter("offset", offset);
-                    offset += 12;
                 }
                 return collections;
             }
