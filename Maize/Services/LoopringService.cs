@@ -167,6 +167,39 @@ namespace Maize
                 return null;
             }
         }
+
+        public async Task<List<UserCollections>> GetNftCollectionsOfOwnAccount(string apiKey, string owner)
+        {
+            List<UserCollections> collections = new List<UserCollections>();
+            var request = new RestRequest("/api/v3/nft/public/collection");
+            int offset = 0;
+            request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("owner", owner);
+            request.AddParameter("limit", 12);
+            request.AddParameter("offset", offset);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<UserCollections>(response.Content!);
+                while (data != null)
+                {
+                    response = await _client.GetAsync(request);
+                    data = JsonConvert.DeserializeObject<UserCollections>(response.Content!);
+                    if (data != null)
+                    {
+                        collections.Add(data);
+                    }
+                    request.AddOrUpdateParameter("offset", offset);
+                    offset += 12;
+                }
+                return collections;
+            }
+            catch (HttpRequestException httpException)
+            {
+                _font.ToWhite($"Error getting collection: {httpException.Message}");
+                return null;
+            }
+        }
         public async Task<CollectionInformation> GetNftCollectionInformation(string apiKey, string id)
         {
             var request = new RestRequest("/api/v3/nft/public/collection/items");

@@ -823,7 +823,18 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 Console.WriteLine("Enter Option 1 or 2:", font);
                 option = Console.ReadLine();
             } while (option != "1" && option != "2");
-            if(option == "2")
+            if(option == "1")
+            {
+                var userCollections = await loopringService.GetNftCollectionsOfOwnAccount(settings.LoopringApiKey, settings.LoopringAddress);
+                foreach (var userCollection in userCollections)
+                {
+                    foreach (var collection in userCollection.collections)
+                    {
+                        Console.WriteLine($"Collection Name: {collection.collection.name}, ID: {collection.collection.id}");
+                    }
+                }
+            }
+            else if(option == "2")
             {
                 do
                 {
