@@ -28,7 +28,7 @@ var environmentPath = "Input/Environment";
 var fileName = "Input.txt";
 var banishFile = "Banish.txt";
 
-string userEnvironment = $"./{environmentPath}/{net}appsettings.json";
+string userEnvironment = $"./{environmentPath}/MY{net}appsettings.json";
     Console.Title = $"Maize: read to succeed ({net})";
 Console.Clear();
 
@@ -101,6 +101,7 @@ AccountInformation userAccountInformation = new();
 string nftData;
 bool contains = false;
 var sw = new Stopwatch();
+List<NftData> nftDataList = new();
 
 var signedMessage = EDDSAHelper.EddsaSignUrl(
 loopringPrivateKey,
@@ -815,44 +816,56 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             font.ToDarkGray("You will need the minter and collection address.");
             Console.WriteLine();
             font.ToWhite("Let's get started.");
+            font.ToTertiary("You can choose to gather this data with either Option 1: By API or Option 2: By IPFS");
+            string option = "";
             do
             {
-                minterAndCollection = UtilsLoopring.GetMinterAndCollection(font);
-                responseOnMinter = await loopringService.CheckForEthAddress(settings.LoopringApiKey, minterAndCollection.minter);
-                responseOnAccountId = await loopringService.GetUserAccountInformationFromOwner(responseOnMinter);
-            }
-            while (responseOnAccountId == null);
-            sw = Stopwatch.StartNew();
-            Console.WriteLine();
-            font.ToPrimary("Gathering information...");
-            var nftDataList = await loopringService.GetUserMintedNftsWithCollection(font, settings.LoopringApiKey, responseOnAccountId.accountId, minterAndCollection.TokenId);
-            font.ToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count} mints in this Collection.");
-            counter = 0;
-            Console.WriteLine();
-            foreach (var nftDataSingle in nftDataList)
+                Console.WriteLine("Enter Option 1 or 2:", font);
+                option = Console.ReadLine();
+            } while (option != "1" && option != "2");
+            if(option == "2")
             {
-                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDataSingle.nftId, nftDataSingle.tokenAddress);
-                if (nftMetadata != null)
+                do
                 {
-                    Utils.ClearLine();
-                    font.ToTertiaryInline($"\rAdding Nft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
-                    nftDataAndName.Add(new NftDataAndName
-                    {
-                        nftData = nftDataSingle.nftData,
-                        nftName = nftMetadata.name
-                    });
+                    minterAndCollection = UtilsLoopring.GetMinterAndCollection(font);
+                    responseOnMinter = await loopringService.CheckForEthAddress(settings.LoopringApiKey, minterAndCollection.minter);
+                    responseOnAccountId = await loopringService.GetUserAccountInformationFromOwner(responseOnMinter);
                 }
-            }
+                while (responseOnAccountId == null);
+                sw = Stopwatch.StartNew();
+                Console.WriteLine();
+                font.ToPrimary("Gathering information...");
+                nftDataList = await loopringService.GetUserMintedNftsWithCollection(font, settings.LoopringApiKey, responseOnAccountId.accountId, minterAndCollection.TokenId);
+                font.ToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count} mints in this Collection.");
+                counter = 0;
+                Console.WriteLine();
+                foreach (var nftDataSingle in nftDataList)
+                {
+                    nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDataSingle.nftId, nftDataSingle.tokenAddress);
+                    if (nftMetadata != null)
+                    {
+                        Utils.ClearLine();
+                        font.ToTertiaryInline($"\rAdding Nft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
+                        nftDataAndName.Add(new NftDataAndName
+                        {
+                            nftData = nftDataSingle.nftData,
+                            nftName = nftMetadata.name
+                        });
+                    }
+                }
 
-            excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
-            using (var writer = new StreamWriter($"./Output/{excelFileName}"))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                csv.WriteRecords(nftDataAndName);
+                excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
+                using (var writer = new StreamWriter($"./Output/{excelFileName}"))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(nftDataAndName);
+                }
+                sw.Stop();
+                Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
+                break;
             }
-            sw.Stop();
-            Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
             break;
+
         #endregion case 6
         #region case 7
         case "7":
