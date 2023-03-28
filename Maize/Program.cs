@@ -28,7 +28,7 @@ var environmentPath = "Input/Environment";
 var fileName = "Input.txt";
 var banishFile = "Banish.txt";
 
-string userEnvironment = $"./{environmentPath}/MY{net}appsettings.json";
+string userEnvironment = $"./{environmentPath}/{net}appsettings.json";
     Console.Title = $"Maize: read to succeed ({net})";
 Console.Clear();
 
@@ -855,7 +855,6 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 sw = Stopwatch.StartNew();
                 Console.WriteLine($"Retrieving Nft Data for Collection: {collectionsDictionary[Int32.Parse(collectionIdString)]}...");
                 var nftsInCollection = await loopringService.GetNftCollectionItemsOfOwnAccount(settings.LoopringApiKey, collectionIdString);         
-                font.ToTertiaryInline($"\rYou have {nftsInCollection[0].totalNum} NFTs in this Collection.");
                 counter = 0;
                 Console.WriteLine();
                 foreach (var nftCollectionList in nftsInCollection)
