@@ -201,5 +201,9 @@ namespace Maize
             decimal lcrTransactionFee,
             string transferMemo
             );
+
+        Task<List<UserCollections>> GetNftCollectionsOfOwnAccount(string apiKey, string owner);
+
+        Task<List<NftCollectionItemsWithMetadata>> GetNftCollectionItemsOfOwnAccount(string apiKey, string collectionId);
     }
 }
