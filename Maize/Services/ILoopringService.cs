@@ -83,10 +83,11 @@ namespace Maize
         Task<List<Datum>> GetWalletsNfts(string apiKey, int accountId);
         Task<NftData> GetNftData(string apiKey, string nftId, string minter, string tokenAddress);
         Task<List<NftHolder>> GetNftHoldersMultiple(string apiKey, string nftData);
+        Task<NftBalance> FindCollectionIdFromHolder(string apiKey, int accountId, string nftData);
         Task<List<NftHolderAndNftData>> GetNftHolderIncludeNftData(Font font, ILoopringService loopringService, INftMetadataService nftMetadataService,
             IEthereumService ethereumService, string apiKey, string nftData, string environmentalUrl, int counter, int max);
         Task<List<NftHoldersAndTotal>> GetNftHoldersMultipleAndTotal(string apiKey, string nftData);
-        Task<NftHoldersAndTotal> GetNftHolders(string apiKey, string nftData);
+        Task<NftHoldersAndTotal> GetNftHolderSingle(string apiKey, string nftData);
         Task<AccountInformation> GetUserAccountInformation(string accountId);
         Task<AccountInformation> GetUserAccountInformationFromOwner(string owner);
         Task<AccountInformation> CheckUserAccountInformationFromOwner(string owner);

@@ -498,31 +498,62 @@ namespace Maize
                 return null;
             }
         }
+        public async Task<NftBalance> FindCollectionIdFromHolder(string apiKey, int accountId, string nftData)
+        {
+            var request = new RestRequest("/api/v3/user/nft/balances");
+            request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("accountId", accountId);
+            request.AddParameter("nftDatas", nftData);
+            request.AddParameter("metadata", "true");
+            try
+            {
+                var data = new NftBalance();
+
+                var response = await _client.GetAsync(request);
+                data = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                _font.ToWhite($"Error getting TokenId: {httpException.Message}");
+                return null;
+            }
+        }
 
         public async Task<List<Datum>> GetWalletsNfts(string apiKey, int accountId)
         {
-            var allData = new List<Datum>();
+            List<Datum> allData = new();
             var request = new RestRequest("/api/v3/user/nft/balances");
+            int offset = 0;
             request.AddHeader("X-API-KEY", apiKey);
             request.AddParameter("accountId", accountId);
+            request.AddParameter("metadata", "true");
             request.AddParameter("limit", 50);
+            request.AddParameter("offset", offset);
             try
             {
-                var offset = 50;
+
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
-                var total = data.totalNum;
-
-                allData.AddRange(data.data);
-                while (total > 50)
+                if (data.data.Count != 0)
                 {
-                    total -= 50;
+                    allData.AddRange(data.data);
+                    Console.Write($"{allData.Count}/{data.totalNum} retrieved...");
+                }
+                while (data.data.Count != 0)
+                {
+                    offset += 50;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
-                    var moreData = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
-                    allData.AddRange(moreData.data);
-                    offset += 50;
+                    data = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
+                    if (data.data.Count != 0)
+                    {
+                        allData.AddRange(data.data);
+                        Console.SetCursorPosition(0, Console.CursorTop);
+                        Console.Write($"{allData.Count}/{data.totalNum} retrieved...");
+                    }
                 }
+                Console.SetCursorPosition(0, Console.CursorTop);
                 return allData;
             }
             catch (HttpRequestException httpException)
@@ -673,12 +704,12 @@ namespace Maize
                 return null;
             }
         }
-        public async Task<NftHoldersAndTotal> GetNftHolders(string apiKey, string nftData)
+        public async Task<NftHoldersAndTotal> GetNftHolderSingle(string apiKey, string nftData)
         {
             var request = new RestRequest("/api/v3/nft/info/nftHolders");
             request.AddHeader("X-API-KEY", apiKey);
             request.AddParameter("nftData", nftData);
-            request.AddParameter("limit", 100);
+            request.AddParameter("limit", 1);
             try
             {
                 var response = await _client.GetAsync(request);
@@ -2297,7 +2328,7 @@ namespace Maize
                 if (data.nftTokenInfos.Count != 0)
                 {
                     collections.Add(data);
-                    Console.WriteLine($"{collections.Sum(x=> x.nftTokenInfos.Count)}/{data.totalNum} retrieved...");
+                    Console.Write($"{collections.Sum(x=> x.nftTokenInfos.Count)}/{data.totalNum} retrieved...");
                 }
                 while (data.nftTokenInfos.Count != 0)
                 {
@@ -2308,7 +2339,8 @@ namespace Maize
                     if (data.nftTokenInfos.Count != 0)
                     {
                         collections.Add(data);
-                        Console.WriteLine($"{collections.Sum(x => x.nftTokenInfos.Count)}/{data.totalNum} retrieved...");
+                        Console.SetCursorPosition(0, Console.CursorTop);
+                        Console.Write($"{collections.Sum(x => x.nftTokenInfos.Count)}/{data.totalNum} retrieved...");
                     }
                 }
                 return collections;

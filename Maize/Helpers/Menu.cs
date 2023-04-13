@@ -73,7 +73,7 @@ namespace Maize.Helpers
                 {"utilityFourteen", "Send unique NFTs to any users"},
                 {"utilityFifteen", "Send Nfts to the Dead address"},
                 {"utilitySixteen", "Send LRC to any users"},
-                {"utilitySeventeen", "Send LRC to any users with different amounts"},
+                {"utilitySeventeen", "Send LRC to any users (include amounts)"},
                 {"utilityEighteen", "Pay Loopring activation fee for wallets"},
                 {"utilityNineteen", "Nft Transfer Leaderboards"},
                 {"utilityTwenty", "Minted Collection Analytics"},

@@ -23,22 +23,19 @@ namespace Maize.Helpers
         }
         public static void CheckIpfsForbidden(Font font, NftMetadata nftMetadata)
         {
-            if (nftMetadata != null)
+            if (nftMetadata == null)
             {
-                if (nftMetadata.description == "Request failed with status code Forbidden")
-                {
-                    Utils.ClearLine();
-                    font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 5 min.");
-                    Thread.Sleep(60000);
-                    font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 4 min.");
-                    Thread.Sleep(60000);
-                    font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 3 min.");
-                    Thread.Sleep(60000);
-                    font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 2 min.");
-                    Thread.Sleep(60000);
-                    font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 1 min.");
-                    Thread.Sleep(60000);
-                }
+                Utils.ClearLine();
+                font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 5 min.");
+                Thread.Sleep(60000);
+                font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 4 min.");
+                Thread.Sleep(60000);
+                font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 3 min.");
+                Thread.Sleep(60000);
+                font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 2 min.");
+                Thread.Sleep(60000);
+                font.ToTertiaryInline($"\rIPFS timeout issue...I sleep for 1 min.");
+                Thread.Sleep(60000);
             }
 
         }

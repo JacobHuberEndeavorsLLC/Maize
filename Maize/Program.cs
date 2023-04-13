@@ -10,6 +10,7 @@ using System.Text;
 using Maize.Services;
 using Newtonsoft.Json;
 using static Maize.Services.NftStorageService;
+using System.Reflection;
 
 //Utils.CheckAppsettingsDotJson();
 //Console.WindowHeight = 37;
@@ -816,11 +817,11 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             font.ToDarkGray("You will need the minter and collection address.");
             Console.WriteLine();
             font.ToWhite("Let's get started.");
-            font.ToTertiary("You can choose to gather this data with either Option 1: By API or Option 2: By Infura & IPFS");
+            font.ToTertiary("Option 1: My Minted Collections 2: Another Collection");
             string option = "";
             do
             {
-                Console.Write("Enter Option 1 or 2:", font);
+                Console.Write("Enter Option 1 or 2: ", font);
                 option = Console.ReadLine();
             } while (option != "1" && option != "2");
             if(option == "1")
@@ -888,48 +889,96 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
                 }
                 sw.Stop();
                 Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
-                break;
             }
             else if(option == "2")
             {
                 do
                 {
+                    font.ToTertiary("Enter an Nft Id from the collection");
+                    string nftId = Utils.ReadLineWarningNoNulls("Enter the Nft Id", font);
                     minterAndCollection = UtilsLoopring.GetMinterAndCollection(font);
-                    responseOnMinter = await loopringService.CheckForEthAddress(settings.LoopringApiKey, minterAndCollection.minter);
-                    responseOnAccountId = await loopringService.GetUserAccountInformationFromOwner(responseOnMinter);
-                }
-                while (responseOnAccountId == null);
+                    minterAndCollection.minter = await loopringService.CheckForEthAddress(loopringApiKey, minterAndCollection.minter);
+                    nftdataRequest = await loopringService.GetNftData(loopringApiKey, nftId, minterAndCollection.minter, minterAndCollection.TokenId);
+                } while (nftdataRequest == null);
+
                 sw = Stopwatch.StartNew();
                 Console.WriteLine();
-                font.ToPrimary("Gathering information...");
-                nftDataList = await loopringService.GetUserMintedNftsWithCollection(font, settings.LoopringApiKey, responseOnAccountId.accountId, minterAndCollection.TokenId);
-                font.ToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count} mints in this Collection.");
-                counter = 0;
-                Console.WriteLine();
-                foreach (var nftDataSingle in nftDataList)
-                {
-                    nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDataSingle.nftId, nftDataSingle.tokenAddress);
-                    if (nftMetadata != null)
-                    {
-                        Utils.ClearLine();
-                        font.ToTertiaryInline($"\rAdding Nft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
-                        nftDataAndName.Add(new NftDataAndName
-                        {
-                            nftData = nftDataSingle.nftData,
-                            nftName = nftMetadata.name
-                        });
-                    }
-                }
+                font.ToPrimary("Gathering information..."); 
+                var holder = await loopringService.GetNftHolderSingle(loopringApiKey, nftdataRequest.nftData);
+                var informationForCollectionId = await loopringService.FindCollectionIdFromHolder(loopringApiKey, holder.nftHolders.First().accountId, nftdataRequest.nftData);
 
-                excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
-                using (var writer = new StreamWriter($"./Output/{excelFileName}"))
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                if (informationForCollectionId.data.First().collectionInfo != null)
                 {
-                    csv.WriteRecords(nftDataAndName);
+                    Console.WriteLine($"Retrieving Nft Data for Collection: {informationForCollectionId.data.First().collectionInfo.name}");
+
+                    var nftsInCollection = await loopringService.GetNftCollectionItemsOfOwnAccount(settings.LoopringApiKey, informationForCollectionId.data.First().collectionInfo.id.ToString());
+                    counter = 0;
+                    Console.WriteLine();
+                    foreach (var nftCollectionList in nftsInCollection)
+                    {
+                        foreach (var nftItem in nftCollectionList.nftTokenInfos)
+                        {
+                            if (!string.IsNullOrEmpty(nftItem.metadata.basename.name))
+                            {
+                                nftDataAndName.Add(new NftDataAndName
+                                {
+                                    nftData = nftItem.nftData,
+                                    nftName = nftItem.metadata.basename.name
+                                });
+                            }
+                            else
+                            {
+                                nftDataAndName.Add(new NftDataAndName
+                                {
+                                    nftData = nftItem.nftData,
+                                    nftName = "Name could not be retrieved..."
+                                });
+                            }
+                        }
+                    }
+
+                    excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
+                    using (var writer = new StreamWriter($"./Output/{excelFileName}"))
+                    using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        csv.WriteRecords(nftDataAndName);
+                    }
+                    sw.Stop();
+                    Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
                 }
-                sw.Stop();
-                Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
-                break;
+                else
+                {
+                    responseOnAccountId = await loopringService.GetUserAccountInformationFromOwner(minterAndCollection.minter);
+
+                    nftDataList = await loopringService.GetUserMintedNftsWithCollection(font, settings.LoopringApiKey, responseOnAccountId.accountId, minterAndCollection.TokenId);
+
+                    font.ToTertiaryInline($"\r{minterAndCollection.minter} has {nftDataList.Count} mints in this Collection.");
+                    counter = 0;
+                    Console.WriteLine();
+                    foreach (var nftDataSingle in nftDataList)
+                    {
+                        nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, nftDataSingle.nftId, nftDataSingle.tokenAddress);
+                        if (nftMetadata != null)
+                        {
+                            Utils.ClearLine();
+                            font.ToTertiaryInline($"\rAdding Nft: {++counter}/{nftDataList.Count} {nftMetadata.name}");
+                            nftDataAndName.Add(new NftDataAndName
+                            {
+                                nftData = nftDataSingle.nftData,
+                                nftName = nftMetadata.name
+                            });
+                        }
+                    }
+
+                    excelFileName = $"NftDataFromCollection_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
+                    using (var writer = new StreamWriter($"./Output/{excelFileName}"))
+                    using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        csv.WriteRecords(nftDataAndName);
+                    }
+                    sw.Stop();
+                    Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
+                }
             }
             break;
 
@@ -956,29 +1005,16 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             sw = Stopwatch.StartNew();
             Console.WriteLine();
             font.ToPrimary("Gathering information...");
-            var walletsNftBalance = await loopringService.GetWalletsNfts(settings.LoopringApiKey, responseOnAccountId.accountId);
-            font.ToPrimary($"{ensOrWalletAddress} has {walletsNftBalance.Count} Nfts in their wallet.");
-
-            foreach (var singleNftBalance in walletsNftBalance)
-            {
-                nftMetadata = await Utils.GetNftMetadata(font, ethereumService, nftMetadataService, singleNftBalance.nftId, singleNftBalance.tokenAddress);
-                Utils.ClearLine();
-                font.ToTertiaryInline($"\rChecking Nft: {++counter}/{walletsNftBalance.Count} {nftMetadata.name}");
-                if (nftMetadata != null)
-                {
-                    nftDataAndName.Add(new NftDataAndName
-                    {
-                        nftData = singleNftBalance.nftData,
-                        nftName = nftMetadata.name
-                    });
-                }
-            }
+            Console.WriteLine();
+            var walletsNfts = await loopringService.GetWalletsNfts(settings.LoopringApiKey, responseOnAccountId.accountId);
+            font.ToPrimary($"{ensOrWalletAddress} has {walletsNfts.Count} Nfts in their wallet.");
+            var walletsNftsBasicInformation = walletsNfts.Select(m => new { m.metadata.nftBase.name, m.nftData, m.nftId, m.minter, m.tokenAddress }).ToList();
 
             excelFileName = $"NftDataFromWallet_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss}.csv";
             using (var writer = new StreamWriter($"./Output/{excelFileName}"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csv.WriteRecords(nftDataAndName);
+                csv.WriteRecords(walletsNftsBasicInformation);
             }
             sw.Stop();
             Utils.FunctionalityProcessTime(sw, excelFileName, null, font);
@@ -1588,7 +1624,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
             howManyLines = Utils.CheckInputDotTxt(int.Parse(menuAndUtility.userResponseOnUtility), banishFile, inputPath, font);
             font.ToDarkGray($"There are {howManyLines} minters to look for.");
 
-            var walletsNfts = await loopringService.GetWalletsNfts(loopringApiKey, fromAccountId);
+            walletsNfts = await loopringService.GetWalletsNfts(loopringApiKey, fromAccountId);
             var banishedNfts = new List<Datum>();
             foreach (var nft in walletsNfts)
             {
