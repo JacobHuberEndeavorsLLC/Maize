@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Maize
+﻿namespace Maize
 {
     public class Settings
     {
@@ -16,7 +10,5 @@ namespace Maize
         public int MaxFeeTokenId { get; set; }
         public int Environment { get; set; }
         public string MMorGMEPrivateKey { get; set; }
-        public string PinataJwt { get; set; }
-        public string NftStorageApiKey { get; set; }
     }
 }

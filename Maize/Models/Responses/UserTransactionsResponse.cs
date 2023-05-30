@@ -12,7 +12,7 @@ namespace Maize.Models
         public int indexInBlock { get; set; }
     }
 
-    public class UserTransactions
+    public class UserTransactionResponse
     {
         public int totalNum { get; set; }
         public List<Transaction> transactions { get; set; }

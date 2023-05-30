@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Maize
+﻿namespace Maize
 {
-    public class NftData
+    public class NftDataResponse
     {
         public string nftData { get; set; }
         public string minter { get; set; }

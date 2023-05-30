@@ -1,7 +1,7 @@
 ﻿using PoseidonSharp;
 using System.Numerics;
 
-namespace LoopringSharp
+namespace Maize.Helpers
 {
     public static class PoseidonHelper
     {

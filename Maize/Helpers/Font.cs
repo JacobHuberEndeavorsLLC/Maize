@@ -1,12 +1,4 @@
-﻿using Nethereum.JsonRpc.Client;
-using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Maize
+﻿namespace Maize
 {
     public class Font
     {
@@ -19,6 +11,18 @@ namespace Maize
             _consoleForegroundColorPrimary = consoleForegroundColorPrimary;
             _consoleForegroundColorSecondary = consoleForegroundColorSecondary;
             _consoleForegroundColorTertiary = consoleForegroundColorTertiary;
+        }
+        public static void ClearLine()
+        {
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, Console.CursorTop);
+        }
+        public static void ClearLineAbove()
+        {
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, Console.CursorTop);
         }
         public void ToPrimary(string str)
         {
@@ -91,7 +95,7 @@ namespace Maize
             Console.ResetColor();
             ToPurple(end);
         }
-        public  void SetREADMEFontColorYellow(string beginning, string readMe, string end)
+        public void SetREADMEFontColorYellow(string beginning, string readMe, string end)
         {
             ToYellowInline(beginning);
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -107,7 +111,7 @@ namespace Maize
             Console.ResetColor();
             ToDarkGray(end);
         }
-        public  void ToBlue(string str) {
+        public void ToBlue(string str) {
             try
             {
                 Console.ForegroundColor = ConsoleColor.Blue;

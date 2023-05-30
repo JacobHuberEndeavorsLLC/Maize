@@ -4,29 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maize
+namespace Maize.Models
 {
-    public class NftHolder
+    public class NftHolders
     {
-        public int accountId { get; set; }
-        public int tokenId { get; set; }
-        public string amount { get; set; }
+        public class OwnerAndAmount
+        {
+            public string nftData { get; set; }
+            public string nftName { get; set; }
+            public string nftOwner { get; set; }
+            public string ownerAmountOwned { get; set; }
+        }
+        public class OwnerAndTotal
+        {
+            public string owner { get; set; }
+            public int total { get; set; }
+        }
     }
-
-    public class NftHoldersAndTotal
-    {
-        public int totalNum { get; set; }
-        public List<NftHolder> nftHolders { get; set; }
-    }
-    public class NftHolderAndNftData
-    {
-
-        public string walletAddress { get; set; }
-        public string nftName { get; set; }
-        public string amount { get; set; }
-        public string nftData { get; set; }
-        public int accountId { get; set; }
-        public int tokenId { get; set; }
-    }
-
 }

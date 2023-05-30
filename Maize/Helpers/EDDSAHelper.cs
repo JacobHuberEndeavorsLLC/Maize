@@ -1,14 +1,9 @@
-﻿using Maize;
-using Nethereum.Signer;
+﻿using Nethereum.Signer;
 using PoseidonSharp;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Numerics;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 
-namespace LoopringSharp
+namespace Maize.Helpers
 {
     public static partial class EDDSAHelper
     {
@@ -17,20 +12,17 @@ namespace LoopringSharp
             var signer = new Eddsa(PoseidonHelper.GetPoseidonHash(inputs), loopringAddress);
             return signer.Sign();
         }
-
-       
-
         public static (string publicKeyX, string publicKeyY, string secretKey, string ethAddress) EDDSASignLocal(string exchangeAddress, int nonce, string l1Pk, string ethAddress, bool skipPublicKeyCalculation = false)
         {
-            string msg1 = "Sign this message to access Loopring Exchange: "+exchangeAddress+" with key nonce: "+(nonce);
+            string msg1 = "Sign this message to access Loopring Exchange: " + exchangeAddress + " with key nonce: " + nonce;
             var signer1 = new EthereumMessageSigner();
             var rawKey = signer1.EncodeUTF8AndSign(msg1, new EthECKey(l1Pk));
             // Requesting metamask to sign our package so we can tare it apart and get our public and secret keys
 
-            return RipKeyAppart((rawKey,ethAddress), skipPublicKeyCalculation);
+            return RipKeyAppart((rawKey, ethAddress), skipPublicKeyCalculation);
         }
 
-        public static (string publicKeyX, string publicKeyY, string secretKey, string ethAddress) RipKeyAppart((string eddsa,string ethAddress) rawKey, bool skipPublicKeyCalculation = false)
+        public static (string publicKeyX, string publicKeyY, string secretKey, string ethAddress) RipKeyAppart((string eddsa, string ethAddress) rawKey, bool skipPublicKeyCalculation = false)
         {
             BigInteger order = BigInteger.Parse("21888242871839275222246405745257275088614511777268538073601725287587578984328");
             BigInteger p = BigInteger.Parse("21888242871839275222246405745257275088548364400416034343698204186575808495617");
@@ -39,7 +31,7 @@ namespace LoopringSharp
                 BigInteger.Parse("20819045374670962167435360035096875258406992893633759881276124905556507972311") };
             BigInteger suborder = rsh(order, 3);
             byte[] rawKeyBytes = ToHexBytes(rawKey.eddsa.Replace("0x", ""));
-            var number = Utils.ParseHexUnsigned(rawKey.eddsa);
+            var number = ApplicationUtilities.ParseHexUnsigned(rawKey.eddsa);
 
             var sha256Managed = new SHA256Managed();
             byte[] seed = sha256Managed.ComputeHash(rawKeyBytes);
@@ -53,12 +45,12 @@ namespace LoopringSharp
             if (!skipPublicKeyCalculation)
                 publicKey = mulPointEscalar(Base8, secertKey, p);
 
-            return ("0x" + publicKey[0].ToString("x").PadLeft(64,'0'), "0x" + publicKey[1].ToString("x").PadLeft(64, '0'), "0x" + secertKey.ToString("x").PadLeft(64, '0'), rawKey.ethAddress);
+            return ("0x" + publicKey[0].ToString("x").PadLeft(64, '0'), "0x" + publicKey[1].ToString("x").PadLeft(64, '0'), "0x" + secertKey.ToString("x").PadLeft(64, '0'), rawKey.ethAddress);
         }
-        
+
         public static string EddsaSignUrl(string l2Pk, HttpMethod method, List<(string Key, string Value)> queryParams, string postBody, string apiMethod, string apiUrl)
         {
-            var message = Utils.CreateSha256Signature(
+            var message = ApplicationUtilities.CreateSha256Signature(
                 method,
                 queryParams,
                 postBody,
@@ -117,13 +109,13 @@ namespace LoopringSharp
 
         static BigInteger Psub(BigInteger a, BigInteger b, BigInteger p)
         {
-            return (a >= b) ? BigInteger.Subtract(a, b) : BigInteger.Add(BigInteger.Subtract(p, b), a);
+            return a >= b ? BigInteger.Subtract(a, b) : BigInteger.Add(BigInteger.Subtract(p, b), a);
         }
 
         static BigInteger Padd(BigInteger a, BigInteger b, BigInteger p)
         {
             var res = BigInteger.Add(a, b);
-            return (res >= p ? res - p : res);
+            return res >= p ? res - p : res;
         }
 
         static BigInteger Pdiv(BigInteger a, BigInteger b, BigInteger p)
@@ -154,14 +146,14 @@ namespace LoopringSharp
         static BigInteger leBuff2Int(byte[] buff)
         {
             BigInteger res = 0;
-            for(int i=0;i<buff.Length;i++)
+            for (int i = 0; i < buff.Length; i++)
             {
                 var n = new BigInteger(buff[i]);
-                res = BigInteger.Add(res, n << (i * 8));
+                res = BigInteger.Add(res, n << i * 8);
             }
 
             return res;
-        }        
+        }
 
         static BigInteger rsh(BigInteger original, int order)
         {
@@ -207,7 +199,7 @@ namespace LoopringSharp
                 {
                     left = hex[i];
                     right = hex[i + 1];
-                    bytesArr[x] = (byte)((hexmap[left] << 4) | hexmap[right]);
+                    bytesArr[x] = (byte)(hexmap[left] << 4 | hexmap[right]);
                 }
                 return bytesArr;
             }

@@ -12,7 +12,7 @@ namespace Maize
         public string y { get; set; }
     }
 
-    public class AccountInformation
+    public class AccountInformationResponse
     {
         public int accountId { get; set; }
         public string owner { get; set; }

@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Maize
+namespace Maize.Models
 {
-    public class Type
+    public class ApiKeyResponse
     {
-        public string name { get; set; }
-        public string type { get; set; }
+        public string apiKey { get; set; }
     }
+
+
 }

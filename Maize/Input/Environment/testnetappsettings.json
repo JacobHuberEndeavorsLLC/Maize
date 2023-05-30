@@ -1,13 +1,11 @@
 { // this is the goerli setup (note that these values may differ from mainnet)
   "Settings": {
-    "LoopringApiKey": "asdfasdfasdfasdfasdfasdf", //Your loopring api key.  DO NOT SHARE THIS AT ALL. FLOWERS INFORMATION
-    "LoopringPrivateKey": "0xasdfasdfasdfasdfasdfasdf", //Your loopring private key.  DO NOT SHARE THIS AT ALL.
-    "MMorGMEPrivateKey": "asdfasdfasdfasdfasdfasdf", //Private key from metamask. DO NOT SHARE THIS AT ALL.: null,
-    "LoopringAddress": "0xasdfasdfasdfasdf", //Your loopring address
-    "LoopringAccountId": 1234, //Your loopring account id
+    "LoopringApiKey": "7fas9d87fd89s7fsd98f79dsf98s9", //Your loopring api key.  DO NOT SHARE THIS AT ALL. FLOWERS INFORMATION
+    "LoopringPrivateKey": "0x798df798ds7d98fds7f89ds7f98dsf", //Your loopring private key.  DO NOT SHARE THIS AT ALL.
+    "MMorGMEPrivateKey": "fds87f98ds7f9d8sf7ds98f7ds98f7ds987f8d9s", //Private key from metamask. DO NOT SHARE THIS AT ALL.: null,
+    "LoopringAddress": "0x798adsf7d9s8f7ds9f8d7sf97ds8", //Your loopring address
+    "LoopringAccountId": 12345, //Your loopring account id
     "ValidUntil": 1700000000, //How long this transfer should be valid for. Shouldn't have to change this value
-    "Environment": 5, // 1 = mainnet or 5 = Goerli
-    "pinataJwt": "asdfasdfasdfasdf", // pinata jwt needed for uploading metadata. https://app.pinata.cloud/developers/api-keys
-    "nftStorageApiKey": "asdfasdfasdfasdf" // nft.storage api key needed for uploading image https://nft.storage/manage/
+    "Environment": 5 // 1 = mainnet or 5 = Goerli
   }
 }
