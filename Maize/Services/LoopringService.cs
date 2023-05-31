@@ -245,7 +245,9 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.ToRed($"Error at GetUserAccountInformationFromOwner: {httpException.Message}");
+                if (httpException.Message == "Request failed with status code BadRequest")
+                    return null;
+                _font.ToRedInline($"Error at GetUserAccountInformationFromOwner: {httpException.Message}");
                 return null;
             }
         }

@@ -15,13 +15,13 @@
         public static void ClearLine()
         {
             Console.SetCursorPosition(0, Console.CursorTop);
-            Console.Write(new string(' ', Console.WindowWidth));
+            Console.Write(new string(' ', Console.BufferWidth - 10));
             Console.SetCursorPosition(0, Console.CursorTop);
         }
         public static void ClearLineAbove()
         {
             Console.SetCursorPosition(0, Console.CursorTop - 1);
-            Console.Write(new string(' ', Console.WindowWidth));
+            Console.Write(new string(' ', Console.BufferWidth - 10));
             Console.SetCursorPosition(0, Console.CursorTop);
         }
         public void ToPrimary(string str)

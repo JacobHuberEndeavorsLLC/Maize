@@ -9,7 +9,7 @@ var consoleForegroundColorSecondary = ConsoleColor.DarkGreen;
 var consoleForegroundColorTertiary = ConsoleColor.Green;
 Console.ForegroundColor = consoleForegroundColorPrimary;
 Font font = new(consoleForegroundColorPrimary, consoleForegroundColorSecondary, consoleForegroundColorTertiary);
-
+Menu.MaizeLogo(font);
 var net = ApplicationUtilities.CheckMainnetOrTestnet(font);
 
 string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{net}appsettings.json";

@@ -26,7 +26,7 @@ namespace Maize.Helpers
             font.ToPrimary(@"M  MMM  MMM  M 88'  `88 88    .d8P' 88ooood8 ");  
             font.ToPrimary(@"M  MMM  MMM  M 88.  .88 88  .Y8P    88.  ... ");  
             font.ToPrimary(@"M  MMM  MMM  M `88888P8 dP d888888P `88888P' ");
-            font.SetVersionFontColor(@"MMMMMMMMM", "1.0.0","");
+            font.SetVersionFontColor(@"MMMMMMMMM", "1.0.1","");
             font.ToSecondary("= = = Cornveniently Manage your NFTs = = = = =");
             Console.WriteLine();
             font.ToPrimary($"Good luck out there anon.");
@@ -157,6 +157,57 @@ namespace Maize.Helpers
             Console.WriteLine();
             font.ToPrimary("Let's get started.");
             Console.WriteLine();
+        }
+        public static void MaizeLogo(Font font)
+        {
+            font.ToGreen("");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@@@");font.ToYellowInline("          &&&");font.ToBlue("          @@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@@");font.ToYellowInline("   &&&&&  &");font.ToDarkYellowInline("///");font.ToYellowInline("&   &&&&");font.ToBlue("   @@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("   /////   /////.  /////");font.ToBlue("   @@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@"); font.ToDarkYellowInline("   ////     ,/      ////"); font.ToBlue("    @@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@                             @@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@");font.ToYellowInline("    &&&&&    &&&&&&&    &&&&&");font.ToBlue("    @@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@");font.ToYellowInline("    &");font.ToDarkYellowInline("/////");font.ToYellowInline("&&  &");font.ToDarkYellowInline("///////");font.ToYellowInline("&  &&");font.ToDarkYellowInline("////");font.ToYellowInline("&&");font.ToBlue("    @@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("    ////////  /////////  ////////");font.ToBlue("    @@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("     //////    ///////    //////");font.ToBlue("     @@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@                                     @@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@");font.ToYellowInline("    &&&&&&      &&&&&&&      &&&&&&/");font.ToBlue("   @@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@");font.ToYellowInline("   &");font.ToDarkYellowInline("//////");font.ToYellowInline("&&   &");font.ToDarkYellowInline("/////////");font.ToYellowInline("&   &&");font.ToDarkYellowInline("//////");font.ToYellowInline("&");font.ToBlue("   @@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("    /////////   ///////////   //////////");font.ToBlue("   @@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("    //////      /////////      //////");font.ToBlue("    @@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@                                         @@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@");font.ToYellowInline("    &&&&&&&       &&&&&&&       &&&&&&&");font.ToBlue("    @@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@");font.ToYellowInline("   &");font.ToDarkYellowInline("////////");font.ToYellowInline("&   &&&");font.ToDarkYellowInline("//////");font.ToYellowInline("#&&&   &&");font.ToDarkYellowInline("///////");font.ToYellowInline("#");font.ToBlue("   @@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@");font.ToDarkYellowInline("   //////////   /////////////    /////////   ");font.ToBlue("%@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@");font.ToDarkYellowInline("                   ///////////                   ");font.ToBlue("@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@");font.ToGreenInline("        ,***********               ,***********        ");font.ToBlue("@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@");font.ToGreenInline("     **********************     ***********************     ");font.ToBlue("@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@");font.ToGreenInline("    *******************************************************    ");font.ToBlue("@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@");font.ToGreenInline("    *********************************************************    ");font.ToBlue("@@@@@@@");
+            font.ToBlueInline(@"@@@@@@");font.ToGreenInline("    ********************************************************");font.ToDarkGreenInline(",    ");font.ToBlue("@@@@@@@");
+            font.ToBlueInline(@"@@@@@@");font.ToGreenInline("    ********************************************************");font.ToDarkGreenInline(",    ");font.ToBlue("@@@@@@@");
+            font.ToBlueInline(@"@@@@@@");font.ToGreenInline("    *******.             *************             ********");font.ToDarkGreenInline(",,    ");font.ToBlue("@@@@@@@");
+            font.ToBlueInline(@"@@@@@@");font.ToGreenInline("     *                ****************************        ");font.ToDarkGreenInline(",,    ");font.ToBlue("@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@");font.ToGreenInline("                 **********************************");font.ToDarkGreenInline(",          ");font.ToBlue("@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@");font.ToGreenInline("         ************************************");font.ToDarkGreenInline(",,    ");font.ToBlue("@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@");font.ToGreenInline("      *************************************");font.ToDarkGreenInline(",,,    ");font.ToBlue("@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@");font.ToGreenInline("     *************************************");font.ToDarkGreenInline(",,,    ");font.ToBlue("@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@");font.ToGreenInline("    ***********************************");font.ToDarkGreenInline(",,,,    ");font.ToBlue("@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@");font.ToGreenInline("     *******************************");font.ToDarkGreenInline(",,,,     ");font.ToBlue("@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@");font.ToGreenInline("      ************************");font.ToDarkGreenInline(",,,,,,     ");font.ToBlue("@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@");font.ToDarkGreenInline("        ,,,,,,");font.ToGreenInline("*****");font.ToDarkGreenInline(",,,,,,,,,");font.ToBlue("        @@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@                             @@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@@"); font.ToDarkYellowInline("              ///////");font.ToBlue("    @@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("         ////////////");font.ToBlue("   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlueInline(@"@@@@@@@@@@@@@@@@@@@@@@@@@@");font.ToDarkYellowInline("       ////////////");font.ToBlue("    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@@@@@@                   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@      @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            font.ToBlue(@"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            Console.SetCursorPosition(0, 0);
+
         }
     }
 }
