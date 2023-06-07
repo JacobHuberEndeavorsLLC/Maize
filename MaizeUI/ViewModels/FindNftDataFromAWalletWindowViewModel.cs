@@ -70,7 +70,7 @@ namespace MaizeUI.ViewModels
             IsEnabled = false;
             var sw = new Stopwatch();
             sw.Start();
-            AccountInformationResponse accountInformation = await loopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(loopringService, settings.LoopringApiKey, WalletAddress));
+            AccountInformationResponse accountInformation = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(loopringService, settings.LoopringApiKey, WalletAddress));
             if (accountInformation == null)
             {
                 Log = "Invalid address/ENS! Try Again...";
@@ -83,7 +83,7 @@ namespace MaizeUI.ViewModels
                 int total = 0;
                 while(true)
                 {
-                    var nfts = await loopringService.GetWalletsNftsOffset(settings.LoopringApiKey, accountInformation.accountId, offset);
+                    var nfts = await LoopringService.GetWalletsNftsOffset(settings.LoopringApiKey, accountInformation.accountId, offset);
                     if(nfts.Item1.Count > 0)
                     {
                         total = nfts.Item2;
