@@ -70,7 +70,7 @@ namespace MaizeUI.ViewModels
             IsEnabled = false;
             var sw = new Stopwatch();
             sw.Start();
-            AccountInformationResponse accountInformation = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(loopringService, settings.LoopringApiKey, WalletAddress));
+            AccountInformationResponse accountInformation = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, WalletAddress));
             if (accountInformation == null)
             {
                 Log = "Invalid address/ENS! Try Again...";
