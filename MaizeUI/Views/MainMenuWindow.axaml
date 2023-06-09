@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+		Width="235" Height="150"
+		CanResize="False"
+		xmlns:vm="using:MaizeUI.ViewModels"
+        x:Class="MaizeUI.Views.MainMenuWindow"
+        Title="Menu">
+
+	<Design.DataContext>
+		<vm:MainMenuWindowViewModel/>
+	</Design.DataContext>
+	<StackPanel ScrollViewer.VerticalScrollBarVisibility="Visible">
+		<Button Content="Find NFT Data from a Wallet" IsEnabled="True" Command="{Binding FindNftDataFromAWalletCommand}"/>
+		<Button Content="Find NFT Data from a Collection" IsEnabled="False" />
+		<Button Content="Find Holders from NFT Data"  IsEnabled="False"/>
+	</StackPanel>
+</Window>
