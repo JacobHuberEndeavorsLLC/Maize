@@ -1,20 +1,38 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-		Width="235" Height="150"
-		CanResize="False"
-		xmlns:vm="using:MaizeUI.ViewModels"
+				mc:Ignorable="d" Width="800" Height="500"
+		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
         x:Class="MaizeUI.Views.MainMenuWindow"
         Title="Menu">
-
 	<Design.DataContext>
 		<vm:MainMenuWindowViewModel/>
 	</Design.DataContext>
-	<StackPanel ScrollViewer.VerticalScrollBarVisibility="Visible">
-		<Button Content="Find NFT Data from a Wallet" IsEnabled="True" Command="{Binding FindNftDataFromAWalletCommand}"/>
-		<Button Content="Find NFT Data from a Collection" IsEnabled="False" />
-		<Button Content="Find Holders from NFT Data"  IsEnabled="False"/>
-	</StackPanel>
+  <Panel>
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+            BackgroundSource="Digger"
+            TintColor="Black"
+            TintOpacity="1"
+            MaterialOpacity="0.65" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+  <Panel Margin="20 40 20 0">
+    <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" Height="50" />
+    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 50 0 0" Text="{Binding Slogan}" />
+    <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 0 0 0" Text="{Binding SelectedNetwork}" />
+    <StackPanel Margin="0 100 0 0">
+      <Button Content="Find NFT Data from a Wallet" IsEnabled="True" Command="{Binding FindNftDataFromAWalletCommand}" />
+      <Button Content="Find NFT Data from a Collection" IsEnabled="False" />
+      <Button Content="Find Holders from NFT Data"  IsEnabled="False" />
+    </StackPanel>
+  </Panel>
+  </Panel>
 </Window>

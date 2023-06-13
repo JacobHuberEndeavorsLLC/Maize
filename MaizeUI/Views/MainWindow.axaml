@@ -1,34 +1,44 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MaizeUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-		WindowState="Normal"
-		CanResize="False"
-		Width="250" Height="100"
+				mc:Ignorable="d" Width="800" Height="500"
+		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
         x:Class="MaizeUI.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/LogoClose.ico"
         Title="MaizeUI">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-	<StackPanel ScrollViewer.VerticalScrollBarVisibility="Visible">
-		<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"></RowDefinition>
-				<RowDefinition Height="Auto"></RowDefinition>
-			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto"></ColumnDefinition>
-				<ColumnDefinition Width="Auto"></ColumnDefinition>
-			</Grid.ColumnDefinitions>
-			<TextBlock Grid.Row="0" Grid.Column="0" Text="Choose Network:" VerticalAlignment="Center"/>
-			<ComboBox Grid.Row="0" Grid.Column="1" ToolTip.Tip="Choose the network" SelectedIndex="0" Items="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}" VerticalAlignment="Center" />
-			<Button Grid.Row="1" Grid.Column="0" Content="Start" Command="{Binding VerifyAppSettingsCommand}" />
-		</Grid>
-	</StackPanel>
+
+  <Panel>
+    
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+            BackgroundSource="Digger"
+            TintColor="Black"
+            TintOpacity="1"
+            MaterialOpacity="0.65" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+    <Panel Margin="20 40 0 0">
+      <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" ToolTip.Tip="{Binding Version}" Height="50" />
+      <StackPanel Margin="5 0 0 0" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock FontSize="50" Text="{Binding Greeting}" />
+        <Panel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 10 0 0">
+          <ComboBox ToolTip.Tip="Choose the network" SelectedIndex="0" Items="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}" />
+          <Button Margin="125 0 0 0" Content="✔️" Command="{Binding VerifyAppSettingsCommand}" />
+        </Panel>
+      </StackPanel>
+    </Panel>
+
+  </Panel>
 </Window>

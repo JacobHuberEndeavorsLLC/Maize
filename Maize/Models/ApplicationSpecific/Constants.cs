@@ -6,7 +6,7 @@
         public const string MaxFeeToken = "LRC";
         public const string AccessLogo = "0x08dccae9dac82c69e6836977c932bb55e608d548d19e95addee8817f7edb5f8d";
         public const string MaizeLdsLogo = "0x2fa975f47dc5929980a8bc01ad5173302a9f6f246ae219ac7a0a4592547cdf87";
-        public static string BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        public static string BaseDirectory = (AppDomain.CurrentDomain.BaseDirectory).Replace("\\", "/");
         public const string InputFolder = "Input/";
         public const string OutputFolder = "Output/";
         public const string EnvironmentPath = "Input/Environment/";

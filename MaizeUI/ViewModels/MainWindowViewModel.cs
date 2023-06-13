@@ -19,6 +19,7 @@ namespace MaizeUI.ViewModels
     public class MainWindowViewModel : ViewModelBase
     {
         public string Greeting { get; set; }
+        public string Version { get; set; }
 
         public List<string> Networks { get; set; } 
 
@@ -35,7 +36,8 @@ namespace MaizeUI.ViewModels
         public MainWindowViewModel()
         {
             Greeting = "Welcome to Maize!";
-            Networks = new List<string> { "mainnet", "testnet" };
+            Version = "v1.0.3";
+            Networks = new List<string> { "👇 choose", "💎 mainnet", "🧪 testnet" };
             SelectedNetwork = Networks[0];
             VerifyAppSettingsCommand = ReactiveCommand.Create(VerifyAppSettings);
         }
@@ -43,51 +45,57 @@ namespace MaizeUI.ViewModels
 
         private async void VerifyAppSettings()
         {
-            string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{selectedNetwork}appsettings.json";
-             IConfiguration config = new ConfigurationBuilder()
-            .AddJsonFile(appSettingsEnvironment)
-            .AddEnvironmentVariables()
-            .Build();
-            Settings settings = config.GetRequiredSection("Settings").Get<Settings>();
-            var environment = Constants.GetNetworkConfig(settings.Environment);
-            if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
+            if (selectedNetwork != Networks[0])
             {
-                await ShowAppSettingsDialog($"Please verify your {selectedNetwork}appsettings.json located at: {appSettingsEnvironment} is correct!");
-            }
-            else
-            {
-                ILoopringService loopringService = new LoopringService(environment.Url);
-                var signedMessage = EDDSAHelper.EddsaSignUrl(settings.LoopringPrivateKey, HttpMethod.Get, new List<(string Key, string Value)>() { ("accountId", settings.LoopringAccountId.ToString()) }, null, "api/v3/apiKey", environment.Url);
-                var apiKey = await loopringService.GetApiKey(settings.LoopringAccountId, signedMessage);
-                if (apiKey != settings.LoopringApiKey)
+                var network = selectedNetwork.Remove(0, 3);
+                string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
+                IConfiguration config = new ConfigurationBuilder()
+               .AddJsonFile(appSettingsEnvironment)
+               .AddEnvironmentVariables()
+               .Build();
+                Settings settings = config.GetRequiredSection("Settings").Get<Settings>();
+                var environment = Constants.GetNetworkConfig(settings.Environment);
+                if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
                 {
-                    await ShowAppSettingsDialog($"Please check your LoopringApiKey in {selectedNetwork}appsettings.json file located at: {appSettingsEnvironment} is correct.");
+                    await ShowAppSettingsDialog($"Please verify that your {network}appsettings.json is correct. Located at: ", $"{appSettingsEnvironment}");
                 }
                 else
                 {
-                    ShowMainMenuDialog(settings, environment);
+                    ILoopringService loopringService = new LoopringService(environment.Url);
+                    var signedMessage = EDDSAHelper.EddsaSignUrl(settings.LoopringPrivateKey, HttpMethod.Get, new List<(string Key, string Value)>() { ("accountId", settings.LoopringAccountId.ToString()) }, null, "api/v3/apiKey", environment.Url);
+                    var apiKey = await loopringService.GetApiKey(settings.LoopringAccountId, signedMessage);
+                    if (apiKey != settings.LoopringApiKey)
+                    {
+                        await ShowAppSettingsDialog($"Please verify that your {network}appsettings.json is correct. Located at: ", $"{appSettingsEnvironment}");
+                    }
+                    else
+                    {
+                        ShowMainMenuDialog(settings, environment, selectedNetwork);
+                    }
                 }
             }
         }
 
-        private async Task ShowAppSettingsDialog(string notice)
+        private async Task ShowAppSettingsDialog(string notice, string location)
         {
             var dialog = new AppsettingsNoticeWindow();
             dialog.DataContext = new AppsettingsNoticeWindowViewModel
             {
-                Notice = notice
+                Notice = notice,
+                Location = location
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
 
-        private void ShowMainMenuDialog(Settings settings, Constants.Environment environment)
+        private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork)
         {
             var dialog = new MainMenuWindow();
             dialog.DataContext = new MainMenuWindowViewModel
             {
                 Settings = settings,
-                Environment = environment
+                Environment = environment,
+                SelectedNetwork = selectedNetwork
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;

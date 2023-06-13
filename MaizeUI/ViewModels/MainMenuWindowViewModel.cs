@@ -11,6 +11,7 @@ namespace MaizeUI.ViewModels
 {
     public class MainMenuWindowViewModel : ViewModelBase
     {
+        public string Slogan { get; set; }
         public Settings settings;
 
         public Settings Settings
@@ -26,6 +27,13 @@ namespace MaizeUI.ViewModels
             get => environment;
             set => this.RaiseAndSetIfChanged(ref environment, value);
         }
+        public string selectedNetwork;
+
+        public string SelectedNetwork
+        {
+            get => selectedNetwork;
+            set => this.RaiseAndSetIfChanged(ref selectedNetwork, value);
+        }
 
         public LoopringServiceUI loopringService;
 
@@ -39,6 +47,7 @@ namespace MaizeUI.ViewModels
 
         public MainMenuWindowViewModel()
         {
+            Slogan = "Cornveniently Manage your NFTs";
             FindNftDataFromAWalletCommand = ReactiveCommand.Create(FindNftDataFromAWallet);
         }
 
