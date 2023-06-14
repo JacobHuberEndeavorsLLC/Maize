@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System.Threading.Tasks;
 
-namespace Maize
+namespace Maize.Services
 {
     public class LoopringServiceUI : ILoopringService, IDisposable
     {
@@ -40,25 +40,36 @@ namespace Maize
                     Font.ClearLine();
                     _font.ToSecondaryInline($"{allData.Count}/{data.totalNum} Owned Collections retrieved...");
                 }
-                while (data.collections.Count != 0)
-                {
-                    offset += 50;
-                    request.AddOrUpdateParameter("offset", offset);
-                    response = await _client.GetAsync(request);
-                    data = JsonConvert.DeserializeObject<UserOwnedCollectionResponse>(response.Content!);
-                    if (data.collections.Count != 0)
-                    {
-                        allData.Add(data.collections.First());
-                        Font.ClearLine();
-                        _font.ToSecondaryInline($"{allData.Count}/{data.totalNum} Owned Collections retrieved...");
-                    }
-                }
                 return allData;
             }
             catch (HttpRequestException httpException)
             {
                 _font.ToRed($"Error at GetUserOwnedCollections: {httpException.Message}");
                 return null;
+            }
+        }
+        public async Task<(List<CollectionOwned>, int)> GetUserOwnedCollectionsOffset(string apiKey, int accountId, int offset)
+        {
+            List<CollectionOwned> allData = new();
+            var request = new RestRequest("/api/v3/user/collection/details");
+            request.AddHeader("X-API-KEY", apiKey);
+            request.AddParameter("accountId", accountId);
+            request.AddParameter("metadata", "true");
+            request.AddParameter("limit", 50);
+            request.AddParameter("offset", offset);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<UserOwnedCollectionResponse>(response.Content!);
+                if (data.totalNum != 0)
+                {
+                    allData.AddRange(data.collections);
+                }
+                return (allData, data.totalNum);
+            }
+            catch (HttpRequestException httpException)
+            {
+                return (null, 0);
             }
         }
 
@@ -101,6 +112,30 @@ namespace Maize
                 return null;
             }
         }
+        public async Task<(List<CollectionMinted>, int)> GetUserMintedCollectionsOffset(string apiKey, string owner, int offset)
+        {
+            List<CollectionMinted> allData = new();
+            var request = new RestRequest("/api/v3/nft/collection");
+            request.AddHeader("X-API-KEY", apiKey);
+            request.AddParameter("owner", owner);
+            request.AddParameter("metadata", "true");
+            request.AddParameter("limit", 50);
+            request.AddParameter("offset", offset);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<UserMintedCollectionResponse>(response.Content!);
+                if (data.totalNum != 0)
+                {
+                    allData.AddRange(data.collections);
+                }
+                return (allData, data.totalNum);
+            }
+            catch (HttpRequestException httpException)
+            {
+                return (null, 0);
+            }
+        }
         public async Task<NftResponseFromCollection> GetCollectionNfts(string apiKey, string id)
         {
             var request = new RestRequest("/api/v3/nft/public/collection/items");
@@ -134,6 +169,30 @@ namespace Maize
             {
                 _font.ToRed($"Error at GetCollectionNfts: {httpException.Message}");
                 return null;
+            }
+        }
+        public async Task<(List<NftTokenInfo>, int)> GetCollectionNftsOffset(string apiKey, string id, int offset)
+        {
+            List<NftTokenInfo> allData = new();
+            var request = new RestRequest("/api/v3/nft/public/collection/items");
+            request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("id", id);
+            request.AddParameter("metadata", "true");
+            request.AddParameter("limit", 50);
+            request.AddParameter("offset", offset);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<NftResponseFromCollection>(response.Content!);
+                if (data.totalNum != 0)
+                {
+                    allData.AddRange(data.nftTokenInfos);
+                }
+                return (allData, data.totalNum);
+            }
+            catch (HttpRequestException httpException)
+            {
+                return (null, 0);
             }
         }
 
@@ -280,6 +339,7 @@ namespace Maize
             {
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<AccountInformationResponse>(response.Content!);
+                Thread.Sleep(50);
                 return data;
             }
             catch (HttpRequestException httpexception)
@@ -410,6 +470,29 @@ namespace Maize
             {
                 _font.ToWhite($"Error getting TokenId: {httpException.Message}");
                 return null;
+            }
+        }
+        public async Task<(List<NftHolder>, int)> GetNftHoldersOffset(string apiKey, string nftData, int offset)
+        {
+            List<NftHolder> allData = new();
+            var request = new RestRequest("/api/v3/nft/info/nftHolders");
+            request.AddHeader("X-API-KEY", apiKey);
+            request.AddParameter("nftData", nftData);
+            request.AddParameter("limit", 50);
+            request.AddParameter("offset", offset);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<NftHoldersResponse>(response.Content!);
+                if (data.totalNum != 0)
+                {
+                    allData.AddRange(data.nftHolders);
+                }
+                return (allData, data.totalNum);
+            }
+            catch (HttpRequestException httpException)
+            {
+                return (null, 0);
             }
         }
         public async Task<List<NftInformationResponse>> GetNftInformationFromNftData(string apiKey, string nftData)

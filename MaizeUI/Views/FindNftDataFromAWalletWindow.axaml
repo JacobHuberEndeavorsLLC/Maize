@@ -1,18 +1,23 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-		Width="550" Height="300"
-		CanResize="False"
-		xmlns:vm="using:MaizeUI.ViewModels"
+				mc:Ignorable="d" Width="600" Height="400"
+		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
         x:Class="MaizeUI.Views.FindNftDataFromAWalletWindow"
         Title="Find NftData From A Wallet">
 	<Design.DataContext>
-		<vm:FindNftDataFromAWalletWindowViewModel/>
+    <vm:FindNftDataFromAWalletWindowViewModel/>
 	</Design.DataContext>
-	<StackPanel ScrollViewer.VerticalScrollBarVisibility="Visible">
-		<Button Width="100" Command="{Binding FindNftDataFromAWalletCommand}" IsEnabled="{Binding IsEnabled}">Find</Button>
+  <StackPanel Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Visible">
+    <Button Margin="0 0 0 10" Width="100" Command="{Binding FindNftDataFromAWalletCommand}" IsEnabled="{Binding IsEnabled}">
+      <TextBlock Text="Find" TextAlignment="Center"/>
+    </Button>
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"></RowDefinition>
@@ -23,11 +28,10 @@
 				<ColumnDefinition Width="Auto"></ColumnDefinition>
 				<ColumnDefinition Width="Auto"></ColumnDefinition>
 			</Grid.ColumnDefinitions>
-			<TextBlock Grid.Row="0" Grid.Column="0" Text="Wallet Address/ENS:" VerticalAlignment="Center"/>
-			<TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Watermark="Enter address here..."  ToolTip.Tip="0x address or ENS" Text="{Binding WalletAddress}" Width="400"/>
-			<TextBlock Grid.Row="1" Grid.Column="0" Text="Logs:" VerticalAlignment="Center"/>
-			<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Log}" Watermark="Logs will be output here..." HorizontalAlignment="Left" VerticalAlignment="Top" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="400"/>
+			<TextBlock Grid.Row="0" Grid.Column="0" Text="Wallet Address/ENS:" VerticalAlignment="Center" Margin="0 0 10 0"/>
+			<TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="Enter address here..."  ToolTip.Tip="0x address or ENS" Text="{Binding WalletAddress}" Width="375"/>
+			<TextBlock Grid.Row="1" Grid.Column="0" Text="Logs:" VerticalAlignment="Center" Margin="0 0 10 0"/>
+			<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Log}" Watermark="Logs will be output here..." HorizontalAlignment="Left" VerticalAlignment="Top" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="375"/>
 		</Grid>
-
 	</StackPanel>
 </Window>

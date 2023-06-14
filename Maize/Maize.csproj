@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,13 +10,6 @@
 
   <ItemGroup>
     <Content Include="LogoClose.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Properties\PublishProfiles\linux-x64.pubxml.user" />
-    <None Include="Properties\PublishProfiles\osx-x64.pubxml.user" />
-    <None Include="Properties\PublishProfiles\win-x64.pubxml.user" />
-    <None Include="Properties\PublishProfiles\win-x86.pubxml.user" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,19 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Input\Environment\AAAtestnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Input\Environment\AAAmainnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Input\Environment\AAAmainnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Input\Environment\AAAtestnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Input\Environment\mainnetappsettings.json">
+    <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\mainnetappsettings.json">
@@ -59,6 +40,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\testnetappsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\MYmainnetappsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\MYmainnetappsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\MYmainnetappsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\MYtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Files\WannaCollab.json">
@@ -67,7 +60,7 @@
     <None Update="Input\Files\WannaCollab.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\testnetappsettings.json">
+    <None Update="Input\Environment\MYtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TESTtestnetappsettings.json">
@@ -83,6 +76,7 @@
 
   <ItemGroup>
     <Folder Include="Output\" />
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>

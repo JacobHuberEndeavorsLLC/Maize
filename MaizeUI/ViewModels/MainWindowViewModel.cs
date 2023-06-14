@@ -20,6 +20,7 @@ namespace MaizeUI.ViewModels
     {
         public string Greeting { get; set; }
         public string Version { get; set; }
+        public string Slogan { get; set; }
 
         public List<string> Networks { get; set; } 
 
@@ -36,7 +37,8 @@ namespace MaizeUI.ViewModels
         public MainWindowViewModel()
         {
             Greeting = "Welcome to Maize!";
-            Version = "v1.0.3";
+            Version = "v1.0.2";
+            Slogan = "Cornveniently Manage your NFTs";
             Networks = new List<string> { "👇 choose", "💎 mainnet", "🧪 testnet" };
             SelectedNetwork = Networks[0];
             VerifyAppSettingsCommand = ReactiveCommand.Create(VerifyAppSettings);
@@ -70,7 +72,7 @@ namespace MaizeUI.ViewModels
                     }
                     else
                     {
-                        ShowMainMenuDialog(settings, environment, selectedNetwork);
+                        ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan);
                     }
                 }
             }
@@ -88,11 +90,13 @@ namespace MaizeUI.ViewModels
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
 
-        private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork)
+        private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork, string version, string slogan)
         {
             var dialog = new MainMenuWindow();
             dialog.DataContext = new MainMenuWindowViewModel
             {
+                Slogan = slogan,
+                Version = version,
                 Settings = settings,
                 Environment = environment,
                 SelectedNetwork = selectedNetwork

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Maize", "Maize\Maize.csproj", "{0D82DFD9-21D4-4EAA-BA2E-384EAE4530BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaizeUI", "MaizeUI\MaizeUI.csproj", "{A374CEEB-3EBC-4702-9B98-91611A79F723}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaizeUI", "MaizeUI\MaizeUI.csproj", "{A374CEEB-3EBC-4702-9B98-91611A79F723}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0D82DFD9-21D4-4EAA-BA2E-384EAE4530BD} = {0D82DFD9-21D4-4EAA-BA2E-384EAE4530BD}
 	EndProjectSection

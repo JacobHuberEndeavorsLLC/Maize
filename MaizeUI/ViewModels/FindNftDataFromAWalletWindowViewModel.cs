@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Rendering;
 using Maize;
+using Maize.Services;
 using Maize.Helpers;
 using MaizeUI.Views;
 using ReactiveUI;

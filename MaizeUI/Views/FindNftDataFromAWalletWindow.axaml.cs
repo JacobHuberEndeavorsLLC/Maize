@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 
 namespace MaizeUI.Views
 {
@@ -7,6 +8,11 @@ namespace MaizeUI.Views
         public FindNftDataFromAWalletWindow()
         {
             InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
         }
     }
 }

@@ -3,7 +3,7 @@
         xmlns:vm="using:MaizeUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" Width="600" Height="300"
+				mc:Ignorable="d" Width="600" Height="400"
         WindowStartupLocation="CenterScreen"
         Background="Transparent"
         TransparencyLevelHint="AcrylicBlur"
@@ -15,8 +15,8 @@
     <vm:AppsettingsNoticeWindowViewModel/>
   </Design.DataContext>
 
-  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-    <TextBlock Foreground="#c29c09" FontSize="20" Margin="20 0 20 0" Text="{Binding Notice}" TextWrapping="Wrap"/>
-    <TextBox Margin="20 0 20 0" IsReadOnly="True" Text="{Binding Location}" TextWrapping="Wrap"/>
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+    <TextBlock Foreground="#c29c09" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
+    <TextBox IsReadOnly="True" Text="{Binding Location}" TextWrapping="Wrap"/>
   </StackPanel>
 </Window>

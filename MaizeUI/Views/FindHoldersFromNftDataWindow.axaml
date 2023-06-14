@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				mc:Ignorable="d" Width="600" Height="400"
+		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
+        x:Class="MaizeUI.Views.FindHoldersFromNftDataWindow"
+        Title="Find Holders From NFT Data">
+	<Design.DataContext>
+    <vm:FindHoldersFromNftDataWindowViewModel/>
+	</Design.DataContext>
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
+    <Button Margin="0 0 0 10" Width="100" Command="{Binding FindHoldersFromNftDataCommand}" IsEnabled="{Binding IsEnabled}">
+      <TextBlock Text="Find" TextAlignment="Center"/>
+    </Button>
+    <TextBlock Margin="0 0 0 10" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
+    <TextBox Margin="0 0 0 10" IsReadOnly="True" Text="{Binding Location}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="500"/>
+    <TextBlock Margin="0 0 0 10" FontSize="15" Text="{Binding Notice2}" TextWrapping="Wrap"/>
+
+
+  </StackPanel>
+</Window>

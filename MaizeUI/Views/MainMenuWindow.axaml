@@ -10,7 +10,7 @@
         ExtendClientAreaToDecorationsHint="True"
 				CanResize="True"
         x:Class="MaizeUI.Views.MainMenuWindow"
-        Title="Menu">
+        Title="MaizeUI">
 	<Design.DataContext>
 		<vm:MainMenuWindowViewModel/>
 	</Design.DataContext>
@@ -24,14 +24,15 @@
             MaterialOpacity="0.65" />
       </ExperimentalAcrylicBorder.Material>
     </ExperimentalAcrylicBorder>
-  <Panel Margin="20 40 20 0">
-    <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" Height="50" />
+  <Panel Margin="30 40 30 0">
+    <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" ToolTip.Tip="{Binding Version}" Height="50" />
     <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 50 0 0" Text="{Binding Slogan}" />
     <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 0 0 0" Text="{Binding SelectedNetwork}" />
     <StackPanel Margin="0 100 0 0">
-      <Button Content="Find NFT Data from a Wallet" IsEnabled="True" Command="{Binding FindNftDataFromAWalletCommand}" />
-      <Button Content="Find NFT Data from a Collection" IsEnabled="False" />
-      <Button Content="Find Holders from NFT Data"  IsEnabled="False" />
+      <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Lookups:" FontSize="20" Margin="0 0 0 5" />
+      <Button Width="180" Content="NFT Info from a Wallet" IsEnabled="True" Margin="0 0 0 10" Command="{Binding FindNftDataFromAWalletCommand}" />
+      <Button Width="180" Content="NFT Info from Collection" IsEnabled="True" Margin="0 0 0 10" Command="{Binding FindNftDataFromACollectionCommand}" />
+      <Button Width="180" Content="Holders from NFT Data" IsEnabled="True" Margin="0 0 0 10" Command="{Binding FindHoldersFromNftDataCommand}" />
     </StackPanel>
   </Panel>
   </Panel>

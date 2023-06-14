@@ -50,6 +50,38 @@ namespace Maize.Helpers
             } while (walletAddresses == "");
             return howManyLines;
         }
+        public static int CheckInputFile()
+        {
+            StreamReader sr;
+            string walletAddresses;
+            int howManyLines;
+            var counter = 0;
+            string userResponseOnWalletSetup;
+            do
+            {
+                if (counter == 0)
+                {
+                    sr = new StreamReader($"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}");
+                    counter++;
+                }
+                else
+                {
+                    sr = new StreamReader($"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}");
+                }
+                walletAddresses = sr.ReadToEnd().Replace("\r\n", "\r");
+                howManyLines = walletAddresses.Split('\r').Length;
+                if (walletAddresses.EndsWith('\r'))
+                {
+                    do
+                    {
+                        walletAddresses = walletAddresses.Remove(walletAddresses.Length - 1).Remove(walletAddresses.Length - 1);
+                        howManyLines--;
+                    } while (walletAddresses.EndsWith('\r'));
+                }
+                sr.Dispose();
+            } while (walletAddresses == "");
+            return howManyLines;
+        }
         public static void InputFileHelp(int utility, Font font)
         {
             switch (utility)

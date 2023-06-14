@@ -46,7 +46,6 @@ namespace Maize.Helpers
         }
         public static async Task<(string fileName, string fileNameTwo, Stopwatch sw)> NftHoldersFromNftData(Font font, ILoopringService loopringService, INftMetadataService nftMetadataService, IEthereumService ethereumService, Settings s, int utility)
         {
-            int currentOverallTotal;
             int currentTotal;
             var counter = 0;
             var ownerAndAmount = new List<OwnerAndAmount>();

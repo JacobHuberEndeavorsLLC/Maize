@@ -1,12 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using MaizeUI.ViewModels;
 
 namespace MaizeUI.Views
 {
-    public partial class AppsettingsNoticeWindow : Window
+    public partial class FindNftDataFromACollectionWindow : Window
     {
-        public AppsettingsNoticeWindow()
+        public FindNftDataFromACollectionWindow()
         {
             InitializeComponent();
         }

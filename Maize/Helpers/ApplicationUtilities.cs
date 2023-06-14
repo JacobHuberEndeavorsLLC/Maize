@@ -330,6 +330,18 @@ namespace Maize.Helpers
             } while (nftMetadata == null);
             return nftMetadata;
         }
+        public static async Task<NftMetadata> GetNftMetadataUI(IEthereumService ethereumService,
+        INftMetadataService nftMetadataService, string nftId, string collectionAddress)
+        {
+            NftMetadata nftMetadata;
+            do
+            {
+                var nftMetaDataLink = await ethereumService.GetMetadataLink(nftId, collectionAddress, 0);
+                nftMetadata = await nftMetadataService.GetMetadata(nftMetaDataLink);
+                //CheckIpfsForbidden(font, nftMetadata);
+            } while (nftMetadata == null);
+            return nftMetadata;
+        }
         public static void CheckIpfsForbidden(Font font, NftMetadata nftMetadata)
         {
             if (nftMetadata == null)
