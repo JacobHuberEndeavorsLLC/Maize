@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MaizeUI": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

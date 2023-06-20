@@ -34,6 +34,11 @@
       <Button Width="180" Content="NFT Info from Collection" IsEnabled="True" Margin="0 0 0 10" Command="{Binding FindNftDataFromACollectionCommand}" />
       <Button Width="180" Content="Holders from NFT Data" IsEnabled="True" Margin="0 0 0 10" Command="{Binding FindHoldersFromNftDataCommand}" />
     </StackPanel>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 100 0 0">
+      <TextBlock Text="Airdrops:" FontSize="20" Margin="0 0 0 5" />
+      <Button Width="180" Content="NFTs to Users" IsEnabled="True" Margin="0 0 0 10" Command="{Binding AirdropNftsToUsersCommand}" />
+      <Button Width="180" Content="Crypto to Users" IsEnabled="False" Margin="0 0 0 10" Command="{Binding FindNftDataFromACollectionCommand}" />
+    </StackPanel>
   </Panel>
   </Panel>
 </Window>

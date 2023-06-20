@@ -1,4 +1,8 @@
-﻿using Maize.Models.ApplicationSpecific;
+﻿using Maize.Models;
+using Maize.Models.ApplicationSpecific;
+using Maize.Services;
+using Microsoft.VisualBasic.FileIO;
+using Nethereum.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +53,45 @@ namespace Maize.Helpers
                 sr.Dispose();
             } while (walletAddresses == "");
             return howManyLines;
+        }
+        public static async Task<(List<TransferInformation> transferInfoList, string? invalidLines)> CheckInputFileVariables()
+        {
+            using (TextFieldParser parser = new TextFieldParser($"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}"))
+            {
+                parser.TextFieldType = FieldType.Delimited;
+                parser.SetDelimiters(",");
+
+                StringBuilder invalidLines = new StringBuilder();
+                List<TransferInformation> transferInfoList = new List<TransferInformation>();
+                int lineNumber = 1;
+
+                while (!parser.EndOfData)
+                {
+                    string[] fields = parser.ReadFields();
+
+                    if (fields.Length != 4)
+                    {
+                        invalidLines.Append($"Error at line {lineNumber}: Does not have 4 variables separated by a comma.\r\n");
+                    }
+                    else
+                    {
+                        TransferInformation transferInfo = new TransferInformation
+                        {
+                            NftData = fields[0],
+                            Amount = int.Parse(fields[1]),
+                            ToAddress = fields[2],
+                            Memo = fields[3],
+                            Activated = true
+                        };
+
+                        transferInfoList.Add(transferInfo);
+                    }
+
+                    lineNumber++;
+                }
+
+                return (transferInfoList, invalidLines.ToString());
+            }
         }
         public static int CheckInputFile()
         {

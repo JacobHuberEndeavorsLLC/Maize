@@ -192,7 +192,7 @@ namespace MaizeUI.ViewModels
                         // user did not mint collection and does not own an nft from the collection so there is a workaround to get the collection id. i think i will need to create a new window to accept the minter and an nftId
                         if (IsTextBoxVisible == false)
                         {
-                            Log = "This collection is not minted or owned by you.\r\n\r\nAdditional information is required.\r\n\r\nEnter the Above and press find.";
+                            Log = "This collection is not minted or owned by you.\r\n\r\nAdditional information is required.\r\n\r\nEnter the Above and press Find.";
                             ShowTextBox();
                             IsEnabled = true;
                             return;

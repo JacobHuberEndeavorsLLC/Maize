@@ -48,6 +48,9 @@
     </AvaloniaXaml>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
+      <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\FindNftDataFromACollectionWindow.axaml.cs">
       <DependentUpon>FindNftDataFromACollectionWindow.axaml</DependentUpon>
     </Compile>

@@ -57,12 +57,15 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> FindNftDataFromAWalletCommand { get; }
         public ReactiveCommand<Unit, Unit> FindNftDataFromACollectionCommand { get; }
         public ReactiveCommand<Unit, Unit> FindHoldersFromNftDataCommand { get; }
+        public ReactiveCommand<Unit, Unit> AirdropNftsToUsersCommand { get; }
 
         public MainMenuWindowViewModel()
         {
             FindNftDataFromAWalletCommand = ReactiveCommand.Create(FindNftDataFromAWallet);
             FindNftDataFromACollectionCommand = ReactiveCommand.Create(FindNftDataFromACollection);
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
+            AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
+
         }
 
         private async void FindNftDataFromAWallet()
@@ -94,6 +97,18 @@ namespace MaizeUI.ViewModels
             {
                 LoopringService = new LoopringServiceUI(Environment.Url),
                 Settings = settings
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void AirdropNftsToUsers()
+        {
+            var dialog = new AirdropNftsToUsersWindow();
+            dialog.DataContext = new AirdropNftsToUsersWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);

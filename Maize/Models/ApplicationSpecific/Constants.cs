@@ -12,7 +12,7 @@
         public const string EnvironmentPath = "Input/Environment/";
         public const string InputFile = "Input.txt";
         public const string BanishFile = "Banish.txt";
-        public const decimal LcrTransactionFee = 0.000000000000000001m;
+        public const decimal LcrTransactionFee = 0.001m;
         public static Environment GetNetworkConfig(int variable)
         {
             if (variable == 1)
@@ -32,7 +32,7 @@
                 return new Environment
                 {
                     Url = "https://uat2.loopring.io/",
-                    Exchange = "0x2e76EBd1c7c0C8e7c2B875b6d505a260C525d25e",
+                    Exchange = "0x12b7cccF30ba360e5041C6Ce239C9a188B709b2B",
                     NftFactory = "0x7Da2849B1E5B9849553328aFe6E187C8621D8D5d",
                     NftFactoryCollection = "0xfDDA90dbCc99B3a91e3fB1292991Ba1076d9E281",
                     MyAccountId = 15504,

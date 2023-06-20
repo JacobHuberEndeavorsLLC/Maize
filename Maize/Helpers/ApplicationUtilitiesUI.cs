@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -20,6 +21,102 @@ namespace Maize.Helpers
 {
     public static class ApplicationUtilitiesUI
     {
+        public static string ShowAirdropAudit(List<string> validAddress, List<string> invalidAddress, List<string> banishAddress, List<string> invalidNftData, List<string> alreadyActivatedAddress, string? nftMetadataName, decimal gasFeeTotal, string maxFeeToken, decimal transactionFeeTotal, string maxFeeTokenForMaize)
+        {
+            var excelFileName = $"TransferAudit_{DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss")}.csv";
+            var csv = new StringBuilder();
+            if (nftMetadataName == null)
+            {
+                nftMetadataName = "their Nft";
+            }
+            else if (nftMetadataName == "LRC")
+            {
+                nftMetadataName = "their LRC";
+            }
+            if (validAddress.Count > 0)
+            {
+                if (alreadyActivatedAddress.Count > 0)
+                {
+                    csv.AppendLine($"The following wallets were activated.");
+                }
+                else
+                {
+                    csv.AppendLine($"The following received {nftMetadataName}.");
+                }
+                foreach (var address in validAddress)
+                {
+                    csv.AppendLine(address);
+                }
+            }
+            if (invalidAddress.Count > 0)
+            {
+                if (validAddress.Count > 0)
+                {
+                    csv.AppendLine();
+                }
+                if (alreadyActivatedAddress.Count > 0)
+                {
+                    csv.AppendLine($"The following were not activated. They are invalid addresses.");
+
+                }
+                else
+                {
+                    csv.AppendLine($"The following did not receive {nftMetadataName}.");
+                }
+                foreach (var address in invalidAddress)
+                {
+                    csv.AppendLine(address);
+                }
+            }
+            if (banishAddress.Count > 0)
+            {
+                if (validAddress.Count > 0 || invalidAddress.Count > 0)
+                {
+                    csv.AppendLine();
+                }
+                csv.AppendLine($"The following were banish addresses that did not receive {nftMetadataName}.");
+                foreach (var address in banishAddress)
+                {
+                    csv.AppendLine(address);
+                }
+            }
+            if (invalidNftData != null)
+            {
+                if (invalidNftData.Count > 0)
+                {
+                    if (validAddress.Count > 0 || invalidAddress.Count > 0 || banishAddress.Count > 0)
+                    {
+                        csv.AppendLine();
+                    }
+                    csv.AppendLine($"The following were invalid Nft Data and the associated wallet did not receive {nftMetadataName}.");
+                    foreach (var address in invalidNftData)
+                    {
+                        csv.AppendLine(address);
+                    }
+                }
+            }
+            if (alreadyActivatedAddress != null)
+            {
+                if (alreadyActivatedAddress.Count > 0)
+                {
+                    if (validAddress.Count > 0 || invalidAddress.Count > 0 || banishAddress.Count > 0)
+                    {
+                        csv.AppendLine();
+                    }
+                    csv.AppendLine($"The following were already activated wallets.");
+                    foreach (var address in alreadyActivatedAddress)
+                    {
+                        csv.AppendLine(address);
+                    }
+                }
+            }
+            csv.AppendLine();
+            csv.AppendLine($"Total Loopring Fee: {(gasFeeTotal / 1000000000000000000m).ToString()} {maxFeeToken}");
+            csv.AppendLine($"Total Maize Fee: {transactionFeeTotal} {maxFeeTokenForMaize}");
+            File.WriteAllText($"{AppDomain.CurrentDomain.BaseDirectory}Output\\{excelFileName}", csv.ToString());
+            return $"{Constants.BaseDirectory}{Constants.OutputFolder}{excelFileName}";
+        }
+        public static int GetUnixTimestamp() => (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         public static BigInteger ParseHexUnsigned(string toParse)
         {
             toParse = toParse.Replace("0x", "");

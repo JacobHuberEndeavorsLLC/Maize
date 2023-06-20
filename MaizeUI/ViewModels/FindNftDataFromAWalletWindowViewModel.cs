@@ -98,7 +98,7 @@ namespace MaizeUI.ViewModels
                     }
                 }
 
-                var walletsNftsBasicInformation = allNfts.SelectMany(d=> d).Select(m => new { m.metadata.nftBase.name, m.nftData, m.nftId, m.minter, m.tokenAddress }).ToList();
+                var walletsNftsBasicInformation = allNfts.SelectMany(d=> d).Select(m => new { m.metadata.nftBase.name, m.total, m.nftData, m.nftId, m.minter, m.tokenAddress }).ToList();
                 var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftDataFromWallet", walletsNftsBasicInformation);
                 sw.Stop();
                 var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";

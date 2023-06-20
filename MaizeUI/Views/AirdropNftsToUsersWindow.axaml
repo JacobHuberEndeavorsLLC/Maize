@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				mc:Ignorable="d" Width="600" Height="400"
+		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
+        x:Class="MaizeUI.Views.AirdropNftsToUsersWindow"
+        Title="Airdrop NFTs">
+	<Design.DataContext>
+    <vm:AirdropNftsToUsersWindowViewModel/>
+	</Design.DataContext>
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
+
+    <TextBlock Margin="20 20 20 0" IsVisible="{Binding Step1}" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
+    <TextBlock Margin="20 20 20 20" IsVisible="{Binding Step2}" FontSize="15" Text="{Binding Notice3}" TextWrapping="Wrap"/>
+    <TextBlock Margin="20 20 20 20" IsVisible="{Binding Step3}" FontSize="15" Text="{Binding Notice4}" TextWrapping="Wrap"/>
+    <TextBlock Margin="20 20 20 20" IsVisible="{Binding Notice6Visible}" FontSize="15" Text="{Binding Notice6}" TextWrapping="Wrap"/>
+    <TextBlock Margin="20 0 20 10" IsVisible="{Binding Step1}" HorizontalAlignment="Right" FontSize="12" ToolTip.Tip="Example: 60X266047b1b8fd705e74f8649e7967d310aab8926f2a79963309328e5eadbe5f8c,1,0X37ea02537f3a7a7ffc221125245905be3d5423e6,This is a Memo" Text="❔" />
+
+    <TextBox Margin="20 0 20 10" IsReadOnly="True" Text="{Binding Log}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="500"/>
+    
+    <StackPanel Orientation="Horizontal">
+      <Button IsVisible="{Binding IsNextButtonVisible}" Margin="20 0 20 10" Width="100" Command="{Binding AirdropNftsToUsersCommand}" IsEnabled="{Binding IsEnabled}">
+        <TextBlock Text="Next" TextAlignment="Center"/>
+      </Button>
+      <Button IsVisible="{Binding IsPreviewButtonVisible}" Margin="20 0 20 10" Width="100" Command="{Binding PreviewProcessCommand}" IsEnabled="{Binding IsEnabled}">
+        <TextBlock Text="Preview" TextAlignment="Center"/>
+      </Button>
+      <Button IsVisible="{Binding IsStartButtonVisible}" Margin="20 0 20 10" Width="100" Command="{Binding StartProcessCommand}" IsEnabled="{Binding IsEnabled}">
+        <TextBlock Text="Start" TextAlignment="Center"/>
+      </Button>
+      <ComboBox Margin="0 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" Items="{Binding LoopringFeeDropdown}"
+            SelectedItem="{Binding LoopringFeeSelectedOption}" />
+
+      <ComboBox Margin="10 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" Items="{Binding MaizeFeeDropdown}"
+                SelectedItem="{Binding MaizeFeeSelectedOption}" />
+      <CheckBox Margin="10 0 10 10" IsVisible="{Binding IsCheckboxVisible}" VerticalAlignment="Top" HorizontalAlignment="Right" IsEnabled="{Binding IsEnabledCheckBox}" IsChecked="{Binding IsChecked}" Content="Pay Activation Fee" Command="{Binding AirdropNftsToUsersCommand}" />
+      <TextBlock Margin="10 7 10 10" IsVisible="{Binding IsFeeInfoVisible}" VerticalAlignment="Top" HorizontalAlignment="Right" Text="{Binding Notice2}" />
+      <TextBlock Margin="10 7 10 10" IsVisible="{Binding Notice5Visible}" VerticalAlignment="Top" HorizontalAlignment="Right" Text="{Binding Notice5}" />
+
+    </StackPanel>
+  </StackPanel>
+</Window>
