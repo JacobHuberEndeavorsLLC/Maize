@@ -382,7 +382,7 @@ namespace MaizeUI.ViewModels
             string totalActivations = $"Transfers with wallet activation: {totalActivationsList.Count()}";
             var transferFees = (decimal.Parse((await LoopringService.GetNftOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 11)).fees.First(x => x.token == LoopringFeeSelectedOption).fee) / 1000000000000000000) * totalTransfersList.Count();
             var activationFees = (decimal.Parse((await LoopringService.GetNftOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 19)).fees.First(x => x.token == LoopringFeeSelectedOption).fee) / 1000000000000000000) * totalActivationsList.Count();
-            var maizeFee = await CalculateMaizeFee(LoopringService, totalTransactions.Count(), MaizeFeeSelectedOption); 
+            var maizeFee = await CalculateMaizeFee(LoopringService, transferInfoList.Count(), MaizeFeeSelectedOption); 
 
             var userAssets = await LoopringService.GetUserAssetsForFees(settings.LoopringApiKey, settings.LoopringAccountId);
             var eth = userAssets.FirstOrDefault(asset => asset.tokenId == 0);
