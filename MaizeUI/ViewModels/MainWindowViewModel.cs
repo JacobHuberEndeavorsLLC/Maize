@@ -37,7 +37,7 @@ namespace MaizeUI.ViewModels
         public MainWindowViewModel()
         {
             Greeting = "Welcome to Maize!";
-            Version = "v1.1.1";
+            Version = "v1.1.3";
             Slogan = "Cornveniently Manage your NFTs";
             Networks = new List<string> { "👇 choose", "💎 mainnet", "🧪 testnet" };
             SelectedNetwork = Networks[0];

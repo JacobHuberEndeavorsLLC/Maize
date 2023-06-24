@@ -5,8 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 				mc:Ignorable="d" Width="600" Height="400"
 		    WindowStartupLocation="CenterScreen"
-        Background="Transparent"
-        TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
 				CanResize="True"
         x:Class="MaizeUI.Views.FindNftDataFromAWalletWindow"
@@ -27,10 +25,14 @@
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto"></ColumnDefinition>
 				<ColumnDefinition Width="Auto"></ColumnDefinition>
+				<ColumnDefinition Width="Auto"></ColumnDefinition>
 			</Grid.ColumnDefinitions>
 			<TextBlock Grid.Row="0" Grid.Column="0" Text="Wallet Address/ENS:" VerticalAlignment="Center" Margin="0 0 10 0"/>
-			<TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="Enter address here..."  ToolTip.Tip="0x address or ENS" Text="{Binding WalletAddress}" Width="375"/>
-			<TextBlock Grid.Row="1" Grid.Column="0" Text="Logs:" VerticalAlignment="Center" Margin="0 0 10 0"/>
+			<TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="Enter address here..."  ToolTip.Tip="0x address or ENS" Text="{Binding WalletAddress}" Width="325"/>
+      <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0 5 0 10" Width="40" Command="{Binding FindMyNftDataFromAWalletCommand}" IsEnabled="{Binding IsEnabled}">
+        <TextBlock Text="Me" TextAlignment="Center"/>
+      </Button>
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Logs:" VerticalAlignment="Center" Margin="0 0 10 0"/>
 			<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Log}" Watermark="Logs will be output here..." HorizontalAlignment="Left" VerticalAlignment="Top" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="375"/>
 		</Grid>
 	</StackPanel>

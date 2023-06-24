@@ -30,16 +30,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Input\Environment\mainnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\AAAmainnetappsettings.json">
+    <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\AAAmainnetappsettings.json">
+    <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\testnetappsettings.json">

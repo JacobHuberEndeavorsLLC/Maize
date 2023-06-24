@@ -522,6 +522,7 @@ namespace Maize.Helpers
             {
                 csv.WriteRecords(data);
             }
+            OpenFile(fullFileName);
             return fullFileName;
         }
 
@@ -542,6 +543,14 @@ namespace Maize.Helpers
                 font.ToTertiaryInline(statement);
 
             return ReadLineWarningNoNulls(statement, font);
+        }
+        public static void OpenFile(string fileName)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = fileName,
+                UseShellExecute = true
+            });
         }
     }
 }
