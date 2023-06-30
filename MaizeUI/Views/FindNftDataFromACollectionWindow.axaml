@@ -28,9 +28,14 @@
 				<ColumnDefinition Width="Auto"></ColumnDefinition>
 			</Grid.ColumnDefinitions>
 			<TextBlock Grid.Row="0" Grid.Column="0" Text="Collection Address:" VerticalAlignment="Center" Margin="0 0 10 0"/>
-			<TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="Enter collection address here..."  ToolTip.Tip="collection address or token address" Text="{Binding CollectionAddress}" Width="375"/>
-			<TextBlock Grid.Row="3" Grid.Column="0" Text="Logs:" VerticalAlignment="Center" Margin="0 0 10 10"/>
+			<TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="Enter collection address here..."  ToolTip.Tip="collection address or token address" Text="{Binding CollectionAddress}" Width="325"/>
+      <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0 5 0 10" Width="40" Command="{Binding FindNftDataFromMyCollectionsCommand}" IsEnabled="{Binding IsEnabled}">
+        <TextBlock Text="Me" TextAlignment="Center"/>
+      </Button>
+      <TextBlock Grid.Row="3" Grid.Column="0" Text="Logs:" VerticalAlignment="Center" Margin="0 0 10 10"/>
 			<TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Log}" Watermark="Logs will be output here..." HorizontalAlignment="Left" VerticalAlignment="Top" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="375"/>
+      <!--<TextBlock IsVisible="{Binding IsYourCollectionVisible}" Grid.Row="1" Grid.Column="0" Text="Choose Your Collection:" VerticalAlignment="Center" Margin="0 0 10 0"/>-->
+      <!--<ComboBox IsVisible="{Binding IsYourCollectionVisible}" ToolTip.Tip="Select Your Collection" SelectedIndex="0" Items="{Binding Networks}" SelectedItem="{Binding SelectedNetwork}" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="0 0 0 10" />-->
       <TextBlock IsVisible="{Binding IsTextBoxVisible}" Grid.Row="1" Grid.Column="0" Text="Minter Address:" VerticalAlignment="Center" Margin="0 0 10 0"/>
       <TextBox IsVisible="{Binding IsTextBoxVisible}" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="Enter minter's address here..."  ToolTip.Tip="minter address from collection" Text="{Binding MinterAddress}" Width="375"/>
       <TextBlock IsVisible="{Binding IsTextBoxVisible}" Grid.Row="2" Grid.Column="0" Text="NFT Id:" VerticalAlignment="Center" Margin="0 0 10 0"/>

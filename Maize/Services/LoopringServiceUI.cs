@@ -505,6 +505,7 @@ namespace Maize.Services
                 {
                     allData.AddRange(data.nftHolders);
                 }
+                Thread.Sleep(75);
                 return (allData, data.totalNum);
             }
             catch (HttpRequestException httpException)
@@ -596,6 +597,7 @@ namespace Maize.Services
             }
             catch (HttpRequestException httpException)
             {
+
                 return null;
             }
         }
@@ -678,6 +680,7 @@ namespace Maize.Services
             var gasFeeTotal = 0m;
             var transactionFeeTotal = 0m;
             string nftAmountInitial = nftAmount;
+
             int nftTokenIdInitial = nftTokenId;
             int nftSentTotal = 0;
             List<string> invalidAddress = new();
@@ -699,7 +702,7 @@ namespace Maize.Services
                 //string[] walletAddressLineArray = line.Split(',');
                 //toAddressInitial = walletAddressLineArray[2].Trim();
                 //nftData = walletAddressLineArray[0].Trim();
-
+                Thread.Sleep(90);
                 var userNftToken = await loopringService.GetTokenId(loopringApiKey, fromAccountId, nftData);
                 if (userNftToken.totalNum == 0)
                 {
@@ -713,13 +716,15 @@ namespace Maize.Services
             //font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
 
             toAddress = toAddressInitial.ToLower().Trim();
+            Thread.Sleep(90);
             var storageId = await loopringService.GetNextStorageId(loopringApiKey, fromAccountId, nftTokenId);
+            Thread.Sleep(90);
             OffchainFee offChainFee;
             if (payPayeeUpdateAccount == false)
                 offChainFee = await loopringService.GetOffChainFee(loopringApiKey, fromAccountId, 11, "0");
             else
                 offChainFee = await loopringService.GetOffChainFee(loopringApiKey, fromAccountId, 19, "0");
-
+            Thread.Sleep(90);
             toAddress = await loopringService.CheckForEthAddress(loopringService, loopringApiKey, toAddress);
 
             //if (toAddress == "invalid eth address")
@@ -862,6 +867,7 @@ namespace Maize.Services
             var ecdsaSignature = serializedECDRSASignature + "0" + (int)2;
 
             //Submit nft transfer
+            Thread.Sleep(90);
             var nftTransferResponse = await loopringService.SubmitNftTransfer(
                 apiKey: loopringApiKey,
                 exchange: environmentExchange,

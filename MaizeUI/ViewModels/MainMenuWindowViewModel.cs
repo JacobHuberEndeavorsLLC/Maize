@@ -11,6 +11,12 @@ namespace MaizeUI.ViewModels
 {
     public class MainMenuWindowViewModel : ViewModelBase
     {
+        public string ens;
+        public string Ens
+        {
+            get => ens;
+            set => this.RaiseAndSetIfChanged(ref ens, value);
+        }
         public string slogan;
         public string Slogan
         {
@@ -58,6 +64,7 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> FindNftDataFromACollectionCommand { get; }
         public ReactiveCommand<Unit, Unit> FindHoldersFromNftDataCommand { get; }
         public ReactiveCommand<Unit, Unit> AirdropNftsToUsersCommand { get; }
+        public ReactiveCommand<Unit, Unit> ScriptingAirdropInputFileCommand { get; }
 
         public MainMenuWindowViewModel()
         {
@@ -65,6 +72,7 @@ namespace MaizeUI.ViewModels
             FindNftDataFromACollectionCommand = ReactiveCommand.Create(FindNftDataFromACollection);
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
             AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
+            ScriptingAirdropInputFileCommand = ReactiveCommand.Create(ScriptingAirdropInputFile);
 
         }
 
@@ -105,6 +113,18 @@ namespace MaizeUI.ViewModels
         {
             var dialog = new AirdropNftsToUsersWindow();
             dialog.DataContext = new AirdropNftsToUsersWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void ScriptingAirdropInputFile()
+        {
+            var dialog = new ScriptingAirdropInputFileWindow();
+            dialog.DataContext = new ScriptingAirdropInputFileWindowViewModel
             {
                 LoopringService = new LoopringServiceUI(Environment.Url),
                 Settings = settings,

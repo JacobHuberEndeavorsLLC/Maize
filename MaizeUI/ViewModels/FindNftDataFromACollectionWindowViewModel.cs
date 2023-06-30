@@ -16,6 +16,8 @@ using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 using Tmds.DBus;
+using System.Reflection.Metadata;
+using Maize.Models.ApplicationSpecific;
 
 namespace MaizeUI.ViewModels
 {
@@ -81,11 +83,13 @@ namespace MaizeUI.ViewModels
         }
 
         public ReactiveCommand<Unit, Unit> FindNftDataFromACollectionCommand { get; }
+        public ReactiveCommand<Unit, Unit> FindNftDataFromMyCollectionsCommand { get; }
 
         public FindNftDataFromACollectionWindowViewModel()
         {
             IsTextBoxVisible = false;
             FindNftDataFromACollectionCommand = ReactiveCommand.Create(FindNftDataFromACollection);
+            FindNftDataFromMyCollectionsCommand = ReactiveCommand.Create(FindNftDataFromMyCollections);
         }
 
         private async void FindNftDataFromACollection()
@@ -244,49 +248,73 @@ namespace MaizeUI.ViewModels
                 }
             }
             var collectionsNftsInformation = allCollectionsNfts.Select(m => new { m.metadata.basename.name, m.metadata.basename.description, m.nftData, m.nftId, m.minter, m.tokenAddress, m.metadata.basename.properties }).ToList();
-            var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftDataFromCollection", collectionsNftsInformation);
+            var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftInfoFromCollection", collectionsNftsInformation);
             sw.Stop();
             var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
             Log = $"{swTime}\r\n\r\n{collectionAddress} has {total} NFTs in their collection.\r\n\r\nYour file is here:\r\n\r\n{fileName}";
+            NftId = string.Empty;
+            MinterAddress = string.Empty;
+            IsEnabled = true;
+        }
+        private async void FindNftDataFromMyCollections()
+        {
+            Log = "Checking collections, please give me a moment...";
+            IsEnabled = false;
+            var sw = new Stopwatch();
+            sw.Start();
+            List<NftTokenInfo> allCollectionsNfts = new List<NftTokenInfo>();
+            List<List<CollectionMinted>> allMintedCollections = new List<List<CollectionMinted>>();
+            int offset = 0;
+            int total = 0;
+
+            while (true)
+            {
+                // checking if user minted the collection to get the collectionId
+                var collections = await LoopringService.GetUserMintedCollectionsOffset(settings.LoopringApiKey, settings.LoopringAddress, offset);
+                if (collections.Item1.Count > 0)
+                {
+                    total = collections.Item2;
+                    Log = $"{allMintedCollections.SelectMany(d => d).Count()}/{total} Collections retrieved...";
+                    allMintedCollections.Add(collections.Item1);
+                    offset += 50;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            foreach (var item in allMintedCollections.SelectMany(d=>d))
+            {
+                offset = 0;
+                total = 0;
+                while (true)
+                {
+                    var nfts = await LoopringService.GetCollectionNftsOffset(settings.LoopringApiKey, item.collection.id.ToString(), offset);
+                    if (nfts.Item1.Count > 0)
+                    {
+                        total = nfts.Item2;
+                        Log = $"{nfts.Item1.Count}/{total} Nfts retrieved...";
+                        allCollectionsNfts.Add(nfts.Item1);
+                        offset += 50;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                Thread.Sleep(1000);
+                var collectionsNftsInformation = allCollectionsNfts.Select(m => new { m.metadata.basename.name, m.metadata.basename.description, m.nftData, m.nftId, m.minter, m.tokenAddress, m.metadata.basename.properties }).ToList();
+                var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftInfoFromCollection", collectionsNftsInformation);
+
+            }
+            sw.Stop();
+            var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
+            Log = $"{swTime}\r\n\r\nYou have {allMintedCollections.SelectMany(d=>d).Count()} collection(s).\r\n\r\nYour file(s) are here:\r\n\r\n{Constants.BaseDirectory}{Constants.OutputFolder}";
+
             nftId = string.Empty;
             minterAddress = string.Empty;
-
-        //AccountInformationResponse accountInformation = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, CollectionAddress));
-        //if (accountInformation == null)
-        //{
-        //    Log = "Invalid Wallet Address/ENS! Try Again...";
-        //    sw.Stop();
-        //}
-        //else
-        //{
-        //    List<List<Datum>> allNfts = new List<List<Datum>>();
-        //    int offset = 0;
-        //    int total = 0;
-        //    while(true)
-        //    {
-        //        var nfts = await LoopringService.GetWalletsNftsOffset(settings.LoopringApiKey, accountInformation.accountId, offset);
-        //        if(nfts.Item1.Count > 0)
-        //        {
-        //            total = nfts.Item2;
-        //            Log = $"{allNfts.SelectMany(d => d).Count()}/{total} NFTs retrieved...";
-        //            allNfts.Add(nfts.Item1);
-        //            offset += 50;
-        //        }
-        //        else
-        //        {
-        //            break;
-        //        }
-        //    }
-
-        //    var collectionsNftsBasicInformation = allNfts.SelectMany(d=> d).Select(m => new { m.metadata.nftBase.name, m.nftData, m.nftId, m.minter, m.tokenAddress }).ToList();
-        //    var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftDataFromCollection", collectionsNftsBasicInformation);
-        //    sw.Stop();
-        //    var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
-        //    Log = $"{swTime}\r\n\r\n{collectionAddress} has {total} NFTs in their collection.\r\n\r\nYour file is here:\r\n\r\n{fileName}";
-        //}
-        IsEnabled = true;
+            IsEnabled = true;
         }
-
         public static async Task<string> CheckForEthAddress(ILoopringService LoopringService, string apiKey, string address)
         {
             address = address.Trim().ToLower();

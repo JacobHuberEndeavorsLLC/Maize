@@ -1,33 +1,14 @@
-﻿using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Rendering;
-using Maize;
+﻿using Maize;
 using Maize.Services;
 using Maize.Helpers;
 using Maize.Models.ApplicationSpecific;
-using MaizeUI.Views;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.IO;
-using System.Linq;
 using System.Reactive;
 using System.Text;
-using System.Threading.Tasks;
-using static Maize.Models.NftHolders;
 using Maize.Models;
-using static OfficeOpenXml.ExcelErrorValue;
-using OfficeOpenXml.Interfaces.Drawing.Text;
-using Nethereum.Model;
-using Avalonia.Media.TextFormatting.Unicode;
-using System.Reflection.Metadata.Ecma335;
 using Maize.Models.Responses;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
-using Nethereum.BlockchainProcessing.BlockStorage.Entities.Mapping;
-using System.Runtime.Intrinsics.X86;
 
 namespace MaizeUI.ViewModels
 {
@@ -188,7 +169,7 @@ namespace MaizeUI.ViewModels
             Notice2 = "👈 Choose";
             Notice3 = "Press Preview to see a summary of your NFT Airdrop";
             Notice4 = "Press Start to begin your NFT Airdrop";
-            Notice5 = "👈 insufficient amounts";
+            Notice5 = "☝️ insufficient funds";
             Notice6 = "NFT Airdrop completed! Exit to start a new one.";
             AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
             StartProcessCommand = ReactiveCommand.Create(StartProcess);
@@ -218,7 +199,6 @@ namespace MaizeUI.ViewModels
         }
         private async void StartProcess()
         {
-            IsEnabledCheckBox = false;
             //PreviewProcess();
             var sw = new Stopwatch();
             sw.Start();
@@ -339,6 +319,7 @@ namespace MaizeUI.ViewModels
 
             var maizeFee = await CalculateMaizeFee(LoopringService, auditInfo.validAddress.Count(), MaizeFeeSelectedOption);
 
+            //uncomment this asap
             var maxFeeVolume = await loopringService.CobTransferTransactionFee(
                settings.Environment,
                Environment.Url,
@@ -372,7 +353,6 @@ namespace MaizeUI.ViewModels
         {
             if (LoopringFeeSelectedOption == LoopringFeeDropdown[0] || MaizeFeeSelectedOption == MaizeFeeDropdown[0])
                 return;
-
             string totalTransactions = $"There will be a total of {transferInfoList.Count()} transactions with ";
             string totalNfts = $"{transferInfoList.Sum(x => x.Amount)} NFTs sent to ";
             string totalWallets = $"{transferInfoList.DistinctBy(x => x.ToAddress).Count()} different wallets.";
@@ -428,11 +408,23 @@ namespace MaizeUI.ViewModels
                 case "LRC":
                     if (LoopringFeeSelectedOption == "LRC")
                     {
-                        if (userLrc < (transferFees + activationFees + maizeFee))
+                        if (IsChecked == true)
                         {
-                            IsComboBoxEnabled = true;
-                            Notice5Visible = true;
-                            return;
+                            if (userLrc < (transferFees + activationFees + maizeFee))
+                            {
+                                IsComboBoxEnabled = true;
+                                Notice5Visible = true;
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if (userLrc < (transferFees + maizeFee))
+                            {
+                                IsComboBoxEnabled = true;
+                                Notice5Visible = true;
+                                return;
+                            }
                         }
                     }
                     else
@@ -467,7 +459,7 @@ namespace MaizeUI.ViewModels
                     }
                     break;
             }
-
+            IsEnabledCheckBox = false;
             ViewStart();
         }
         public static async Task<decimal> CurrentTokenPriceInUsd(ILoopringService LoopringService, string maizeFee)
@@ -500,11 +492,8 @@ namespace MaizeUI.ViewModels
             NftOffChainFeeResponse activationFees = new();
             IEthereumService ethereumService = new EthereumService();
             INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
-            int currentTotal;
             StringBuilder buildinvalidLines = new StringBuilder();
             StringBuilder buildAttentionLines = new StringBuilder();
-            string input;
-            var counter = 0;
             (transferInfoList, invalidLines) = await Files.CheckInputFileVariables();
             if (invalidLines.Contains("Error"))
             {
@@ -533,23 +522,15 @@ namespace MaizeUI.ViewModels
                     break;
                 }
             }
-            foreach (var item in transferInfoList)
+            Log = $"Checking data for for issues... ";
+            int validCounter = 0;
+            foreach (var item in transferInfoList.DistinctBy(x => x.NftData))
             {
-                Log = $"Checking data on line {transferInfoList.IndexOf(item) + 1}/{transferInfoList.Count()} for issues... ";
+                Log = $"Checking NFTs: {++validCounter}/{transferInfoList.DistinctBy(x => x.NftData).Count()}";
                 var nftDataCheck = await LoopringService.GetNftInformationFromNftData(Settings.LoopringApiKey, item.NftData);
                 if (nftDataCheck.Count == 0)
                 {
-                    buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: Invalid NFT Data.\r\n");
-                }
-                if (item.Memo?.Length > 120)
-                {
-                    buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: Memo length greater than 120 characters.\r\n");
-                }
-                var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
-                if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
-                {
-                    buildAttentionLines.Append($"Attention at line {transferInfoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
-                    item.Activated = false;
+                    buildinvalidLines.Append($"Error with NFT Data: Invalid NFT Data.{item.NftData}\r\n");
                 }
                 if (allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).Count() > 0)
                 {
@@ -563,8 +544,28 @@ namespace MaizeUI.ViewModels
                             buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: You own {allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).First().total} and are trying to transfer {transferInfoList.Where(x => x.NftData == item.NftData).Sum(x => x.Amount)}.\r\n");
                     }
                 }
-                else if(allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).Count() == 0)
+                else if (allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).Count() == 0)
                     buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: You do not own this NFT.\r\n");
+            }
+            validCounter = 0;
+            foreach (var item in transferInfoList.DistinctBy(x=>x.Memo))
+            {
+                Log = $"Checking Memos: {++validCounter}/{transferInfoList.DistinctBy(x => x.Memo).Count()}";
+                if (item.Memo?.Length > 120)
+                {
+                    buildinvalidLines.Append($"Error with Memo: Length greater than 120 characters. {item.Memo}\r\n");
+                }
+            }
+            validCounter = 0;
+            foreach (var item in transferInfoList.DistinctBy(x => x.ToAddress))
+            {
+                Log = $"Checking Wallets: {++validCounter}/{transferInfoList.DistinctBy(x => x.ToAddress).Count()}";
+                var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
+                if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
+                {
+                    buildAttentionLines.Append($"Attention at line {transferInfoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
+                    item.Activated = false;
+                }
             }
             if (buildinvalidLines.ToString().Contains("Error"))
             {
@@ -585,121 +586,6 @@ namespace MaizeUI.ViewModels
             if (buildAttentionLines.ToString().Contains("Attention") && _isChecked == true)                
                 Log = $"{buildAttentionLines}\r\nYou will pay for the above {Regex.Matches(buildAttentionLines.ToString(), "\\b" + Regex.Escape("Attention") + "\\b", RegexOptions.IgnoreCase).Count} wallets activation fees. Total costs in LRC or ETH below.\r\n\r\nLRC: {(decimal.Parse(activationFees.fees.First(x => x.token == "LRC").fee)/1000000000000000000) * Regex.Matches(buildAttentionLines.ToString(), "\\b" + Regex.Escape("Attention") + "\\b", RegexOptions.IgnoreCase).Count}\r\nETH: {(decimal.Parse(activationFees.fees.First(x => x.token == "ETH").fee) / 1000000000000000000) * Regex.Matches(buildAttentionLines.ToString(), "\\b" + Regex.Escape("Attention") + "\\b", RegexOptions.IgnoreCase).Count}";
             ViewPreview();
-
-            // all error checking seems good for the file cept for the sender owning the provided nfts and the amount
-            // also need to add to the model if the loopring wallet is active or not to offer paying for their activation fee via NFT.
-
-
-
-
-
-
-
-
-
-            //while ((input = sr.ReadLine()) != null)
-            //{
-            //    string[] values = input.Split(',');
-            //    if (values.Length != 4)
-            //    {
-            //        //Log = $"There was an issue with the line: {input}";
-            //    }
-            //    else
-            //    {
-            //        TransferInformation transferInfo = new TransferInformation
-            //        {
-            //            NftData = values[0].Trim(),
-            //            Amount = int.Parse(values[1].Trim()),
-            //            ToAddress = values[2].Trim(),
-            //            Memo = values[3].TrimStart().TrimEnd()
-            //        };
-
-            //        // Access the properties of the TransferInformation object
-            //        string nftData = transferInfo.NftData;
-            //        int amount = transferInfo.Amount;
-            //        string toAddress = transferInfo.ToAddress;
-            //        string memo = transferInfo.Memo;
-            //    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //    Location = $"Nft {++counter}/{howManyLines}";
-            //    var minterFromNftDatas = await LoopringService.GetNftInformationFromNftData(settings.LoopringApiKey, nftData);
-            //    var nftMetadata = await ApplicationUtilities.GetNftMetadataUI(ethereumService, nftMetadataService, minterFromNftDatas.FirstOrDefault().nftId, minterFromNftDatas.FirstOrDefault().tokenAddress);
-            //    Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: ";
-            //    List<List<NftHolder>> allHolders = new List<List<NftHolder>>();
-            //    int offset = 0;
-            //    int total = 0;
-            //    while (true)
-            //    {
-            //        var nftHolders = await LoopringService.GetNftHoldersOffset(settings.LoopringApiKey, nftData, offset);
-            //        if (nftHolders.Item1.Count > 0)
-            //        {
-            //            total = nftHolders.Item2;
-            //            Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: {allHolders.SelectMany(d => d).Count()}/{total} Holders retrieved...";
-            //            allHolders.Add(nftHolders.Item1);
-            //            offset += 50;
-            //        }
-            //        else
-            //        {
-            //            break;
-            //        }
-            //    }
-
-            //    var holderCounter = 0;
-            //    foreach (var nftHolder in allHolders.SelectMany(d => d))
-            //    {
-            //        //font.ToTertiaryInline($"\rNft: {counter}/{howManyLines} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersList.Count}");
-            //        var userAccountInformation = await LoopringService.GetUserAccountInformationFromId(nftHolder.accountId.ToString());
-            //        Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: {++holderCounter}/{allHolders.SelectMany(d => d).Count()} Holders calculated...";
-            //        if (nftMetadata != null)
-            //        {
-            //            ownerAndAmount.Add(new OwnerAndAmount
-            //            {
-            //                nftData = nftData,
-            //                nftName = nftMetadata.name,
-            //                nftOwner = userAccountInformation.owner,
-            //                ownerAmountOwned = nftHolder.amount
-            //            });
-            //            if (!ownerAndTotal.Any(x => x.owner.ToLower() == userAccountInformation.owner.ToLower()))
-            //            {
-            //                ownerAndTotal.Add(new OwnerAndTotal
-            //                {
-            //                    owner = userAccountInformation.owner,
-            //                    total = int.Parse(nftHolder.amount)
-            //                });
-            //            }
-            //            else
-            //            {
-            //                currentTotal = ownerAndTotal.First(x => x.owner.ToLower() == userAccountInformation.owner.ToLower()).total;
-            //                ownerAndTotal.RemoveAt(ownerAndTotal.IndexOf(ownerAndTotal.First(x => x.owner.ToLower() == userAccountInformation.owner.ToLower())));
-            //                ownerAndTotal.Add(new OwnerAndTotal
-            //                {
-            //                    owner = userAccountInformation.owner,
-            //                    total = currentTotal += int.Parse(nftHolder.amount)
-            //                });
-            //            }
-            //        }
-            //    }
-            //}
-            //var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHolderFromNftData", ownerAndAmount);
-            //var fileNameTwo = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHoldersAndTotals", ownerAndTotal.OrderByDescending(x => x.total));
-            //sw.Stop();
-            //var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
-            //Location = $"{swTime}\r\n\r\nYour files are here:\r\n\r\n{fileName}\r\n\r\n{fileNameTwo}";
-            //}
 
             IsEnabled = true;
         }

@@ -57,6 +57,9 @@
     <Compile Update="Views\FindHoldersFromNftDataWindow.axaml.cs">
       <DependentUpon>FindHoldersFromNftDataWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\ScriptingAirdropInputFileWindow.axaml.cs">
+      <DependentUpon>ScriptingAirdropInputFileWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\FindNftDataFromAWalletWindow.axaml.cs">
       <DependentUpon>FindNftDataFromAWalletWindow.axaml</DependentUpon>
     </Compile>

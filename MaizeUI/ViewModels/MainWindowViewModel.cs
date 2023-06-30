@@ -13,6 +13,7 @@ using System.Net.Http;
 using static Maize.Models.ApplicationSpecific.Constants;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Nethereum.Signer.EIP712;
 
 namespace MaizeUI.ViewModels
 {
@@ -37,7 +38,7 @@ namespace MaizeUI.ViewModels
         public MainWindowViewModel()
         {
             Greeting = "Welcome to Maize!";
-            Version = "v1.1.3";
+            Version = "v1.1.6";
             Slogan = "Cornveniently Manage your NFTs";
             Networks = new List<string> { "👇 choose", "💎 mainnet", "🧪 testnet" };
             SelectedNetwork = Networks[0];
@@ -72,7 +73,9 @@ namespace MaizeUI.ViewModels
                     }
                     else
                     {
-                        ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan);
+                        var ensResult = await loopringService.GetLoopringEns(settings.LoopringApiKey, settings.LoopringAddress);
+                        string ens = ensResult.data != "" ? $"🙋‍♂ {ensResult.data}" : $"🙋‍♂️ {settings.LoopringAddress.Substring(0, 6) + "..." + settings.LoopringAddress.Substring(settings.LoopringAddress.Length - 4)}!";
+                        ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan, ens);
                     }
                 }
             }
@@ -90,11 +93,12 @@ namespace MaizeUI.ViewModels
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
 
-        private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork, string version, string slogan)
+        private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork, string version, string slogan, string ens)
         {
             var dialog = new MainMenuWindow();
             dialog.DataContext = new MainMenuWindowViewModel
             {
+                Ens = ens,
                 Slogan = slogan,
                 Version = version,
                 Settings = settings,

@@ -3,6 +3,7 @@
     public class NftHolder
     {
         public int accountId { get; set; }
+        public string address { get; set; }
         public int tokenId { get; set; }
         public string amount { get; set; }
     }
