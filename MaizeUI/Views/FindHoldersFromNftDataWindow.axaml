@@ -14,10 +14,11 @@
 	</Design.DataContext>
   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
 
-    <TextBlock Margin="0 0 0 0" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
-    <TextBlock Margin="0 0 0 10" HorizontalAlignment="Right" FontSize="12" ToolTip.Tip="Example: 0X266047b1b8fd705e74f8649e7967d310aab8926f2a79963309328e5eadbe5f8c" Text="❔" />
+    <TextBlock Margin="0 0 0 10" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
+    <!--<TextBlock Margin="0 0 0 10" HorizontalAlignment="Right" FontSize="12" ToolTip.Tip="Example: 0X266047b1b8fd705e74f8649e7967d310aab8926f2a79963309328e5eadbe5f8c" Text="❔" />-->
+    <!--<TextBox Margin="20 0 20 10" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Log}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="125" Width="520"/>-->
 
-    <TextBox Margin="0 0 0 10" IsReadOnly="True" Text="{Binding Location}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="500"/>
+    <TextBox Margin="0 0 0 10" FontSize="12" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Location}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="500"/>
     <Button Margin="0 0 0 10" Width="100" Command="{Binding FindHoldersFromNftDataCommand}" IsEnabled="{Binding IsEnabled}">
       <TextBlock Text="Find" TextAlignment="Center"/>
     </Button>

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reactive;
 using Maize.Models.ApplicationSpecific;
 using System.Text;
+using Maize.Models.Responses;
 
 namespace MaizeUI.ViewModels
 {
@@ -22,7 +23,7 @@ namespace MaizeUI.ViewModels
         public string NftData
         {
             get => nftData;
-            set => this.RaiseAndSetIfChanged(ref nftData, value);
+            set => this.RaiseAndSetIfChanged(ref nftData, value?.Trim());
         }
         public string nftAmount;
         public string NftAmount
@@ -73,13 +74,14 @@ namespace MaizeUI.ViewModels
 
         public ScriptingAirdropInputFileWindowViewModel()
         {
-            Notice = "This screen will help you create an Input file for Airdrops that have the same NFT Data, Amount, and Memo. You will provide wallet addresses in the below file.";
-            Log = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
+            Notice = "Here you will create an Input file for airdrops that have the same NFT Data, Amount, and Memo. This can be modified after as needed.";
+            Log = $"Place wallet addresses and ENS here. One per line.\r\n\r\nExample:\r\ncobmin.eth\r\n0x6458cc5902d4f9e466b599e220d1663c4718625a\r\njacobhuber.eth";
             CreateInputFileCommand = ReactiveCommand.Create(CreateInputFile);
         }
 
         private async void CreateInputFile()
         {
+            string walletAddresses = log;
             Log = "Checking Information, please give me a moment...";
             IsEnabled = false;
             var sw = new Stopwatch();
@@ -95,28 +97,44 @@ namespace MaizeUI.ViewModels
                 buildinvalidLines.Append($"Error with Memo: Length greater than 120 characters.\r\n");
             if (buildinvalidLines.ToString().Contains("Error"))
             {
-                Log = $"{buildinvalidLines}\r\nPlease fix the above errors in your Input file and then press Next.";
+                Log = $"{buildinvalidLines}\r\nPlease fix the above errors in your Input file and then press Create.";
                 IsEnabled = true;
                 return;
             }
 
-            string inputFilePath = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
-            string outputFilePath = $"{Constants.BaseDirectory}{Constants.OutputFolder}/{nftData}_Input.txt";
-
+            List<NftTokenInfo> allCollectionsNfts = new List<NftTokenInfo>();
+            var singleHolder = await LoopringService.GetNftHolderSingle(settings.LoopringApiKey, nftData);
+            var collectionId = await LoopringService.FindCollectionIdFromHolder(settings.LoopringApiKey, singleHolder.nftHolders.First().accountId, nftData);
+            var offset = 0;
+            while (true)
+            {
+                var nfts = await LoopringService.GetCollectionNftsOffset(settings.LoopringApiKey, collectionId.data.First().collectionInfo.id.ToString(), offset);
+                if (nfts.Item1.Count > 0)
+                {
+                    allCollectionsNfts.AddRange(nfts.Item1);
+                    offset += 50;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            string outputFilePath = $"{Constants.BaseDirectory}{Constants.OutputFolder}{allCollectionsNfts.SingleOrDefault(x=>x.nftData==nftData).metadata.basename.name}_Input.txt";
             try
             {
                 List<string> processedLines = new List<string>();
-                string[] lines = File.ReadAllLines(inputFilePath);
+                List<string> stringList = new List<string>(walletAddresses.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
 
-                foreach (string line in lines)
+
+                foreach (string line in stringList)
                 {
                     string processedLine = $"{nftData},{nftAmount},{line},{memo}";
                     processedLines.Add(processedLine);
                 }
 
                 File.WriteAllLines(outputFilePath, processedLines);
-
-                Log = "Processing complete. Output written to: " + outputFilePath;
+                ApplicationUtilitiesUI.OpenFile(outputFilePath);
+                Log = "Processing complete\r\n\r\nOutput written to: " + outputFilePath;
             }
             catch (IOException e)
             {

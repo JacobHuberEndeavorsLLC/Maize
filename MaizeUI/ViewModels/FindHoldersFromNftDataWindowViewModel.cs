@@ -1,25 +1,12 @@
-﻿using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Rendering;
-using Maize;
+﻿using Maize;
 using Maize.Services;
 using Maize.Helpers;
 using Maize.Models.ApplicationSpecific;
-using MaizeUI.Views;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.IO;
-using System.Linq;
 using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
 using static Maize.Models.NftHolders;
 using Maize.Models.Responses;
-using Maize.Models;
-using System.Collections;
 
 namespace MaizeUI.ViewModels
 {
@@ -68,34 +55,44 @@ namespace MaizeUI.ViewModels
 
         public FindHoldersFromNftDataWindowViewModel()
         {
-            Location = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
-            Notice = "In the below file add your Nft Data. You will have one Nft Data per line.";
-            Notice2 = "Press Find when ready.";
+            Location = $"Place NFT Data here. One per line.\r\n\r\nExample:\r\n0x118fabbd46c9a5c724de4394198fc7e2807d0deea5ea41f0bb533615e51c2b4b\r\n0x08dccae9dac82c69e6836977c932bb55e608d548d19e95addee8817f7edb5f8d\r\n0x2ea5bb3cf95ceb87d89c3048ce0b44d53560c955579576b58486e8edb2cc108c\r\n";
+            Notice = "Here you will find NFT Holders from NFT Data.";
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
         }
 
         private async void FindHoldersFromNftData()
         {
+            string nftDatas = location;
+            List<string> stringList = new List<string>(nftDatas.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+
             Location = "Retrieving Holders, please give me a moment...";
             IsEnabled = false;
             var sw = new Stopwatch();
             sw.Start();
             var howManyLines = Files.CheckInputFile();
 
-            var filePath = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
-            string[] linesArray = File.ReadAllLines(filePath);
-            List<string> linesList = new List<string>(linesArray);
+            //var filePath = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
+            //string[] linesArray = File.ReadAllLines(filePath);
+            //List<string> linesList = new List<string>(linesArray);
             var ownerAndAmount = new List<OwnerAndAmount>();
             var ownerAndTotal = new List<OwnerAndTotal>();
             int iteration = 0;
             int iterationAgain = 0;
             var counter = 0;
-            //foreach (string line in linesList)
-            //{
-            for (int i = linesList.Count; i >= 0; i--)
+            int initialLinesListCount = stringList.Count;
+            for (int i = stringList.Count; i > 0; i--)
             {
-                string line = linesList[i - 1];
-                Location = $"Checking NFT Data: {iteration++}/{linesList.Count()} Nfts retrieved...";
+                string line = "";
+                try
+                {
+                    line = stringList[i - 1];
+
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                Location = $"Checking NFT Data: {iteration++}/{initialLinesListCount} Nfts retrieved...";
                 var singleHolder = await LoopringService.GetNftHolderSingle(settings.LoopringApiKey, line);
                 var collectionId = await LoopringService.FindCollectionIdFromHolder(settings.LoopringApiKey, singleHolder.nftHolders.First().accountId, line);
                 List<NftTokenInfo> allCollectionsNfts = new List<NftTokenInfo>();
@@ -118,16 +115,22 @@ namespace MaizeUI.ViewModels
                         break;
                     }
                 }
-                //foreach (var lineAgain in linesList)
-                //{
-                for (int j = linesList.Count; j >= 0; j--)
+                for (int j = stringList.Count; j > 0; j--)
                 {
-                    string lineAgain = linesList[j - 1];
-                    Location = $"Checking Collection Against other NFT Data: {iterationAgain++}/{linesList.Count()} Nfts retrieved...";
-                    var nft = allCollectionsNfts.First(x => x.nftData == lineAgain);
+                    string lineAgain;
+                    try
+                    {
+                        lineAgain = stringList[j - 1];
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                    var nft = allCollectionsNfts.SingleOrDefault(x => x.nftData == lineAgain);
                     if (nft != null)
                     {
-                        linesList.Remove(lineAgain);
+                        Location = $"Checking Collection Against other NFT Data: {iterationAgain++}/{initialLinesListCount} Nfts retrieved...";
+                        stringList.Remove(lineAgain);
                         List<List<NftHolder>> allHolders = new List<List<NftHolder>>();
                         offset = 0;
                         total = 0;
@@ -137,7 +140,6 @@ namespace MaizeUI.ViewModels
                             if (nftHolders.Item1.Count > 0)
                             {
                                 total = nftHolders.Item2;
-                                //Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: {allHolders.SelectMany(d => d).Count()}/{total} Holders retrieved...";
                                 allHolders.Add(nftHolders.Item1);
                                 offset += 50;
                             }
@@ -150,9 +152,6 @@ namespace MaizeUI.ViewModels
                         var holderCounter = 0;
                         foreach (var nftHolder in allHolders.SelectMany(d => d))
                         {
-
-                            //font.ToTertiaryInline($"\rNft: {counter}/{howManyLines} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersList.Count}");
-                            //var userAccountInformation = await LoopringService.GetUserAccountInformationFromId(nftHolder.accountId.ToString());
                             Location = $"Nft {counter}/{howManyLines} {nft.metadata.basename.name}: {++holderCounter}/{allHolders.SelectMany(d => d).Count()} Holders calculated...";
                             if (nft.metadata.basename.name != null)
                             {
@@ -183,181 +182,13 @@ namespace MaizeUI.ViewModels
                                 }
                             }
                         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        //ownerAndAmount.Add(new OwnerAndAmount
-                        //{
-                        //    nftData = collectionNft.nftData,
-                        //    nftName = collectionNft.metadata.basename.name,
-                        //    nftOwner = nftHolder.address,
-                        //    ownerAmountOwned = nftHolder.amount
-                        //});
-                        //if (!ownerAndTotal.Any(x => x.owner.ToLower() == nftHolder.address.ToLower()))
-                        //{
-                        //    ownerAndTotal.Add(new OwnerAndTotal
-                        //    {
-                        //        owner = nftHolder.address,
-                        //        total = int.Parse(nftHolder.amount)
-                        //    });
-                        //}
-                        //else
-                        //{
-                        //    currentTotal = ownerAndTotal.First(x => x.owner.ToLower() == nftHolder.address.ToLower()).total;
-                        //    ownerAndTotal.RemoveAt(ownerAndTotal.IndexOf(ownerAndTotal.First(x => x.owner.ToLower() == nftHolder.address.ToLower())));
-                        //    ownerAndTotal.Add(new OwnerAndTotal
-                        //    {
-                        //        owner = nftHolder.address,
-                        //        total = currentTotal += int.Parse(nftHolder.amount)
-                        //    });
-                        //}
                     }
-                    if (linesList.Count == 0)
+                    if (stringList.Count == 0)
                         break;
                 }
-                if (linesList.Count == 0)
+                if (stringList.Count == 0)
                     break;
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //string[] allLines = File.ReadAllLines(filePath);
-            //int linesPerIteration = 25;
-            //string delimiter = ",";
-            //List<NftInformationResponse> nftInformation = new();
-            //StringBuilder combinedLines = new StringBuilder();
-
-
-            //for (int i = 0; i < allLines.Length; i += linesPerIteration)
-            //{
-            //    int linesToProcess = Math.Min(linesPerIteration, allLines.Length - i);
-            //    string[] lines = new string[linesToProcess];
-            //    Array.Copy(allLines, i, lines, 0, linesToProcess);
-
-            //    string combined = string.Join(delimiter, lines);
-
-            //    nftInformation.AddRange(await LoopringService.GetNftInformationFromNftData(settings.LoopringApiKey, combined));
-            //}
-            //foreach (var line in nftInformation)
-            //{
-            //    var singleHolder = await LoopringService.GetNftHolderSingle(settings.LoopringApiKey, line.nftData);
-            //    var collectionId = await LoopringService.FindCollectionIdFromHolder(settings.LoopringApiKey, singleHolder.nftHolders.First().accountId, line.nftData);
-
-
-            //}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //using (StreamReader sr = new($"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}"))
-            //{
-            //    IEthereumService ethereumService = new EthereumService();
-            //    INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
-            //    int currentTotal;
-
-            //    string nftData;
-            //    var counter = 0;
-            //    while ((nftData = sr.ReadLine()) != null)
-            //    {
-            //        Location = $"Nft {++counter}/{howManyLines}";
-            //        var minterFromNftDatas = await LoopringService.GetNftInformationFromNftData(settings.LoopringApiKey, nftData);
-            //        var nftMetadata = await ApplicationUtilities.GetNftMetadataUI(ethereumService, nftMetadataService, minterFromNftDatas.FirstOrDefault().nftId, minterFromNftDatas.FirstOrDefault().tokenAddress);
-            //        Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: ";
-            //        int offset = 0;
-            //        int total = 0;
-            //        while (true)
-            //        {
-            //            var nftHolders = await LoopringService.GetNftHoldersOffset(settings.LoopringApiKey, nftData, offset);
-            //            if (nftHolders.Item1.Count > 0)
-            //            {
-            //                total = nftHolders.Item2;
-            //                Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: {allHolders.SelectMany(d => d).Count()}/{total} Holders retrieved...";
-            //                allHolders.Add(nftHolders.Item1);
-            //                offset += 50;
-            //            }
-            //            else
-            //            {
-            //                break;
-            //            }
-            //        }
-
-            //        var holderCounter = 0;
-            //        foreach (var nftHolder in allHolders.SelectMany(d => d))
-            //        {
-            //            //font.ToTertiaryInline($"\rNft: {counter}/{howManyLines} {nftMetadata.name} Nft Holder: {++holderCounter}/{nftHoldersList.Count}");
-            //            //var userAccountInformation = await LoopringService.GetUserAccountInformationFromId(nftHolder.accountId.ToString());
-            //            Location = $"Nft {counter}/{howManyLines} {nftMetadata.name}: {++holderCounter}/{allHolders.SelectMany(d => d).Count()} Holders calculated...";
-            //            if (nftMetadata != null)
-            //            {
-            //                ownerAndAmount.Add(new OwnerAndAmount
-            //                {
-            //                    nftData = nftData,
-            //                    nftName = nftMetadata.name,
-            //                    nftOwner = nftHolder.address,
-            //                    ownerAmountOwned = nftHolder.amount
-            //                });
-            //                if (!ownerAndTotal.Any(x => x.owner.ToLower() == nftHolder.address.ToLower()))
-            //                {
-            //                    ownerAndTotal.Add(new OwnerAndTotal
-            //                    {
-            //                        owner = nftHolder.address,
-            //                        total = int.Parse(nftHolder.amount)
-            //                    });
-            //                }
-            //                else
-            //                {
-            //                    currentTotal = ownerAndTotal.First(x => x.owner.ToLower() == nftHolder.address.ToLower()).total;
-            //                    ownerAndTotal.RemoveAt(ownerAndTotal.IndexOf(ownerAndTotal.First(x => x.owner.ToLower() == nftHolder.address.ToLower())));
-            //                    ownerAndTotal.Add(new OwnerAndTotal
-            //                    {
-            //                        owner = nftHolder.address,
-            //                        total = currentTotal += int.Parse(nftHolder.amount)
-            //                    });
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
             var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHolderFromNftData", ownerAndAmount);
             var fileNameTwo = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHoldersAndTotals", ownerAndTotal.OrderByDescending(x => x.total));
             sw.Stop();

@@ -30,7 +30,7 @@ var apiKey = await loopringService.GetApiKey(s.LoopringAccountId, signedMessage)
 ApplicationUtilities.ApiKeyCheck(font, apiKey, s.LoopringApiKey, net, appSettingsEnvironment);
 
 //ILoopringMintService loopringMintService = new LoopringMintService(environment.Url, font);
-//ILoopExchangeService loopExchangeService = new LoopExchangeService(font);
+ILoopExchangeService loopExchangeService = new LoopExchangeService("https://api.loopexchange.art/");
 IEthereumService ethereumService = new EthereumService();
 INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
 

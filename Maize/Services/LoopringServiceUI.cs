@@ -198,6 +198,7 @@ namespace Maize.Services
                 {
                     allData.AddRange(data.nftTokenInfos);
                 }
+                Thread.Sleep(100);
                 return (allData, data.totalNum);
             }
             catch (HttpRequestException httpException)
