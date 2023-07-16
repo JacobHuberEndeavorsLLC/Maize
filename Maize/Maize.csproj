@@ -30,22 +30,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Input\Environment\Atestnetappsettings.json">
+    <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\Amainnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Input\Environment\Amainnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Input\Environment\Atestnetappsettings.json">
+    <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\testnetappsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\MYmainnetappsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\Environment\MYtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Files\WannaCollab.json">

@@ -102,7 +102,11 @@ namespace MaizeUI.ViewModels
                 var total = 0;
                 while (true)
                 {
-                    var nfts = await LoopringService.GetCollectionNftsOffset(settings.LoopringApiKey, collectionId.data.First().collectionInfo.id.ToString(), offset);
+                    var nfts = await LoopringService.GetCollectionNftsOffset(settings.LoopringApiKey, collectionId.data.First().collectionInfo?.id.ToString(), offset);
+                    if (nfts.Item1 == null)
+                    {
+                        // need to handle nfts without an associated collection
+                    }
                     if (nfts.Item1.Count > 0)
                     {
                         Location = $"Retrieving Collection Information: {allCollectionsNfts.Count()}/{total} Nfts retrieved...";

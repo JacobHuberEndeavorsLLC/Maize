@@ -48,6 +48,9 @@
     </AvaloniaXaml>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Views\AirdropCryptoToUsersWindow.axaml.cs">
+      <DependentUpon>AirdropCryptoToUsersWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
     </Compile>
@@ -56,6 +59,9 @@
     </Compile>
     <Compile Update="Views\FindHoldersFromNftDataWindow.axaml.cs">
       <DependentUpon>FindHoldersFromNftDataWindow.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\ScriptingCryptoAirdropInputFileWindow.axaml.cs">
+      <DependentUpon>ScriptingCryptoAirdropInputFileWindow.axaml</DependentUpon>
     </Compile>
     <Compile Update="Views\ScriptingAirdropInputFileWindow.axaml.cs">
       <DependentUpon>ScriptingAirdropInputFileWindow.axaml</DependentUpon>

@@ -12,11 +12,10 @@ using System.Text.RegularExpressions;
 
 namespace MaizeUI.ViewModels
 {
-    public class AirdropNftsToUsersWindowViewModel : ViewModelBase 
+    public class AirdropCryptoToUsersWindowViewModel : ViewModelBase 
     {
-        List<TransferInformation> transferInfoList = new();
         List<TransferInformationCrypto> transferInfoCryptoList = new();
-
+        List<TransferInformation> transferInfoList = new();
         string invalidLines;
         private bool isNextButtonVisible;
         private bool isStartButtonVisible;
@@ -145,18 +144,18 @@ namespace MaizeUI.ViewModels
         public List<string> MaizeFeeDropdown { get; } 
         public string LoopringFeeSelectedOption { get; set; } 
         public string MaizeFeeSelectedOption { get; set; } 
-        public ReactiveCommand<Unit, Unit> AirdropNftsToUsersCommand { get; }
+        public ReactiveCommand<Unit, Unit> AirdropCryptoToUsersCommand { get; }
         public ReactiveCommand<Unit, Unit> StartProcessCommand { get; }
         public ReactiveCommand<Unit, Unit> PreviewProcessCommand { get; }
 
-        public AirdropNftsToUsersWindowViewModel()
+        public AirdropCryptoToUsersWindowViewModel()
         {
             IsChecked = false;
             IsComboBoxEnabled = true;
             Step1 = true;
             Step2 = false;
             Step3 = false;
-            LoopringFeeDropdown = new List<string> { "Loopring Fee", "ETH", "LRC" };
+            LoopringFeeDropdown = new List<string> { "Send/Loopring Fee", "ETH", "LRC" };
             MaizeFeeDropdown = new List<string> { "Maize Fee", "ETH", "LRC", "PEPE" };
             LoopringFeeSelectedOption = LoopringFeeDropdown[0];
             MaizeFeeSelectedOption = MaizeFeeDropdown[0];
@@ -167,13 +166,13 @@ namespace MaizeUI.ViewModels
             IsCheckboxVisible = false;
             IsPreviewButtonVisible = false;
             Log = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
-            Notice = "In the below file add your NFT Data,NFT Amount to Transfer,Wallet Address to Transfer to,Memo. Include commas for separation and you will have one record per line.";
+            Notice = "In the below file add your Crypto Amount to Transfer,Wallet Address to Transfer to,Memo. Include commas for separation and you will have one record per line.";
             Notice2 = "👈 Choose";
-            Notice3 = "Press Preview to see a summary of your NFT Airdrop";
-            Notice4 = "Press Start to begin your NFT Airdrop";
+            Notice3 = "Press Preview to see a summary of your Crypto Airdrop";
+            Notice4 = "Press Start to begin your Crypto Airdrop";
             Notice5 = "☝️ insufficient funds";
-            Notice6 = "NFT Airdrop completed! Exit to start a new one.";
-            AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
+            Notice6 = "Crypto Airdrop completed! Exit to start a new one.";
+            AirdropCryptoToUsersCommand = ReactiveCommand.Create(AirdropCryptoToUsers);
             StartProcessCommand = ReactiveCommand.Create(StartProcess);
             PreviewProcessCommand = ReactiveCommand.Create(PreviewProcess);
 
@@ -205,21 +204,20 @@ namespace MaizeUI.ViewModels
             var sw = new Stopwatch();
             sw.Start();
             IsEnabled = false;
-            NftTransferAuditInformation auditInfo = new NftTransferAuditInformation();
+            CryptoTransferAuditInformation auditInfo = new CryptoTransferAuditInformation();
             auditInfo.validAddress = new List<string>();
             auditInfo.invalidAddress = new List<string>();
             auditInfo.banishAddress = new List<string>();
-            auditInfo.invalidNftData = new List<string>();
             auditInfo.alreadyActivatedAddress = new List<string>();
             auditInfo.gasFeeTotal = 0;
             auditInfo.transactionFeeTotal = 0;
-            auditInfo.nftSentTotal = 0;
+            auditInfo.cryptoSentTotal = 0;
             int maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;
-            foreach (var item in transferInfoList.Where(x => x.Activated == true).ToList())
+            foreach (var item in transferInfoCryptoList.Where(x => x.Activated == true).ToList())
             {
-                Log = $"Transfering NFT {transferInfoList.Where(x => x.Activated == true).ToList().IndexOf(item) + 1}/{transferInfoList.Where(x => x.Activated == true).ToList().Count()} ";
-                // nft transfer
-                var newAuditInfo = await LoopringService.NftTransfer(
+                Log = $"Transfering {LoopringFeeSelectedOption} to wallet {transferInfoCryptoList.Where(x => x.Activated == true).ToList().IndexOf(item) + 1}/{transferInfoCryptoList.Where(x => x.Activated == true).ToList().Count()} ";
+                // token transfer
+                var newAuditInfo = await LoopringService.TokenTransfer(
                     LoopringService,
                     settings.Environment,
                     Environment.Url,
@@ -234,24 +232,16 @@ namespace MaizeUI.ViewModels
                     settings.LoopringAddress,
                     Constants.InputFile,
                     Constants.InputFolder,
-                    transferInfoList.DistinctBy(x => x.ToAddress).Count(),
-                    0,
-                    item.Amount.ToString(),
                     settings.ValidUntil,
                     Constants.LcrTransactionFee,
                     item.Memo,
-                    item.NftData,
+                    item.Amount,
                     item.ToAddress,
                     false
                     );
                 auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                 auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
                 auditInfo.banishAddress.AddRange(newAuditInfo.banishAddress);
-
-                if (auditInfo.invalidNftData != null)
-                {
-                    auditInfo.invalidNftData.AddRange(newAuditInfo.invalidNftData);
-                }
 
                 if (auditInfo.alreadyActivatedAddress != null)
                 {
@@ -260,16 +250,16 @@ namespace MaizeUI.ViewModels
 
                 auditInfo.gasFeeTotal += newAuditInfo.gasFeeTotal;
                 auditInfo.transactionFeeTotal += newAuditInfo.transactionFeeTotal;
-                auditInfo.nftSentTotal += newAuditInfo.nftSentTotal;
+                auditInfo.cryptoSentTotal += newAuditInfo.cryptoSentTotal;
 
             }
             if (IsChecked == true)
             {
-                foreach (var item in transferInfoList.Where(x => x.Activated == false).ToList())
+                foreach (var item in transferInfoCryptoList.Where(x => x.Activated == false).ToList())
                 {
-                    Log = $"Transfering NFT with activation {transferInfoList.Where(x => x.Activated == false).ToList().IndexOf(item) + 1}/{transferInfoList.Where(x => x.Activated == false).ToList().Count()} ";
-                    // nft transfer
-                    var newAuditInfo = await LoopringService.NftTransfer(
+                    Log = $"Transfering {LoopringFeeSelectedOption} with activation to wallet {transferInfoCryptoList.Where(x => x.Activated == false).ToList().IndexOf(item) + 1}/{transferInfoCryptoList.Where(x => x.Activated == false).ToList().Count()} ";
+                    // token transfer
+                    var newAuditInfo = await LoopringService.TokenTransfer(
                         LoopringService,
                         settings.Environment,
                         Environment.Url,
@@ -284,24 +274,16 @@ namespace MaizeUI.ViewModels
                         settings.LoopringAddress,
                         Constants.InputFile,
                         Constants.InputFolder,
-                        transferInfoList.DistinctBy(x => x.ToAddress).Count(),
-                        0,
-                        item.Amount.ToString(),
                         settings.ValidUntil,
                         Constants.LcrTransactionFee,
                         item.Memo,
-                        item.NftData,
+                        item.Amount,
                         item.ToAddress,
                         true
                         );
                     auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                     auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
                     auditInfo.banishAddress.AddRange(newAuditInfo.banishAddress);
-
-                    if (auditInfo.invalidNftData != null)
-                    {
-                        auditInfo.invalidNftData.AddRange(newAuditInfo.invalidNftData);
-                    }
 
                     if (auditInfo.alreadyActivatedAddress != null)
                     {
@@ -310,7 +292,7 @@ namespace MaizeUI.ViewModels
 
                     auditInfo.gasFeeTotal += newAuditInfo.gasFeeTotal;
                     auditInfo.transactionFeeTotal += newAuditInfo.transactionFeeTotal;
-                    auditInfo.nftSentTotal += newAuditInfo.nftSentTotal;
+                    auditInfo.cryptoSentTotal += newAuditInfo.cryptoSentTotal;
 
                 }
             }
@@ -321,7 +303,6 @@ namespace MaizeUI.ViewModels
 
             var maizeFee = await CalculateMaizeFee(LoopringService, auditInfo.validAddress.Count(), MaizeFeeSelectedOption);
 
-            //uncomment this asap
             var maxFeeVolume = await loopringService.CobTransferTransactionFee(
                settings.Environment,
                Environment.Url,
@@ -331,20 +312,18 @@ namespace MaizeUI.ViewModels
                settings.MMorGMEPrivateKey,
                settings.LoopringAccountId,
                maizeFee,
-               auditInfo.nftSentTotal,
+               Convert.ToInt32(Math.Round(auditInfo.cryptoSentTotal)),
                LoopringFeeSelectedOption,
                maxFeeTokenId,
                Environment.MyAccountAddress,
                settings.LoopringAddress,
-               0,
+               1,
                maizeMaxFeeTokenId,
                MaizeFeeSelectedOption
                );
             auditInfo.gasFeeTotal += maxFeeVolume;
 
-            //var walletsNftsBasicInformation = allNfts.SelectMany(d => d).Select(m => new { m.metadata.nftBase.name, m.nftData, m.nftId, m.minter, m.tokenAddress }).ToList();
-            //var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NFTAirdrop", walletsNftsBasicInformation);
-            var fileName = ApplicationUtilitiesUI.ShowAirdropAudit(auditInfo.validAddress, auditInfo.invalidAddress, auditInfo.banishAddress, auditInfo.invalidNftData, auditInfo.alreadyActivatedAddress, null, auditInfo.gasFeeTotal, LoopringFeeSelectedOption, maizeFee, MaizeFeeSelectedOption);
+            var fileName = ApplicationUtilitiesUI.ShowAirdropAudit(auditInfo.validAddress, auditInfo.invalidAddress, auditInfo.banishAddress, null, auditInfo.alreadyActivatedAddress, "LRC", auditInfo.gasFeeTotal, LoopringFeeSelectedOption, maizeFee, MaizeFeeSelectedOption);
             sw.Stop();
             var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
             Log = $"{swTime}\r\n\r\nYour audit file is here:\r\n\r\n{fileName}";
@@ -355,16 +334,16 @@ namespace MaizeUI.ViewModels
         {
             if (LoopringFeeSelectedOption == LoopringFeeDropdown[0] || MaizeFeeSelectedOption == MaizeFeeDropdown[0])
                 return;
-            string totalTransactions = $"There will be a total of {transferInfoList.Count()} transactions with ";
-            string totalNfts = $"{transferInfoList.Sum(x => x.Amount)} NFTs sent to ";
-            string totalWallets = $"{transferInfoList.DistinctBy(x => x.ToAddress).Count()} different wallets.";
-            var totalTransfersList =  transferInfoList.Where(x=>x.Activated == true).ToList();
-            var totalActivationsList =  transferInfoList.Where(x=>x.Activated == false).ToList();
+            string totalTransactions = $"There will be a total of {transferInfoCryptoList.Count()} transactions with ";
+            string totalCrypto = $"{transferInfoCryptoList.Sum(x => x.Amount)} {LoopringFeeSelectedOption} sent to ";
+            string totalWallets = $"{transferInfoCryptoList.DistinctBy(x => x.ToAddress).Count()} different wallets.";
+            var totalTransfersList =  transferInfoCryptoList.Where(x=>x.Activated == true).ToList();
+            var totalActivationsList =  transferInfoCryptoList.Where(x=>x.Activated == false).ToList();
             string totalTransfers = $"Transfers: {totalTransfersList.Count()}";
             string totalActivations = $"Transfers with wallet activation: {totalActivationsList.Count()}";
             var transferFees = (decimal.Parse((await LoopringService.GetNftOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 11)).fees.First(x => x.token == LoopringFeeSelectedOption).fee) / 1000000000000000000) * totalTransfersList.Count();
             var activationFees = (decimal.Parse((await LoopringService.GetNftOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 19)).fees.First(x => x.token == LoopringFeeSelectedOption).fee) / 1000000000000000000) * totalActivationsList.Count();
-            var maizeFee = await CalculateMaizeFee(LoopringService, transferInfoList.Count(), MaizeFeeSelectedOption); 
+            var maizeFee = await CalculateMaizeFee(LoopringService, transferInfoCryptoList.Count(), MaizeFeeSelectedOption); 
 
             var userAssets = await LoopringService.GetUserAssetsForFees(settings.LoopringApiKey, settings.LoopringAccountId);
             var eth = userAssets.FirstOrDefault(asset => asset.tokenId == 0);
@@ -381,9 +360,9 @@ namespace MaizeUI.ViewModels
                 userPepe = decimal.Parse(pepe.total) / 1000000000000000000;
 
             if (_isChecked == true)
-                Log = $"Your Assets:\r\n{userEth} ETH | {userLrc} LRC | {userPepe} PEPE\r\n\r\n{totalTransactions}{totalNfts}{totalWallets}\r\n\r\n{totalTransfers}\r\n{totalActivations}\r\n\r\nTransfer Fees: {transferFees} {LoopringFeeSelectedOption}\r\nActivation Fees: {activationFees} {LoopringFeeSelectedOption}\r\nMaize Fee: {maizeFee} {MaizeFeeSelectedOption}";
+                Log = $"Your Assets:\r\n{userEth} ETH | {userLrc} LRC | {userPepe} PEPE\r\n\r\n{totalTransactions}{totalCrypto}{totalWallets}\r\n\r\n{totalTransfers}\r\n{totalActivations}\r\n\r\nTransfer Fees: {transferFees} {LoopringFeeSelectedOption}\r\nActivation Fees: {activationFees} {LoopringFeeSelectedOption}\r\nMaize Fee: {maizeFee} {MaizeFeeSelectedOption}";
             else
-                Log = $"Your Assets:\r\n{userEth} ETH | {userLrc} LRC | {userPepe} PEPE\r\n\r\n{totalTransactions}{totalNfts}{totalWallets}\r\n\r\n{totalTransfers}\r\nTransfer Fees: {transferFees} {LoopringFeeSelectedOption}\r\nMaize Fee: {maizeFee} {MaizeFeeSelectedOption}";
+                Log = $"Your Assets:\r\n{userEth} ETH | {userLrc} LRC | {userPepe} PEPE\r\n\r\n{totalTransactions}{totalCrypto}{totalWallets}\r\n\r\n{totalTransfers}\r\nTransfer Fees: {transferFees} {LoopringFeeSelectedOption}\r\nMaize Fee: {maizeFee} {MaizeFeeSelectedOption}";
             switch (MaizeFeeSelectedOption)
             {
                 case "ETH":
@@ -476,7 +455,7 @@ namespace MaizeUI.ViewModels
         {
             return Math.Round((await CurrentTokenPriceInUsd(LoopringService, MaizeFeeSelectedOption)) * (totalTransactions * Constants.LcrTransactionFee), 14);
         }
-        private async void AirdropNftsToUsers()
+        private async void AirdropCryptoToUsers()
         {
 
             if (LoopringFeeSelectedOption == LoopringFeeDropdown[0] || MaizeFeeSelectedOption == MaizeFeeDropdown[0])
@@ -496,7 +475,7 @@ namespace MaizeUI.ViewModels
             INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
             StringBuilder buildinvalidLines = new StringBuilder();
             StringBuilder buildAttentionLines = new StringBuilder();
-            (transferInfoList, invalidLines, transferInfoCryptoList) = await Files.CheckInputFileVariables(4);
+            (transferInfoList, invalidLines, transferInfoCryptoList) = await Files.CheckInputFileVariables(3);
             if (invalidLines.Contains("Error"))
             {
                 Log = $"{invalidLines}\r\nPlease fix the above lines in your Input file and then press Next.";
@@ -506,66 +485,29 @@ namespace MaizeUI.ViewModels
                 
             else
                 Log = "Input file is formatted correctly!";
-            List<List<Datum>> allNfts = new List<List<Datum>>();
+            List<List<Datum>> allCrypto = new List<List<Datum>>();
             int offset = 0;
             int total = 0;
-            while (true)
-            {
-                var nfts = await LoopringService.GetWalletsNftsOffset(settings.LoopringApiKey, settings.LoopringAccountId, offset);
-                if (nfts.Item1.Count > 0)
-                {
-                    total = nfts.Item2;
-                    Log = $"Gathering your NFTs: {allNfts.SelectMany(d => d).Count()}/{total} NFTs retrieved...";
-                    allNfts.Add(nfts.Item1);
-                    offset += 50;
-                }
-                else
-                {
-                    break;
-                }
-            }
             Log = $"Checking data for for issues... ";
             int validCounter = 0;
-            foreach (var item in transferInfoList.DistinctBy(x => x.NftData))
-            {
-                Log = $"Checking NFTs: {++validCounter}/{transferInfoList.DistinctBy(x => x.NftData).Count()}";
-                var nftDataCheck = await LoopringService.GetNftInformationFromNftData(Settings.LoopringApiKey, item.NftData);
-                if (nftDataCheck.Count == 0)
-                {
-                    buildinvalidLines.Append($"Error with NFT Data: Invalid NFT Data.{item.NftData}\r\n");
-                }
-                if (allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).Count() > 0)
-                {
-                    if (int.Parse(allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).First().total) == 0)
-                    {
-                        buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: You do not own this NFT.\r\n");
-                    }
-                    else
-                    {
-                        if (int.Parse(allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).First().total) < transferInfoList.Where(x => x.NftData == item.NftData).Sum(x => x.Amount))
-                            buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: You own {allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).First().total} and are trying to transfer {transferInfoList.Where(x => x.NftData == item.NftData).Sum(x => x.Amount)}.\r\n");
-                    }
-                }
-                else if (allNfts.SelectMany(d => d).Where(x => x.nftData == item.NftData).Count() == 0)
-                    buildinvalidLines.Append($"Error at line {transferInfoList.IndexOf(item) + 1}: You do not own this NFT.\r\n");
-            }
+
             validCounter = 0;
-            foreach (var item in transferInfoList.DistinctBy(x=>x.Memo))
+            foreach (var item in transferInfoCryptoList.DistinctBy(x=>x.Memo))
             {
-                Log = $"Checking Memos: {++validCounter}/{transferInfoList.DistinctBy(x => x.Memo).Count()}";
+                Log = $"Checking Memos: {++validCounter}/{transferInfoCryptoList.DistinctBy(x => x.Memo).Count()}";
                 if (item.Memo?.Length > 120)
                 {
                     buildinvalidLines.Append($"Error with Memo: Length greater than 120 characters. {item.Memo}\r\n");
                 }
             }
             validCounter = 0;
-            foreach (var item in transferInfoList.DistinctBy(x => x.ToAddress))
+            foreach (var item in transferInfoCryptoList.DistinctBy(x => x.ToAddress))
             {
-                Log = $"Checking Wallets: {++validCounter}/{transferInfoList.DistinctBy(x => x.ToAddress).Count()}";
+                Log = $"Checking Wallets: {++validCounter}/{transferInfoCryptoList.DistinctBy(x => x.ToAddress).Count()}";
                 var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
                 if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
                 {
-                    buildAttentionLines.Append($"Attention at line {transferInfoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
+                    buildAttentionLines.Append($"Attention at line {transferInfoCryptoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
                     item.Activated = false;
                 }
             }

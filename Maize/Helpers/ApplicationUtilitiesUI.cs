@@ -114,6 +114,7 @@ namespace Maize.Helpers
             csv.AppendLine($"Total Loopring Fee: {(gasFeeTotal / 1000000000000000000m).ToString()} {maxFeeToken}");
             csv.AppendLine($"Total Maize Fee: {transactionFeeTotal} {maxFeeTokenForMaize}");
             File.WriteAllText($"{AppDomain.CurrentDomain.BaseDirectory}Output\\{excelFileName}", csv.ToString());
+            OpenFile($"{Constants.BaseDirectory}{Constants.OutputFolder}{excelFileName}");
             return $"{Constants.BaseDirectory}{Constants.OutputFolder}{excelFileName}";
         }
         public static int GetUnixTimestamp() => (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -544,6 +545,7 @@ namespace Maize.Helpers
 
             return ReadLineWarningNoNulls(statement, font);
         }
+
         public static void OpenFile(string fileName)
         {
             Process.Start(new ProcessStartInfo

@@ -8,6 +8,15 @@ using PoseidonSharp;
 using RestSharp;
 using System.Numerics;
 using Maize.Helpers;
+using Nethereum.BlockchainProcessing.BlockStorage.Entities.Mapping;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Maize
 {
@@ -35,6 +44,30 @@ namespace Maize
             try
             {
                 var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<List<UserAssetsResponse>>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                _font.ToRed($"Error at GetHexAddress: {httpException.Message}");
+                return null;
+            }
+        }
+        public async Task<List<UserAssetsResponse>> RefreshNft()
+        {
+            var payload = new
+            {
+                network = "ETHEREUM",
+                nftId = "0x35a280998391839b6e75fc602783b9898790fd91e484347a80e88234d3c031eb",
+                nftType = "ERC1155",
+                tokenAddress = "0x188baad46e9dfaf80c7f0d0da6c0090400dbf7a9"
+            };
+            var request = new RestRequest("api/v3/nft/image/refresh");
+            request.AddJsonBody(payload);
+            request.AddHeader("Content-Type", "application/json");
+            try
+            {
+                var response = await _client.PostAsync(request);
                 var data = JsonConvert.DeserializeObject<List<UserAssetsResponse>>(response.Content!);
                 return data;
             }
@@ -897,6 +930,263 @@ namespace Maize
                 return null;
             }
         }
+        public async Task<CryptoTransferAuditInformation> TokenTransfer(
+                        ILoopringService loopringService,
+            int environment,
+            string environmentUrl,
+            string environmentExchange,
+            string loopringApiKey,
+            string loopringPrivateKey,
+            string MMorGMEPrivateKey,
+            int fromAccountId,
+            int toAccountId,
+            string maxFeeToken,
+            int maxFeeTokenId,
+            string fromAddress,
+            string fileName,
+            string inputPath,
+            long validUntil,
+            decimal lcrTransactionFee,
+            string transferMemo,
+            decimal amountToTransfer,
+            string toAddress,
+            bool payPayeeUpdateAccount
+            )
+        {
+            //ILoopringService loopringService = new LoopringService(environmentUrl, _font);
+            //string toAddressInitial;
+            //var amountToTransferInitial = amountToTransfer;
+            //var airdropNumberOn = 0;
+            //var gasFeeTotal = 0m;
+            //var transactionFeeTotal = 0m;
+            //var transferTokenId = 1;
+            //var transferTokenSymbol = "LRC";
+            //List<string> invalidAddress = new();
+            //List<string> validAddress = new();
+            //List<string> banishAddress = new();
+            //List<string> invalidNftData = new();
+            //List<string> alreadyActivatedAddress = new();
+
+
+            //using (StreamReader sr = new($"./{inputPath}/{fileName}"))
+            //{
+            //    while ((toAddressInitial = sr.ReadLine()) != null)
+            //    {
+
+            //        //font.ToTertiaryInline($"\rDrop: {++airdropNumberOn}/{howManyLines} Wallet: {toAddressInitial}");
+
+            //        if (amountToTransferInitial == 0)
+            //        {
+            //            var line = String.Concat(toAddressInitial.Where(c => !Char.IsWhiteSpace(c)));
+            //            string[] walletAddressLineArray = line.Split(',');
+            //            toAddressInitial = walletAddressLineArray[0].Trim();
+            //            amountToTransfer = decimal.Parse(walletAddressLineArray[1].Trim());
+            //        }
+
+            //        var toAddress = toAddressInitial.ToLower().Trim();
+
+            //        toAddress = await loopringService.CheckForEthAddress(loopringService, loopringApiKey, toAddress);
+
+            //        if (toAddress == "invalid eth address")
+            //        {
+            //            invalidAddress.Add($"{toAddressInitial}");
+            //            Thread.Sleep(50); //for a rate limiter just incase multiple invalid ens
+            //            continue;
+            //        }
+            //        var checkValidAddress = await loopringService.GetUserAccountInformationFromOwner(toAddress);
+            //        if (checkValidAddress == null)
+            //        {
+            //            invalidAddress.Add($"{toAddressInitial}");
+            //            continue;
+            //        }
+
+            //        //var contains = await loopringService.CheckBanishTextFile(font, toAddressInitial, toAddress, loopringApiKey);
+            //        //if (contains == true)
+            //        //{
+            //        //    banishAddress.Add(toAddressInitial);
+            //        //    continue;
+            //        //}
+
+
+            //        var amount = (amountToTransfer * 1000000000000000000m).ToString("0");
+            //        var transferFeeAmountResult = await loopringService.GetOffChainTransferFee(loopringApiKey, fromAccountId, 3, transferTokenSymbol, amount); //3 is the request type for crypto transfers
+            //        var feeAmount = transferFeeAmountResult.fees.Where(w => w.token == transferTokenSymbol).First().fee;
+            //        var transferStorageId = await loopringService.GetNextStorageId(loopringApiKey, fromAccountId, transferTokenId);
+
+            //        TransferRequest req = new()
+            //        {
+            //            exchange = environmentExchange,
+            //            maxFee = new Token()
+            //            {
+            //                tokenId = transferTokenId,
+            //                volume = feeAmount
+            //            },
+            //            token = new Token()
+            //            {
+            //                tokenId = transferTokenId,
+            //                volume = amount
+            //            },
+            //            payeeAddr = toAddress,
+            //            payerAddr = fromAddress,
+            //            payeeId = 0,
+            //            payerId = fromAccountId,
+            //            storageId = transferStorageId.offchainId,
+            //            validUntil = ApplicationUtilitiesUI.GetUnixTimestamp() + (int)TimeSpan.FromDays(365).TotalSeconds,
+            //            tokenName = transferTokenSymbol,
+            //            tokenFeeName = transferTokenSymbol
+            //        };
+
+            //        BigInteger[] eddsaSignatureinputs = {
+            //        ApplicationUtilitiesUI.ParseHexUnsigned(req.exchange),
+            //        (BigInteger)req.payerId,
+            //        (BigInteger)req.payeeId,
+            //        (BigInteger)req.token.tokenId,
+            //        BigInteger.Parse(req.token.volume),
+            //        (BigInteger)req.maxFee.tokenId,
+            //        BigInteger.Parse(req.maxFee.volume),
+            //        ApplicationUtilitiesUI.ParseHexUnsigned(req.payeeAddr),
+            //        0,
+            //        0,
+            //        (BigInteger)req.validUntil,
+            //        (BigInteger)req.storageId
+            //        };
+
+            //        Poseidon poseidonTransfer = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+            //        BigInteger poseidonTransferHash = poseidonTransfer.CalculatePoseidonHash(eddsaSignatureinputs);
+            //        Eddsa eddsaTransfer = new(poseidonTransferHash, loopringPrivateKey);
+            //        string transferEddsaSignature = eddsaTransfer.Sign();
+
+            //        //Calculate ecdsa
+            //        string primaryTypeNameTransfer = "Transfer";
+            //        TypedData eip712TypedDataTransfer = new()
+            //        {
+            //            Domain = new Domain()
+            //            {
+            //                Name = "Loopring Protocol",
+            //                Version = "3.6.0",
+            //                ChainId = environment,
+            //                VerifyingContract = environmentExchange,
+            //            },
+            //            PrimaryType = primaryTypeNameTransfer,
+            //            Types = new Dictionary<string, MemberDescription[]>()
+            //            {
+            //                ["EIP712Domain"] = new[]
+            //            {
+            //                new MemberDescription {Name = "name", Type = "string"},
+            //                new MemberDescription {Name = "version", Type = "string"},
+            //                new MemberDescription {Name = "chainId", Type = "uint256"},
+            //                new MemberDescription {Name = "verifyingContract", Type = "address"},
+            //            },
+            //                [primaryTypeNameTransfer] = new[]
+            //            {
+            //                new MemberDescription {Name = "from", Type = "address"},            // payerAddr
+            //                new MemberDescription {Name = "to", Type = "address"},              // toAddr
+            //                new MemberDescription {Name = "tokenID", Type = "uint16"},          // token.tokenId 
+            //                new MemberDescription {Name = "amount", Type = "uint96"},           // token.volume 
+            //                new MemberDescription {Name = "feeTokenID", Type = "uint16"},       // maxFee.tokenId
+            //                new MemberDescription {Name = "maxFee", Type = "uint96"},           // maxFee.volume
+            //                new MemberDescription {Name = "validUntil", Type = "uint32"},       // validUntill
+            //                new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
+            //            },
+
+            //            },
+            //            Message = new[]
+            //        {
+            //            new MemberValue {TypeName = "address", Value = fromAddress},
+            //            new MemberValue {TypeName = "address", Value = toAddress},
+            //            new MemberValue {TypeName = "uint16", Value = req.token.tokenId},
+            //            new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.token.volume)},
+            //            new MemberValue {TypeName = "uint16", Value = req.maxFee.tokenId},
+            //            new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.maxFee.volume)},
+            //            new MemberValue {TypeName = "uint32", Value = req.validUntil},
+            //            new MemberValue {TypeName = "uint32", Value = req.storageId},
+            //        }
+            //        };
+
+            //        TransferTypedData typedDataTransfer = new()
+            //        {
+            //            domain = new TransferTypedData.Domain()
+            //            {
+            //                name = "Loopring Protocol",
+            //                version = "3.6.0",
+            //                chainId = environment,
+            //                verifyingContract = environmentExchange,
+            //            },
+            //            message = new TransferTypedData.Message()
+            //            {
+            //                from = fromAddress,
+            //                to = toAddress,
+            //                tokenID = req.token.tokenId,
+            //                amount = req.token.volume,
+            //                feeTokenID = req.maxFee.tokenId,
+            //                maxFee = req.maxFee.volume,
+            //                validUntil = (int)req.validUntil,
+            //                storageID = req.storageId
+            //            },
+            //            primaryType = primaryTypeNameTransfer,
+            //            types = new TransferTypedData.Types()
+            //            {
+            //                EIP712Domain = new List<Type>()
+            //                {
+            //                    new Type(){ name = "name", type = "string"},
+            //                    new Type(){ name="version", type = "string"},
+            //                    new Type(){ name="chainId", type = "uint256"},
+            //                    new Type(){ name="verifyingContract", type = "address"},
+            //                },
+            //                Transfer = new List<Type>()
+            //                {
+            //                    new Type(){ name = "from", type = "address"},
+            //                    new Type(){ name = "to", type = "address"},
+            //                    new Type(){ name = "tokenID", type = "uint16"},
+            //                    new Type(){ name = "amount", type = "uint96"},
+            //                    new Type(){ name = "feeTokenID", type = "uint16"},
+            //                    new Type(){ name = "maxFee", type = "uint96"},
+            //                    new Type(){ name = "validUntil", type = "uint32"},
+            //                    new Type(){ name = "storageID", type = "uint32"},
+            //                }
+            //            }
+            //        };
+
+            //        Eip712TypedDataSigner signerTransfer = new();
+            //        var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+            //        var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
+            //        var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
+            //        var serializedECDRSASignatureTransfer = EthECDSASignature.CreateStringSignature(ECDRSASignatureTransfer);
+            //        var transferEcdsaSignature = serializedECDRSASignatureTransfer + "0" + (int)2;
+
+            //        var tokenTransferResult = await loopringService.SubmitTokenTransfer(
+            //            loopringApiKey,
+            //            environmentExchange,
+            //            fromAccountId,
+            //            fromAddress,
+            //            0,
+            //            toAddress,
+            //            req.token.tokenId,
+            //            req.token.volume,
+            //            req.maxFee.tokenId,
+            //            req.maxFee.volume,
+            //            req.storageId,
+            //            req.validUntil,
+            //            transferEddsaSignature,
+            //            transferEcdsaSignature,
+            //            transferMemo);
+            //        if (tokenTransferResult.Contains("processing"))
+            //        {
+            //            validAddress.Add(toAddressInitial);
+            //            gasFeeTotal += decimal.Parse(req.maxFee.volume);
+            //            transactionFeeTotal += lcrTransactionFee;
+            //        }
+            //        else
+            //        {
+            //            invalidAddress.Add(toAddressInitial + tokenTransferResult);
+            //        }
+            //    }
+            //}
+
+
+            var nftTransferAuditInformation = new CryptoTransferAuditInformation();
+            return nftTransferAuditInformation;
+        }
         public async Task<TransferFeeOffchainFee> GetOffChainTransferFee(string apiKey, int accountId, int requestType, string feeToken, string amount)
         {
             var request = new RestRequest("api/v3/user/offchainFee");
@@ -1111,7 +1401,8 @@ namespace Maize
                 req.validUntil,
                 transferEddsaSignature,
                 transferEcdsaSignature,
-                transferMemo);
+                transferMemo,
+                false);
             return decimal.Parse(req.maxFee.volume);
         }
         public async Task<string> SubmitTokenTransfer(
@@ -1129,7 +1420,8 @@ namespace Maize
                long validUntil,
                string eddsaSignature,
                string ecdsaSignature,
-               string memo
+               string memo,
+               bool payPayeeUpdateAccount
           )
         {
             var request = new RestRequest("api/v3/transfer");

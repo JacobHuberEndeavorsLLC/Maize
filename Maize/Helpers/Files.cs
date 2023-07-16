@@ -54,7 +54,7 @@ namespace Maize.Helpers
             } while (walletAddresses == "");
             return howManyLines;
         }
-        public static async Task<(List<TransferInformation> transferInfoList, string? invalidLines)> CheckInputFileVariables()
+        public static async Task<(List<TransferInformation> transferInfoList, string? invalidLines, List<TransferInformationCrypto> transferInfoCryptoList)> CheckInputFileVariables(int variableAmount)
         {
             using (TextFieldParser parser = new TextFieldParser($"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}"))
             {
@@ -63,17 +63,18 @@ namespace Maize.Helpers
 
                 StringBuilder invalidLines = new StringBuilder();
                 List<TransferInformation> transferInfoList = new List<TransferInformation>();
+                List<TransferInformationCrypto> transferInfoCryptoList = new List<TransferInformationCrypto>();
                 int lineNumber = 1;
 
                 while (!parser.EndOfData)
                 {
                     string[] fields = parser.ReadFields();
 
-                    if (fields.Length != 4)
+                    if (fields.Length != variableAmount)
                     {
-                        invalidLines.Append($"Error at line {lineNumber}: Does not have 4 variables separated by a comma.\r\n");
+                        invalidLines.Append($"Error at line {lineNumber}: Does not have {variableAmount} variables separated by a comma.\r\n");
                     }
-                    else
+                    else if (fields.Length == 4)
                     {
                         TransferInformation transferInfo = new TransferInformation
                         {
@@ -86,11 +87,22 @@ namespace Maize.Helpers
 
                         transferInfoList.Add(transferInfo);
                     }
+                    else 
+                    {
+                        TransferInformationCrypto transferInfoCrypto = new TransferInformationCrypto
+                        {
+                            Amount = decimal.Parse(fields[0]),
+                            ToAddress = fields[1],
+                            Memo = fields[2],
+                            Activated = true
+                        };
+                        transferInfoCryptoList.Add(transferInfoCrypto);
+                    }
 
                     lineNumber++;
                 }
 
-                return (transferInfoList, invalidLines.ToString());
+                return (transferInfoList, invalidLines.ToString(), transferInfoCryptoList);
             }
         }
         public static int CheckInputFile()

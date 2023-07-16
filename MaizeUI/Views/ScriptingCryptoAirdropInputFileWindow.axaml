@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				mc:Ignorable="d" Width="600" Height="400"
+		    WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
+        x:Class="MaizeUI.Views.ScriptingCryptoAirdropInputFileWindow"
+        Title="Scripting Input File for an Airdrop">
+	<Design.DataContext>
+    <vm:ScriptingCryptoAirdropInputFileWindowViewModel/>
+	</Design.DataContext>
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
+    <TextBlock Margin="20 20 20 10" IsVisible="{Binding Step1}" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
+    <TextBox Margin="20 0 20 10" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Log}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="125" Width="520"/>
+    <!--<TextBox Text="{Binding NftData}" Margin="20 0 20 5" Watermark="Enter NFT Data..."/>-->
+    <TextBox Text="{Binding CryptoAmount}" Margin="20 0 20 5" Watermark="Enter Amount of Crypto..."/>
+    <TextBox Text="{Binding Memo}" Margin="20 0 20 10" Watermark="Enter Memo..."/>
+    <Button Margin="20 0 20 10" Width="100" Command="{Binding CreateInputFileCommand}" IsEnabled="{Binding IsEnabled}">
+      <TextBlock Text="Create" TextAlignment="Center"/>
+    </Button>
+  </StackPanel>
+</Window>

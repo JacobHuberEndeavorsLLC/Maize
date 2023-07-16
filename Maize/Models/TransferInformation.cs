@@ -14,4 +14,11 @@ namespace Maize.Models
         public string? Memo { get; set; }
         public bool Activated { get; set; }
     }
+    public class TransferInformationCrypto
+    {
+        public decimal Amount { get; set; }
+        public string? ToAddress { get; set; }
+        public string? Memo { get; set; }
+        public bool Activated { get; set; }
+    }
 }

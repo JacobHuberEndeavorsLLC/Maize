@@ -64,7 +64,9 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> FindNftDataFromACollectionCommand { get; }
         public ReactiveCommand<Unit, Unit> FindHoldersFromNftDataCommand { get; }
         public ReactiveCommand<Unit, Unit> AirdropNftsToUsersCommand { get; }
+        public ReactiveCommand<Unit, Unit> AirdropCryptoToUsersCommand { get; }
         public ReactiveCommand<Unit, Unit> ScriptingAirdropInputFileCommand { get; }
+        public ReactiveCommand<Unit, Unit> ScriptingCryptoAirdropInputFileCommand { get; }
 
         public MainMenuWindowViewModel()
         {
@@ -72,7 +74,9 @@ namespace MaizeUI.ViewModels
             FindNftDataFromACollectionCommand = ReactiveCommand.Create(FindNftDataFromACollection);
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
             AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
+            AirdropCryptoToUsersCommand = ReactiveCommand.Create(AirdropCryptoToUsers);
             ScriptingAirdropInputFileCommand = ReactiveCommand.Create(ScriptingAirdropInputFile);
+            ScriptingCryptoAirdropInputFileCommand = ReactiveCommand.Create(ScriptingCryptoAirdropInputFile);
 
         }
 
@@ -121,10 +125,34 @@ namespace MaizeUI.ViewModels
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
+        private async void AirdropCryptoToUsers()
+        {
+            var dialog = new AirdropCryptoToUsersWindow();
+            dialog.DataContext = new AirdropCryptoToUsersWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
         private async void ScriptingAirdropInputFile()
         {
             var dialog = new ScriptingAirdropInputFileWindow();
             dialog.DataContext = new ScriptingAirdropInputFileWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void ScriptingCryptoAirdropInputFile()
+        {
+            var dialog = new ScriptingCryptoAirdropInputFileWindow();
+            dialog.DataContext = new ScriptingCryptoAirdropInputFileWindowViewModel
             {
                 LoopringService = new LoopringServiceUI(Environment.Url),
                 Settings = settings,

@@ -5,6 +5,7 @@ namespace Maize
 {
     public interface ILoopringService
     {
+        Task<List<UserAssetsResponse>> RefreshNft();
         Task<List<UserAssetsResponse>> GetUserAssetsForFees(string apiKey, int accountId);
         Task<List<CollectionMinted>> GetUserMintedCollections(string apiKey, string owner);
         Task<List<CollectionOwned>> GetUserOwnedCollections(string apiKey, int accountId);
@@ -92,6 +93,28 @@ int nftOrLrc,
         int maizeFeeId,
         string maizeFee
         );
+        Task<CryptoTransferAuditInformation> TokenTransfer(
+                        ILoopringService loopringService,
+            int environment,
+            string environmentUrl,
+            string environmentExchange,
+            string loopringApiKey,
+            string loopringPrivateKey,
+            string MMorGMEPrivateKey,
+            int fromAccountId,
+            int toAccountId,
+            string maxFeeToken,
+            int maxFeeTokenId,
+            string fromAddress,
+            string fileName,
+            string inputPath,
+            long validUntil,
+            decimal lcrTransactionFee,
+            string transferMemo,
+            decimal amountToTransfer,
+            string toAddress,
+            bool payPayeeUpdateAccount
+            );
         Task<string> SubmitTokenTransfer(
           string apiKey,
           string exchange,
@@ -107,7 +130,8 @@ int nftOrLrc,
                long validUntil,
                string eddsaSignature,
                string ecdsaSignature,
-               string memo
+               string memo,
+               bool payPayeeUpdateAccount
           );
     }
 }
