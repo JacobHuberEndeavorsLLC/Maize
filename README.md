@@ -1,7 +1,8 @@
 # Maize
-![](https://user-images.githubusercontent.com/97369738/205774544-2b875df8-fa70-4a44-8184-50bd55af25d7.png)
+![MaizeHelps.Art](https://github.com/cobmin/Maize/assets/97369738/4db3a21f-11aa-4cb6-8214-aa5655332c1f)
 
 https://maizehelps.art/
+
 
 ## Analytics and Airdrops for your Crypto and Nfts on Loopring
 
