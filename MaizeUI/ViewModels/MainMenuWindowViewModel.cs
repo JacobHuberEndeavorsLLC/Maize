@@ -65,6 +65,7 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> FindHoldersFromNftDataCommand { get; }
         public ReactiveCommand<Unit, Unit> AirdropNftsToUsersCommand { get; }
         public ReactiveCommand<Unit, Unit> AirdropCryptoToUsersCommand { get; }
+        public ReactiveCommand<Unit, Unit> AirdropMigrateWalletCommand { get; }
         public ReactiveCommand<Unit, Unit> ScriptingAirdropInputFileCommand { get; }
         public ReactiveCommand<Unit, Unit> ScriptingCryptoAirdropInputFileCommand { get; }
 
@@ -75,6 +76,7 @@ namespace MaizeUI.ViewModels
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
             AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
             AirdropCryptoToUsersCommand = ReactiveCommand.Create(AirdropCryptoToUsers);
+            AirdropMigrateWalletCommand = ReactiveCommand.Create(AirdropMigrateWallet);
             ScriptingAirdropInputFileCommand = ReactiveCommand.Create(ScriptingAirdropInputFile);
             ScriptingCryptoAirdropInputFileCommand = ReactiveCommand.Create(ScriptingCryptoAirdropInputFile);
 
@@ -129,6 +131,18 @@ namespace MaizeUI.ViewModels
         {
             var dialog = new AirdropCryptoToUsersWindow();
             dialog.DataContext = new AirdropCryptoToUsersWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void AirdropMigrateWallet()
+        {
+            var dialog = new AirdropMigrateWalletWindow();
+            dialog.DataContext = new AirdropMigrateWalletWindowViewModel
             {
                 LoopringService = new LoopringServiceUI(Environment.Url),
                 Settings = settings,

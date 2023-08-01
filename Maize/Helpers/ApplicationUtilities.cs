@@ -147,7 +147,8 @@ namespace Maize.Helpers
 
             return (userResponse, accountInformation);
         }
-        public static async Task<(string userInput, NftResponseFromCollection nftCollectionInformation)> CheckCollectionMintedOrOwnedAndGetNfts(ILoopringService loopringService, Font font, Settings s)
+        public static async Task<(string userInput, NftResponseFromCollection nft
+            )> CheckCollectionMintedOrOwnedAndGetNfts(ILoopringService loopringService, Font font, Settings s)
         {
             bool isSecondIteration = false;
             string userResponse;

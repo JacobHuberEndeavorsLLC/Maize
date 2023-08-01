@@ -28,11 +28,11 @@ namespace Maize.Helpers
             do
             {
                 var collectionAndNfts = await ApplicationUtilities.CheckCollectionMintedOrOwnedAndGetNfts(loopringService, font, s);
-                if (collectionAndNfts.nftCollectionInformation == null)
+                if (collectionAndNfts.nft.nftTokenInfos == null)
                     collectionAndNfts = await ApplicationUtilities.CheckCollectionAndGetNfts(loopringService, font, s, collectionAndNfts.userInput);
-                if (collectionAndNfts.nftCollectionInformation == null)
+                if (collectionAndNfts.nft.nftTokenInfos == null)
                     font.ToSecondary("No information was found, try again.");
-                nftCollectionInformation = collectionAndNfts.nftCollectionInformation;
+                nftCollectionInformation = collectionAndNfts.nft;
             } while (nftCollectionInformation == null);
             Font.ClearLine();
             font.ToSecondary($"{nftCollectionInformation.nftTokenInfos.First().tokenAddress} has {nftCollectionInformation.totalNum} NFTs in its collection.");

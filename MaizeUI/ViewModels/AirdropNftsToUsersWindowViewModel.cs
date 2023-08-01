@@ -166,13 +166,14 @@ namespace MaizeUI.ViewModels
             IsStartButtonVisible = false;
             IsCheckboxVisible = false;
             IsPreviewButtonVisible = false;
-            Log = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
+            Log = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile} (should automatically open)";
             Notice = "In the below file add your NFT Data,NFT Amount to Transfer,Wallet Address to Transfer to,Memo. Include commas for separation and you will have one record per line.";
             Notice2 = "👈 Choose";
             Notice3 = "Press Preview to see a summary of your NFT Airdrop";
             Notice4 = "Press Start to begin your NFT Airdrop";
             Notice5 = "☝️ insufficient funds";
             Notice6 = "NFT Airdrop completed! Exit to start a new one.";
+            ApplicationUtilitiesUI.OpenFile($"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}");
             AirdropNftsToUsersCommand = ReactiveCommand.Create(AirdropNftsToUsers);
             StartProcessCommand = ReactiveCommand.Create(StartProcess);
             PreviewProcessCommand = ReactiveCommand.Create(PreviewProcess);

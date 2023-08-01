@@ -51,6 +51,9 @@
     <Compile Update="Views\AirdropCryptoToUsersWindow.axaml.cs">
       <DependentUpon>AirdropCryptoToUsersWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\AirdropMigrateWalletWindow.axaml.cs">
+      <DependentUpon>AirdropMigrateWalletWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
     </Compile>

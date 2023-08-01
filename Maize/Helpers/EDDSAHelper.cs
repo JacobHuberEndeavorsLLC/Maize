@@ -56,9 +56,15 @@ namespace Maize.Helpers
                 postBody,
                 apiMethod,
                 apiUrl);
-
-            var signer = new Eddsa(message, l2Pk);
-            return signer.Sign();
+            try
+            {
+                var signer = new Eddsa(message, l2Pk);
+                return signer.Sign();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         #region Public Key calculation methods
