@@ -1,6 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Interactivity;
 using MaizeUI.ViewModels;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MaizeUI.Views
 {
@@ -14,6 +17,37 @@ namespace MaizeUI.Views
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        public async void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = await OpenImageFileDialog();
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+                ((AppsettingsNoticeWindowViewModel)DataContext).ImagePath = filePath; // Assuming your ViewModel is set as DataContext
+            }
+        }
+
+        public async Task<string> OpenImageFileDialog()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select an image file",
+                Filters = new List<FileDialogFilter>
+            {
+                new FileDialogFilter { Name = "Image Files", Extensions = new List<string> { "png", "jpg", "jpeg", "bmp" } },
+            },
+            };
+            var result = await dialog.ShowAsync(this);
+
+            if (result != null && result.Length > 0)
+            {
+                return result[0];
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

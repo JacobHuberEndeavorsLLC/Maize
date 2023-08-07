@@ -214,7 +214,7 @@ namespace MaizeUI.ViewModels
                             }
                             else
                             {
-                                var nftdataRequest = await LoopringService.GetNftData(settings.LoopringApiKey, NftId, minterAddress, collectionAddress);
+                                var nftdataRequest = await LoopringService.GetNftData(settings.LoopringApiKey, NftId, accountInformation.owner, collectionAddress);
                                 if (nftdataRequest == null)
                                 {
                                     Log = "Invalid Information! Try Again...";
@@ -247,7 +247,17 @@ namespace MaizeUI.ViewModels
                     }
                 }
             }
-            var collectionsNftsInformation = allCollectionsNfts.Select(m => new { m.metadata.basename.name, m.metadata.basename.description, m.nftData, m.nftId, m.minter, m.tokenAddress, m.metadata.basename.properties }).ToList();
+            var collectionsNftsInformation = allCollectionsNfts.Select(m => new
+            {
+                name = m.metadata.basename.name,
+                description = m.metadata.basename.description,
+                nftData = m.nftData,
+                modifiedUri = m.metadata.uri.Replace("ipfs://", ""),
+                nftId = m.nftId,
+                minter = m.minter,
+                tokenAddress = m.tokenAddress,
+                properties = m.metadata.basename.properties
+            }).ToList();
             var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftInfoFromCollection", collectionsNftsInformation);
             sw.Stop();
             var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";

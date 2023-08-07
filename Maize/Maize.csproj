@@ -21,6 +21,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
     <PackageReference Include="Multiformats.Hash" Version="1.5.0" />
     <PackageReference Include="Nethereum.ENS" Version="4.2.0" />
+    <PackageReference Include="Nethereum.HdWallet" Version="4.2.0" />
     <PackageReference Include="Nethereum.Signer.EIP712" Version="4.1.1" />
     <PackageReference Include="Nethereum.Web3" Version="4.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
@@ -33,19 +34,16 @@
     <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\Atestnetappsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Input\Environment\Amainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\Amainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\Atestnetappsettings.json">
+    <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\MYmainnetappsettings.json">
+    <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\MYtestnetappsettings.json">

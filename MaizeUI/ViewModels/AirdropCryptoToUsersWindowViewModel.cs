@@ -472,7 +472,7 @@ namespace MaizeUI.ViewModels
             var sw = new Stopwatch();
             sw.Start();
             NftOffChainFeeResponse activationFees = new();
-            IEthereumService ethereumService = new EthereumService();
+            //IEthereumService ethereumService = new EthereumService();
             INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
             StringBuilder buildinvalidLines = new StringBuilder();
             StringBuilder buildAttentionLines = new StringBuilder();

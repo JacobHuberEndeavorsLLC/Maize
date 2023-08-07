@@ -58,9 +58,9 @@ namespace Maize
             var payload = new
             {
                 network = "ETHEREUM",
-                nftId = "0x35a280998391839b6e75fc602783b9898790fd91e484347a80e88234d3c031eb",
+                nftId = "0xeb48f809bc2b6ed80fa2e7f471d238153b41f475c214c852d7d24fe165c6de50",
                 nftType = "ERC1155",
-                tokenAddress = "0x188baad46e9dfaf80c7f0d0da6c0090400dbf7a9"
+                tokenAddress = "0x43c2c25c8a06562dcbfea26cecf9a4d0bd3d5179"
             };
             var request = new RestRequest("api/v3/nft/image/refresh");
             request.AddJsonBody(payload);
@@ -225,6 +225,23 @@ namespace Maize
             catch (HttpRequestException httpException)
             {
                 _font.ToRed($"Error at GetLoopringEns: {httpException.Message}");
+                return null;
+            }
+        }
+        public async Task<WalletTypeResponse> GetWalletType(string walletAddress)
+        {
+            var request = new RestRequest("api/wallet/v3/wallet/type");
+            //request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("wallet", walletAddress);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<WalletTypeResponse>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                _font.ToRed($"Error at GetHexAddress: {httpException.Message}");
                 return null;
             }
         }

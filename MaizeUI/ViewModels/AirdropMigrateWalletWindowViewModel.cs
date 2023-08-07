@@ -15,7 +15,7 @@ namespace MaizeUI.ViewModels
     public class AirdropMigrateWalletWindowViewModel : ViewModelBase 
     {
         List<List<Datum>> allNfts = new List<List<Datum>>();
-
+        bool isWalletActivated = true;
         private bool isNextButtonVisible;
         private bool isStartButtonVisible;
         private bool isPreviewButtonVisible;
@@ -371,7 +371,12 @@ namespace MaizeUI.ViewModels
         }
         private async void PreviewProcess()
         {
-            if (LoopringFeeSelectedOption == LoopringFeeDropdown[0] || MaizeFeeSelectedOption == MaizeFeeDropdown[0] || _isChecked == false)
+            if (LoopringFeeSelectedOption == LoopringFeeDropdown[0] || MaizeFeeSelectedOption == MaizeFeeDropdown[0])
+            {
+                Log = "Select Fees";
+                return;
+            }
+            if (isWalletActivated == false && _isChecked == false)
             {
                 Log = "Acknowledge activation to proceed.";
                 return;
@@ -596,7 +601,6 @@ namespace MaizeUI.ViewModels
             //    }
             //}
             //validCounter = 0;
-            bool isWalletActivated;
             var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, newWallet));
             if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
             {

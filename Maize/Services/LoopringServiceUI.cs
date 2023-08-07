@@ -18,15 +18,19 @@ namespace Maize.Services
     {
         public async Task<List<UserAssetsResponse>> RefreshNft()
         {
+            var payload = new
+            {
+                network = "ETHEREUM",
+                nftId = "0xde9636d778e962514ecc0225a07a44fd579ad0cfa2795137a83064c9f61ac0ec",
+                nftType = "ERC1155",
+                tokenAddress = "0x43c2c25c8a06562dcbfea26cecf9a4d0bd3d5179"
+            };
             var request = new RestRequest("api/v3/nft/image/refresh");
-            //request.AddHeader("x-api-key", apiKey);
-            request.AddParameter("network", "ETHEREUM");
-            request.AddParameter("nftId", "0xd2cf799ee13df390a9bd3908f584fdc497509c91f4bbec28a48d2a81fe2808ef");
-            request.AddParameter("nftType", "ERC1155");
-            request.AddParameter("tokenAddress", "0x2f702a6f320df91e632d99ead9b9d3c40c462df5");
+            request.AddJsonBody(payload);
+            request.AddHeader("Content-Type", "application/json");
             try
             {
-                var response = await _client.GetAsync(request);
+                var response = await _client.PostAsync(request);
                 var data = JsonConvert.DeserializeObject<List<UserAssetsResponse>>(response.Content!);
                 return data;
             }
@@ -251,6 +255,22 @@ namespace Maize.Services
             {
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<ResolveEnsOrNameResponse>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                return null;
+            }
+        }
+        public async Task<WalletTypeResponse> GetWalletType(string walletAddress)
+        {
+            var request = new RestRequest("api/wallet/v3/wallet/type");
+            //request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("wallet", walletAddress);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<WalletTypeResponse>(response.Content!);
                 return data;
             }
             catch (HttpRequestException httpException)

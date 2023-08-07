@@ -12,6 +12,7 @@ namespace Maize
         Task<NftResponseFromCollection> GetCollectionNfts(string apiKey, string id);
         Task<ResolveEnsOrNameResponse> GetHexAddress(string apiKey, string ens);
         Task<ResolveEnsOrNameResponse> GetLoopringEns(string apiKey, string owner);
+        Task<WalletTypeResponse> GetWalletType(string walletAddress);
         Task<NftBalance> GetNfts(string apiKey, int accountId, string nftData);
         Task<List<Datum>> GetWalletsNfts(string apiKey, int accountId);
         Task<AccountInformationResponse> GetUserAccountInformationFromOwner(string owner);

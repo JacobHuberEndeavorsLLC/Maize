@@ -15,9 +15,16 @@
 
   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
     <TextBlock Margin="20 20 20 10" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
-    <!--<TextBox IsReadOnly="True" Text="{Binding Location}" TextWrapping="Wrap"/>-->
     <TextBox Margin="20 0 20 10" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Log}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="225" Width="520"/>
-    <TextBox Text="{Binding L1Key}" Margin="20 0 20 5" Watermark="L1 Private Key (located in wallet settings/details)"/>
+    <TextBox IsVisible="{Binding IsEoaTextBoxVisible}" Text="{Binding EoaL1Key}" Margin="20 0 20 5" Watermark="EOA L1 Private Key (located in wallet settings/details)"/>
+    <StackPanel IsVisible="{Binding IsLswTextBoxVisible}" Orientation="Horizontal">
+      <TextBox Text="{Binding LoopringAppPassCode}" Margin="20 0 10 5" Watermark="LSW App Passcode" Width="200"/>
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15" Text="Export QR Code: " TextWrapping="Wrap"/>
+      <Button Content="Browse" Click="BrowseButton_Click" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <Image Source="{Binding ImagePath}" />
+
     <Button Margin="20 0 20 10" Width="100" Command="{Binding SetupApsettingsFileCommand}" IsEnabled="{Binding IsEnabled}">
       <TextBlock Text="Create" TextAlignment="Center"/>
     </Button>
