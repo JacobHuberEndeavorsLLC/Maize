@@ -235,6 +235,9 @@ namespace MaizeUI.ViewModels
             auditInfo.transactionFeeTotal = 0;
             auditInfo.nftSentTotal = 0;
             int maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;
+            CounterFactualInfo isCounterFactual = new();
+            if (settings.MMorGMEPrivateKey == "")
+                isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.LoopringAccountId);
             foreach (var item in allNfts.SelectMany(d=>d))
             {
                 if (IsChecked == true && allNfts.SelectMany(d => d).ToList().IndexOf(item) == 0)
@@ -264,7 +267,8 @@ namespace MaizeUI.ViewModels
                         "NFT Wallet Swap via Maize with Activation",
                         item.nftData,
                         newWallet,
-                        true
+                        true,
+                        isCounterFactual
                         );
                         auditInfo.validAddress.AddRange(activateAuditInfo.validAddress);
                         auditInfo.invalidAddress.AddRange(activateAuditInfo.invalidAddress);
@@ -311,7 +315,8 @@ namespace MaizeUI.ViewModels
                         "NFT Wallet Swap via Maize",
                         item.nftData,
                         newWallet,
-                        false
+                        false,
+                        isCounterFactual
                         );
                     auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                     auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
@@ -358,7 +363,8 @@ namespace MaizeUI.ViewModels
                settings.LoopringAddress,
                0,
                maizeMaxFeeTokenId,
-               MaizeFeeSelectedOption
+               MaizeFeeSelectedOption,
+               isCounterFactual
                );
             auditInfo.gasFeeTotal += maxFeeVolume;
 

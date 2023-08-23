@@ -27,4 +27,11 @@
         public string PublicY { get; set; }
         public string PrivateKey { get; set; }
     }
+    public class InfuraKeys
+    {
+        public string _comment1 { get; set; }
+        public string _comment2 { get; set; }
+        public string InfuraApiKey { get; set; }
+        public string InfuraSecretKey { get; set; }
+    }
 }

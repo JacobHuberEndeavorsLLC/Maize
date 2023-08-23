@@ -5,7 +5,7 @@ namespace Maize
 {
     public interface ILoopringService
     {
-        Task<List<UserAssetsResponse>> RefreshNft();
+        Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress);
         Task<List<UserAssetsResponse>> GetUserAssetsForFees(string apiKey, int accountId);
         Task<List<CollectionMinted>> GetUserMintedCollections(string apiKey, string owner);
         Task<List<CollectionOwned>> GetUserOwnedCollections(string apiKey, int accountId);
@@ -55,7 +55,8 @@ namespace Maize
             string transferMemo,
             string? nftData,
             string toAddress,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
             );
         Task<string> SubmitNftTransfer(
             string apiKey,
@@ -74,7 +75,8 @@ namespace Maize
              string ecdsaSignature,
              string nftData,
              string transferMemo,
-             bool payPayeeUpdateAccount
+             bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
             );
         Task<decimal> CobTransferTransactionFee(
         int environment,
@@ -92,7 +94,8 @@ namespace Maize
 string fromAddress,
 int nftOrLrc,
         int maizeFeeId,
-        string maizeFee
+        string maizeFee,
+               CounterFactualInfo? isCounterFactual
         );
         Task<CryptoTransferAuditInformation> TokenTransfer(
                         ILoopringService loopringService,
@@ -114,7 +117,8 @@ int nftOrLrc,
             string transferMemo,
             decimal amountToTransfer,
             string toAddress,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+               CounterFactualInfo? isCounterFactual
             );
         Task<string> SubmitTokenTransfer(
           string apiKey,
@@ -132,7 +136,9 @@ int nftOrLrc,
                string eddsaSignature,
                string ecdsaSignature,
                string memo,
-               bool payPayeeUpdateAccount
+               bool payPayeeUpdateAccount,
+               CounterFactualInfo? isCounterFactual
           );
+        Task<CounterFactualInfo> GetCounterFactualInfo(int accountId);
     }
 }

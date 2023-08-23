@@ -21,6 +21,8 @@ namespace Maize
         Task<NftMetadata?> GetMetadata(string link, CancellationToken cancellationToken = default);
 
         public NftMetadata? GetMetadataFromResponse(string response);
+        Task<string> GetMetadataFromCid(string cid);
+        Task<string> SaveFileFromCid(string cid);
 
         Task<string?> GetContentTypeFromURL(string link, CancellationToken cancellationToken = default);
 

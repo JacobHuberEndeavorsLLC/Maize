@@ -25,9 +25,7 @@ namespace Maize
 
         public NftMetadataService(string ipfsBaseUrl)
         {
-            _client = new RestClient();
-            _ipfsBaseUrl = ipfsBaseUrl;
-            _client.AddDefaultHeader("Accept", "Accept: text/plain");
+            _client = new RestClient(ipfsBaseUrl);
         }
 
         public void Dispose()
@@ -171,6 +169,55 @@ namespace Maize
                 request.AddHeader("Accept", "Accept: text/plain");
                 var response = await _client.GetAsync(request, cancellationToken);
                 return GetMetadataFromResponse(response.Content!);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace + "\n" + e.Message);
+                return null;
+            }
+        }
+        public async Task<string> GetMetadataFromCid(string cid)
+        {
+            var request = new RestRequest(cid);
+            try
+            {
+                request.Timeout = 10000; //we can't afford to wait forever here, 10s must be enough
+                var response = await _client.GetAsync(request);
+                return response.Content;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace + "\n" + e.Message);
+                return null;
+            }
+        }
+        public async Task<string> SaveFileFromCid(string cid)
+        {
+            var request = new RestRequest(cid);
+            try
+            {
+                request.Timeout = 10000; //we can't afford to wait forever here, 10s must be enough
+                var response = await _client.GetAsync(request);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    // Determine file type (e.g., .jpg, .mp4) from headers or another source if possible
+                    string fileExtension = response.ContentType.Split('/')[1]; // or ".mp4"
+
+                    // For Windows and OSX Downloads folder
+                    string downloadsFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) +
+                                             (Environment.OSVersion.Platform == PlatformID.Unix ? "/Downloads" : "\\Downloads");
+
+                    var filePath = Path.Combine(downloadsFolder, $"{cid}.{fileExtension}");
+
+                    File.WriteAllBytes(filePath, response.RawBytes);
+                    filePath = filePath;
+                    return filePath;
+                }
+                else
+                {
+                    return "Failed to download the file.";
+                }
             }
             catch (Exception e)
             {

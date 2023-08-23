@@ -76,6 +76,7 @@ namespace MaizeUI.ViewModels
             //List<string> linesList = new List<string>(linesArray);
             var ownerAndAmount = new List<OwnerAndAmount>();
             var ownerAndTotal = new List<OwnerAndTotal>();
+            NftHoldersResponse singleHolder = new();
             int iteration = 0;
             int iterationAgain = 0;
             var counter = 0;
@@ -93,7 +94,12 @@ namespace MaizeUI.ViewModels
                     continue;
                 }
                 Location = $"Checking NFT Data: {iteration++}/{initialLinesListCount} Nfts retrieved...";
-                var singleHolder = await LoopringService.GetNftHolderSingle(settings.LoopringApiKey, line);
+                singleHolder = await LoopringService.GetNftHolderSingle(settings.LoopringApiKey, line);
+                if (singleHolder.nftHolders.Count == 0)
+                {
+                    Location = "This does not appear to be an NFT Data\r\n\r\n NFT Data is not that same as NFT ID.";
+                    break;
+                }
                 var collectionId = await LoopringService.FindCollectionIdFromHolder(settings.LoopringApiKey, singleHolder.nftHolders.First().accountId, line);
                 List<NftTokenInfo> allCollectionsNfts = new List<NftTokenInfo>();
                 List<List<CollectionOwned>> allOwnedCollections = new List<List<CollectionOwned>>();
@@ -193,11 +199,14 @@ namespace MaizeUI.ViewModels
                 if (stringList.Count == 0)
                     break;
             }
-            var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHolderFromNftData", ownerAndAmount);
-            var fileNameTwo = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHoldersAndTotals", ownerAndTotal.OrderByDescending(x => x.total));
-            sw.Stop();
-            var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
-            Location = $"{swTime}\r\n\r\nYour files are here:\r\n\r\n{fileName}\r\n\r\n{fileNameTwo}";
+            if (singleHolder.nftHolders.Count != 0)
+            {
+                var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHolderFromNftData", ownerAndAmount);
+                var fileNameTwo = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHoldersAndTotals", ownerAndTotal.OrderByDescending(x => x.total));
+                sw.Stop();
+                var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
+                Location = $"{swTime}\r\n\r\nYour files are here:\r\n\r\n{fileName}\r\n\r\n{fileNameTwo}";
+            }
             IsEnabled = true;
         }
 

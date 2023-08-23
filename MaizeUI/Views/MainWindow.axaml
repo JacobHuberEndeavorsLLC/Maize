@@ -30,6 +30,7 @@
     <Panel Margin="30 40 30 0">
       <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" ToolTip.Tip="{Binding Version}" Height="50" />
       <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 50 0 0" Text="{Binding Slogan}" />
+      <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 0 0 0" Content="Help" Command="{Binding HelpFileCommand}"/>
       <StackPanel Margin="5 0 0 0" HorizontalAlignment="Center" VerticalAlignment="Center">
         <TextBlock FontSize="50" Text="{Binding Greeting}" />
         <Panel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 10 0 0">

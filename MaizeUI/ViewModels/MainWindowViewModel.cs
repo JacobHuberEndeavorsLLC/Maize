@@ -4,18 +4,12 @@ using Maize.Models.ApplicationSpecific;
 using MaizeUI.Views;
 using Microsoft.Extensions.Configuration;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
 using System.Reactive;
-using Avalonia;
 using Maize.Helpers;
-using System.Net.Http;
-using static Maize.Models.ApplicationSpecific.Constants;
-using System.Threading.Tasks;
 using Avalonia.Controls;
-using Nethereum.Signer.EIP712;
-using Avalonia.Media.TextFormatting.Unicode;
 using Maize.Services;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace MaizeUI.ViewModels
 {
@@ -37,16 +31,18 @@ namespace MaizeUI.ViewModels
 
         public ReactiveCommand<Unit, Unit> VerifyAppSettingsCommand { get; }
         public ReactiveCommand<Unit, Unit> RefreshAppSettingsCommand { get; }
+        public ReactiveCommand<Unit, Unit> HelpFileCommand { get; }
 
         public MainWindowViewModel()
         {
             Greeting = "Welcome to Maize!";
-            Version = "v1.2.0";
+            Version = "v1.4.0";
             Slogan = "Cornveniently Manage your NFTs";
             Networks = new List<string> { "👇 choose", "💎 mainnet", "🧪 testnet" };
             SelectedNetwork = Networks[0];
             VerifyAppSettingsCommand = ReactiveCommand.Create(VerifyAppSettings);
             RefreshAppSettingsCommand = ReactiveCommand.Create(RefreshAppSettings);
+            HelpFileCommand = ReactiveCommand.Create(HelpFile);
         }
 
 
@@ -98,7 +94,6 @@ namespace MaizeUI.ViewModels
                     }
                     else
                     {
-                        //var test = await loopringService.RefreshNft();
                         var ensResult = await loopringService.GetLoopringEns(settings.LoopringApiKey, settings.LoopringAddress);
                         string ens = ensResult.data != "" ? $"🙋‍♂ {ensResult.data}" : $"🙋‍♂️ {settings.LoopringAddress.Substring(0, 6) + "..." + settings.LoopringAddress.Substring(settings.LoopringAddress.Length - 4)}!";
                         ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan, ens);
@@ -118,47 +113,8 @@ namespace MaizeUI.ViewModels
                .Build();
                 Settings settings = config.GetRequiredSection("Settings").Get<Settings>();
                 var environment = Constants.GetNetworkConfig(settings.Environment);
-                //if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
-                //{
                 await ShowAppSettingsDialog($"Read the Below to setup the application. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", appSettingsEnvironment, environment);
-                //}
-                //else
-                //{
-                //    ILoopringService loopringService = new LoopringService(environment.Url);
-                //    string signedMessage;
-                //    do
-                //    {
-                //        signedMessage = EDDSAHelper.EddsaSignUrl(settings.LoopringPrivateKey, HttpMethod.Get, new List<(string Key, string Value)>() { ("accountId", settings.LoopringAccountId.ToString()) }, null, "api/v3/apiKey", environment.Url);
-                //        if (signedMessage == "The value could not be parsed.")
-                //        {
-                //            await ShowAppSettingsDialog($"There was an issue with your Loopring account information. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", $"{appSettingsEnvironment}");
-                //            appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
-                //            config = new ConfigurationBuilder()
-                //           .AddJsonFile(appSettingsEnvironment)
-                //           .AddEnvironmentVariables()
-                //           .Build();
-                //            settings = config.GetRequiredSection("Settings").Get<Settings>();
-                //        }
-                //    } while (signedMessage == "The value could not be parsed.");
-
-                //    var apiKey = await loopringService.GetApiKey(settings.LoopringAccountId, signedMessage);
-                //    if (apiKey != settings.LoopringApiKey)
-                //    {
-                //        await ShowAppSettingsDialog($"There was an issue with your Loopring account information. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", $"{appSettingsEnvironment}");
-                //        appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
-                //        config = new ConfigurationBuilder()
-                //       .AddJsonFile(appSettingsEnvironment)
-                //       .AddEnvironmentVariables()
-                //       .Build();
-                //        settings = config.GetRequiredSection("Settings").Get<Settings>();
-                //    }
-                //    else
-                //    {
-                //        var ensResult = await loopringService.GetLoopringEns(settings.LoopringApiKey, settings.LoopringAddress);
-                //        string ens = ensResult.data != "" ? $"🙋‍♂ {ensResult.data}" : $"🙋‍♂️ {settings.LoopringAddress.Substring(0, 6) + "..." + settings.LoopringAddress.Substring(settings.LoopringAddress.Length - 4)}!";
-                //        ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan, ens);
-                //    }
-                //}
+                
             }
         }
 
@@ -172,7 +128,7 @@ namespace MaizeUI.ViewModels
                 LoopringService = new LoopringServiceUI(environment.Url),
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await dialog.ShowDialog((Avalonia.Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
 
         private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork, string version, string slogan, string ens)
@@ -188,10 +144,35 @@ namespace MaizeUI.ViewModels
                 SelectedNetwork = selectedNetwork
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-            (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow = dialog;
+            var mainWindow = (Avalonia.Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+            (Avalonia.Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow = dialog;
             dialog.Show();
             mainWindow.Close();
         }
+
+        private void HelpFile()
+        {
+            string url = "https://maizehelps.art/docs";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {url}"));
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+            else
+            {
+            }
+        }
+
+
+
+
+
     }
 }

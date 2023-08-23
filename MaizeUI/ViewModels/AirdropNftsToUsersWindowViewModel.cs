@@ -9,6 +9,7 @@ using System.Text;
 using Maize.Models;
 using Maize.Models.Responses;
 using System.Text.RegularExpressions;
+using Maize.Helpers;
 
 namespace MaizeUI.ViewModels
 {
@@ -216,6 +217,9 @@ namespace MaizeUI.ViewModels
             auditInfo.transactionFeeTotal = 0;
             auditInfo.nftSentTotal = 0;
             int maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;
+            CounterFactualInfo isCounterFactual = new();
+            if (settings.MMorGMEPrivateKey == "")
+                isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.LoopringAccountId);
             foreach (var item in transferInfoList.Where(x => x.Activated == true).ToList())
             {
                 Log = $"Transfering NFT {transferInfoList.Where(x => x.Activated == true).ToList().IndexOf(item) + 1}/{transferInfoList.Where(x => x.Activated == true).ToList().Count()} ";
@@ -243,7 +247,8 @@ namespace MaizeUI.ViewModels
                     item.Memo,
                     item.NftData,
                     item.ToAddress,
-                    false
+                    false,
+                    isCounterFactual
                     );
                 auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                 auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
@@ -293,7 +298,8 @@ namespace MaizeUI.ViewModels
                         item.Memo,
                         item.NftData,
                         item.ToAddress,
-                        true
+                        true,
+                        isCounterFactual
                         );
                     auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                     auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
@@ -339,7 +345,8 @@ namespace MaizeUI.ViewModels
                settings.LoopringAddress,
                0,
                maizeMaxFeeTokenId,
-               MaizeFeeSelectedOption
+               MaizeFeeSelectedOption,
+               isCounterFactual
                );
             auditInfo.gasFeeTotal += maxFeeVolume;
 
@@ -563,7 +570,8 @@ namespace MaizeUI.ViewModels
             foreach (var item in transferInfoList.DistinctBy(x => x.ToAddress))
             {
                 Log = $"Checking Wallets: {++validCounter}/{transferInfoList.DistinctBy(x => x.ToAddress).Count()}";
-                var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
+                var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await LoopringService.CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
+
                 if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
                 {
                     buildAttentionLines.Append($"Attention at line {transferInfoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
@@ -591,20 +599,6 @@ namespace MaizeUI.ViewModels
             ViewPreview();
 
             IsEnabled = true;
-        }
-
-        public static async Task<string> CheckForEthAddress(ILoopringService LoopringService, string apiKey, string address)
-        {
-            address = address.Trim().ToLower();
-            if (address.Contains(".eth"))
-            {
-                var varHexAddress = await LoopringService.GetHexAddress(apiKey, address);
-                if (!String.IsNullOrEmpty(varHexAddress.data))
-                    return varHexAddress.data;
-                else
-                    return null;
-            }
-            return address;
         }
     }
 }

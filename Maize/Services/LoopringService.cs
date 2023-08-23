@@ -53,7 +53,7 @@ namespace Maize
                 return null;
             }
         }
-        public async Task<List<UserAssetsResponse>> RefreshNft()
+        public async Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress)
         {
             var payload = new
             {
@@ -68,7 +68,7 @@ namespace Maize
             try
             {
                 var response = await _client.PostAsync(request);
-                var data = JsonConvert.DeserializeObject<List<UserAssetsResponse>>(response.Content!);
+                var data = JsonConvert.DeserializeObject<RefreshNftResponse>(response.Content!);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -651,7 +651,8 @@ namespace Maize
             string transferMemo,
             string? nftData,
             string toAddress,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
             )
         {
             string toAddressInitial;
@@ -862,7 +863,8 @@ namespace Maize
                         ecdsaSignature: ecdsaSignature,
                         nftData: nftData,
                         transferMemo: transferMemo,
-                        payPayeeUpdateAccount : false
+                        payPayeeUpdateAccount : false,
+                        isCounterFactual : null
                         );
                     if (nftTransferResponse.Contains("processing"))
                     {
@@ -907,7 +909,8 @@ namespace Maize
             string ecdsaSignature,
             string nftData,
             string transferMemo,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
     )
         {
             var request = new RestRequest("api/v3/nft/transfer");
@@ -927,7 +930,18 @@ namespace Maize
             request.AddParameter("storageId", storageId);
             request.AddParameter("validUntil", validUntil);
             request.AddParameter("eddsaSignature", eddsaSignature);
-            request.AddParameter("ecdsaSignature", ecdsaSignature);
+            if (isCounterFactual != null)
+            {
+                request.AddParameter("counterFactualInfo.accountId", fromAccountId);
+                request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);
+                request.AddParameter("counterFactualInfo.walletFactory", isCounterFactual.walletFactory);
+                request.AddParameter("counterFactualInfo.walletSalt", isCounterFactual.walletSalt);
+                request.AddParameter("counterFactualInfo.walletOwner", isCounterFactual.walletOwner);
+            }
+            else
+            {
+                request.AddParameter("ecdsaSignature", ecdsaSignature);
+            }
             request.AddParameter("memo", transferMemo);
             if ( payPayeeUpdateAccount == true)
                 request.AddParameter("payPayeeUpdateAccount", "true");
@@ -967,7 +981,8 @@ namespace Maize
             string transferMemo,
             decimal amountToTransfer,
             string toAddress,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+               CounterFactualInfo? isCounterFactual
             )
         {
             //ILoopringService loopringService = new LoopringService(environmentUrl, _font);
@@ -1239,7 +1254,8 @@ namespace Maize
         string fromAddress,
         int nftOrLrc,
         int maizeFeeId,
-        string maizeFee
+        string maizeFee,
+        CounterFactualInfo? isCounterFactual
                 )
         {
             ILoopringService loopringService = new LoopringService(environmentUrl);
@@ -1251,7 +1267,7 @@ namespace Maize
             }
             else if (nftOrLrc == 1)
             {
-                transferMemo = $"Crypto sent {nftSentTotal}";
+                transferMemo = $"Crypto sent {nftSentTotal} {maxFeeToken}";
             }
             else if (nftOrLrc == 2)
             {
@@ -1281,7 +1297,7 @@ namespace Maize
                 payerId = fromAccountId,
                 storageId = transferStorageId.offchainId,
                 validUntil = ApplicationUtilitiesUI.GetUnixTimestamp() + (int)TimeSpan.FromDays(365).TotalSeconds,
-                tokenName = maizeFee,
+                tokenName = maxFeeToken,
                 tokenFeeName = maxFeeToken
             };
 
@@ -1397,7 +1413,12 @@ namespace Maize
             };
 
             Eip712TypedDataSigner signerTransfer = new();
-            var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+            EthECKey ethECKeyTransfer = new(null);
+            if (MMorGMEPrivateKey == "")
+                ethECKeyTransfer = new Nethereum.Signer.EthECKey(loopringPrivateKey.Replace("0x", ""));
+            else
+                ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+
             var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
             var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
             var serializedECDRSASignatureTransfer = EthECDSASignature.CreateStringSignature(ECDRSASignatureTransfer);
@@ -1419,7 +1440,8 @@ namespace Maize
                 transferEddsaSignature,
                 transferEcdsaSignature,
                 transferMemo,
-                false);
+                false,
+                isCounterFactual);
             return decimal.Parse(req.maxFee.volume);
         }
         public async Task<string> SubmitTokenTransfer(
@@ -1438,7 +1460,8 @@ namespace Maize
                string eddsaSignature,
                string ecdsaSignature,
                string memo,
-               bool payPayeeUpdateAccount
+               bool payPayeeUpdateAccount,
+               CounterFactualInfo? isCounterFactual
           )
         {
             var request = new RestRequest("api/v3/transfer");
@@ -1457,8 +1480,21 @@ namespace Maize
             request.AddParameter("storageId", storageId);
             request.AddParameter("validUntil", validUntil);
             request.AddParameter("eddsaSignature", eddsaSignature);
-            request.AddParameter("ecdsaSignature", ecdsaSignature);
+            if (isCounterFactual != null)
+            {
+                request.AddParameter("counterFactualInfo.accountId", fromAccountId);
+                request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);
+                request.AddParameter("counterFactualInfo.walletFactory", isCounterFactual.walletFactory);
+                request.AddParameter("counterFactualInfo.walletSalt", isCounterFactual.walletSalt);
+                request.AddParameter("counterFactualInfo.walletOwner", isCounterFactual.walletOwner);
+            }
+            else
+            {
+                request.AddParameter("ecdsaSignature", ecdsaSignature);
+            }
             request.AddParameter("memo", memo);
+            if (payPayeeUpdateAccount == true)
+                request.AddParameter("payPayeeUpdateAccount", "true");
             try
             {
                 var response = await _client.ExecutePostAsync(request);
@@ -1467,7 +1503,21 @@ namespace Maize
             }
             catch (HttpRequestException httpException)
             {
-                _font.ToWhite($"Error submitting token transfer: {httpException.Message}");
+                return null;
+            }
+        }
+        public async Task<CounterFactualInfo> GetCounterFactualInfo(int accountId)
+        {
+            var request = new RestRequest("api/v3/counterFactualInfo");
+            request.AddParameter("accountId", accountId);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<CounterFactualInfo>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
                 return null;
             }
         }

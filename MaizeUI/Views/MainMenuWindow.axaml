@@ -29,7 +29,10 @@
     <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 50 0 0" Text="{Binding Slogan}" />
       <StackPanel>
         <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 0 0 5" Text="{Binding Ens}" />
-        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 0 0 0" Text="{Binding SelectedNetwork}" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 5 0" Text="{Binding SelectedNetwork}" />
+          <Button HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 0 0" Content="Help" Command="{Binding HelpFileCommand}"/>
+        </StackPanel>
       </StackPanel>
     <StackPanel Orientation="Horizontal">
       <StackPanel Margin="0 100 10 0">
@@ -48,6 +51,11 @@
         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Scripting:" FontSize="20" Margin="0 0 0 5" />
         <Button Width="180" Content="NFT Airdrop Input File" IsEnabled="True" Margin="0 0 0 10" Command="{Binding ScriptingAirdropInputFileCommand}" />
         <Button Width="180" Content="Crypto Airdrop Input File" IsEnabled="True" Margin="0 0 0 10" Command="{Binding ScriptingCryptoAirdropInputFileCommand}" />
+      </StackPanel>
+      <StackPanel Margin="0 100 10 0">
+        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Metadata:" FontSize="20" Margin="0 0 0 5" />
+        <Button Width="180" Content="Refresh Collection" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MetadataRefreshCollectionCommand}" />
+        <Button Width="180" Content="Upload to Infura" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MetadataUploadToInfuraCommand}" />
       </StackPanel>
     </StackPanel>
   </Panel>

@@ -11,19 +11,20 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace Maize.Services
 {
     public class LoopringServiceUI : ILoopringService, IDisposable
     {
-        public async Task<List<UserAssetsResponse>> RefreshNft()
+        public async Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress)
         {
             var payload = new
             {
                 network = "ETHEREUM",
-                nftId = "0xde9636d778e962514ecc0225a07a44fd579ad0cfa2795137a83064c9f61ac0ec",
+                nftId = nftId,
                 nftType = "ERC1155",
-                tokenAddress = "0x43c2c25c8a06562dcbfea26cecf9a4d0bd3d5179"
+                tokenAddress = collectionAddress
             };
             var request = new RestRequest("api/v3/nft/image/refresh");
             request.AddJsonBody(payload);
@@ -31,12 +32,19 @@ namespace Maize.Services
             try
             {
                 var response = await _client.PostAsync(request);
-                var data = JsonConvert.DeserializeObject<List<UserAssetsResponse>>(response.Content!);
+                var data = JsonConvert.DeserializeObject< RefreshNftResponse> (response.Content!);
+                Thread.Sleep(100);
                 return data;
             }
             catch (HttpRequestException httpException)
             {
-                return null;
+
+                return new RefreshNftResponse()
+                {
+                    status = httpException.Message == "Request failed with status code BadRequest" ? "Wait to refresh again." : httpException.Message,
+                    createdAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                    updatedAt = DateTimeOffset.Now.ToUnixTimeSeconds()
+                };
             }
         }
         readonly RestClient _client;
@@ -365,8 +373,10 @@ namespace Maize.Services
             request.AddParameter("owner", owner);
             try
             {
+                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<AccountInformationResponse>(response.Content!);
+                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -680,11 +690,20 @@ namespace Maize.Services
             address = address.Trim().ToLower();
             if (address.Contains(".eth"))
             {
+                var apiSw = Stopwatch.StartNew();
+
                 var varHexAddress = await LoopringService.GetHexAddress(apiKey, address);
                 if (!String.IsNullOrEmpty(varHexAddress.data))
+                {
+                    Timers.ApiStopWatchCheck(apiSw);
                     return varHexAddress.data;
+                }
                 else
+                {
+                    Timers.ApiStopWatchCheck(apiSw);
                     return null;
+                }
+
             }
             return address;
         }
@@ -711,7 +730,8 @@ namespace Maize.Services
             string transferMemo,
             string? nftData,
             string toAddress,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
             )
         {
             string toAddressInitial = toAddress;
@@ -899,7 +919,11 @@ namespace Maize.Services
             };
 
             Eip712TypedDataSigner signer = new();
-            var ethECKey = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+            EthECKey ethECKey = new(null);
+            if (MMorGMEPrivateKey == "")
+                ethECKey = new Nethereum.Signer.EthECKey(loopringPrivateKey.Replace("0x", ""));
+            else
+                ethECKey = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
             var encodedTypedData = signer.EncodeTypedData(eip712TypedData);
             var ECDRSASignature = ethECKey.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedData));
             var serializedECDRSASignature = EthECDSASignature.CreateStringSignature(ECDRSASignature);
@@ -924,7 +948,8 @@ namespace Maize.Services
                 ecdsaSignature: ecdsaSignature,
                 nftData: nftData,
                 transferMemo: transferMemo,
-                payPayeeUpdateAccount: payPayeeUpdateAccount
+                payPayeeUpdateAccount: payPayeeUpdateAccount,
+                isCounterFactual: isCounterFactual
                 );
             if (nftTransferResponse.Contains("processing"))
             {
@@ -968,7 +993,8 @@ namespace Maize.Services
             string ecdsaSignature,
             string nftData,
             string transferMemo,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
         )
         {
             var request = new RestRequest("api/v3/nft/transfer");
@@ -988,7 +1014,18 @@ namespace Maize.Services
             request.AddParameter("storageId", storageId);
             request.AddParameter("validUntil", validUntil);
             request.AddParameter("eddsaSignature", eddsaSignature);
-            request.AddParameter("ecdsaSignature", ecdsaSignature);
+            if (isCounterFactual != null)
+            {
+                request.AddParameter("counterFactualInfo.accountId", fromAccountId);
+                request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);
+                request.AddParameter("counterFactualInfo.walletFactory", isCounterFactual.walletFactory);
+                request.AddParameter("counterFactualInfo.walletSalt", isCounterFactual.walletSalt);
+                request.AddParameter("counterFactualInfo.walletOwner", isCounterFactual.walletOwner);
+            }
+            else
+            {
+                request.AddParameter("ecdsaSignature", ecdsaSignature);
+            }
             request.AddParameter("memo", transferMemo);
             if ( payPayeeUpdateAccount == true)
                 request.AddParameter("payPayeeUpdateAccount", "true");
@@ -1039,7 +1076,8 @@ namespace Maize.Services
         string fromAddress,
         int nftOrLrc,
         int maizeFeeId,
-        string maizeFee
+        string maizeFee,
+        CounterFactualInfo? isCounterFactual
                 )
         {
             ILoopringService loopringService = new LoopringService(environmentUrl);
@@ -1197,7 +1235,12 @@ namespace Maize.Services
             };
 
             Eip712TypedDataSigner signerTransfer = new();
-            var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+            EthECKey ethECKeyTransfer = new(null);
+            if (MMorGMEPrivateKey == "")
+                ethECKeyTransfer = new Nethereum.Signer.EthECKey(loopringPrivateKey.Replace("0x", ""));
+            else
+                ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+
             var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
             var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
             var serializedECDRSASignatureTransfer = EthECDSASignature.CreateStringSignature(ECDRSASignatureTransfer);
@@ -1219,26 +1262,12 @@ namespace Maize.Services
                 transferEddsaSignature,
                 transferEcdsaSignature,
                 transferMemo,
-                false);
+                false,
+                isCounterFactual);
             return decimal.Parse(req.maxFee.volume);
         }
         public async Task<CryptoTransferAuditInformation> TokenTransfer(
-                        //int environment,
-                        //string environmentUrl,
-                        //string environmentExchange,
-                        //string loopringApiKey,
-                        //string loopringPrivateKey,
-                        //string MMorGMEPrivateKey,
-                        //int fromAccountId,
-                        //string fromAddress,
-                        //string fileName,
-                        //string inputPath,
-                        //int howManyLines,
-                        //decimal amountToTransfer,
-                        //long validUntil,
-                        //decimal lcrTransactionFee,
-                        //string transferMemo
-                        ILoopringService loopringService,
+            ILoopringService loopringService,
             int environment,
             string environmentUrl,
             string environmentExchange,
@@ -1257,7 +1286,8 @@ namespace Maize.Services
             string transferMemo,
             decimal amountToTransfer,
             string toAddress,
-            bool payPayeeUpdateAccount
+            bool payPayeeUpdateAccount,
+            CounterFactualInfo? isCounterFactual
             )
         {
             string toAddressInitial = toAddress;
@@ -1453,7 +1483,12 @@ namespace Maize.Services
             };
 
             Eip712TypedDataSigner signerTransfer = new();
-            var ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+            EthECKey ethECKeyTransfer = new(null);
+            if (MMorGMEPrivateKey == "")
+                ethECKeyTransfer = new Nethereum.Signer.EthECKey(loopringPrivateKey.Replace("0x", ""));
+            else
+                ethECKeyTransfer = new Nethereum.Signer.EthECKey(MMorGMEPrivateKey.Replace("0x", ""));
+
             var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
             var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
             var serializedECDRSASignatureTransfer = EthECDSASignature.CreateStringSignature(ECDRSASignatureTransfer);
@@ -1475,7 +1510,8 @@ namespace Maize.Services
                 transferEddsaSignature,
                 transferEcdsaSignature,
                 transferMemo,
-                payPayeeUpdateAccount);
+                payPayeeUpdateAccount,
+                isCounterFactual);
             if (tokenTransferResult.Contains("processing"))
             {
                 validAddress.Add(toAddressInitial);
@@ -1515,7 +1551,8 @@ namespace Maize.Services
                string eddsaSignature,
                string ecdsaSignature,
                string memo,
-               bool payPayeeUpdateAccount
+               bool payPayeeUpdateAccount,
+               CounterFactualInfo? isCounterFactual
           )
         {
             var request = new RestRequest("api/v3/transfer");
@@ -1534,7 +1571,18 @@ namespace Maize.Services
             request.AddParameter("storageId", storageId);
             request.AddParameter("validUntil", validUntil);
             request.AddParameter("eddsaSignature", eddsaSignature);
-            request.AddParameter("ecdsaSignature", ecdsaSignature);
+            if (isCounterFactual != null)
+            {
+                request.AddParameter("counterFactualInfo.accountId", fromAccountId);
+                request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);
+                request.AddParameter("counterFactualInfo.walletFactory", isCounterFactual.walletFactory);
+                request.AddParameter("counterFactualInfo.walletSalt", isCounterFactual.walletSalt);
+                request.AddParameter("counterFactualInfo.walletOwner", isCounterFactual.walletOwner);
+            }
+            else
+            {
+                request.AddParameter("ecdsaSignature", ecdsaSignature);
+            }
             request.AddParameter("memo", memo);
             if (payPayeeUpdateAccount == true)
                 request.AddParameter("payPayeeUpdateAccount", "true");
@@ -1542,6 +1590,21 @@ namespace Maize.Services
             {
                 var response = await _client.ExecutePostAsync(request);
                 var data = response.Content;
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                return null;
+            }
+        }
+        public async Task<CounterFactualInfo> GetCounterFactualInfo(int accountId)
+        {
+            var request = new RestRequest("api/v3/counterFactualInfo");
+            request.AddParameter("accountId", accountId);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<CounterFactualInfo>(response.Content!);
                 return data;
             }
             catch (HttpRequestException httpException)

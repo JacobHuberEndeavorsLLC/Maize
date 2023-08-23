@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				mc:Ignorable="d" Width="600" Height="400"
+		    WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+				CanResize="True"
+        x:Class="MaizeUI.Views.MetadataUploadToInfuraWindow"
+        Title="Upload to Infura">
+	<Design.DataContext>
+    <vm:MetadataUploadToInfuraWindowViewModel/>
+	</Design.DataContext>
+<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
+    <TextBlock Margin="20 0 20 10" IsVisible="{Binding Step1}" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
+    <TextBox Margin="20 0 20 10" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Log}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="125" Width="520"/>
+    <StackPanel Orientation="Horizontal">
+      <TextBlock Margin="0 0 10 10" Text="{Binding Notice2}" />
+      <StackPanel Orientation="Horizontal"> 
+          <TextBlock Margin="10 0 5 10" Text="Upload Metadata" VerticalAlignment="Center" />
+          <CheckBox Margin="5 0 10 10" IsChecked="{Binding IsCheckedMetadata}" />
+      </StackPanel>
+      <TextBlock Margin="10 0 10 10" Text="{Binding Notice2}" />
+      <StackPanel Orientation="Horizontal">
+          <TextBlock Margin="10 0 5 10" Text="Upload Media Files" VerticalAlignment="Center" />
+          <CheckBox Margin="5 0 10 10" IsChecked="{Binding IsCheckedMediaFiles}" />
+      </StackPanel>
+    </StackPanel>
+
+    <Button Margin="20 0 20 10" Width="100" Command="{Binding UploadToInfuraCommand}" IsEnabled="{Binding IsEnabled}">
+      <TextBlock Text="Start" TextAlignment="Center"/>
+    </Button>
+</StackPanel>
+</Window>

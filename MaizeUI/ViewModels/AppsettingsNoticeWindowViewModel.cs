@@ -118,6 +118,10 @@ namespace MaizeUI.ViewModels
                 var layerOneKey = eoal1Key;
                 settings.Settings.MMorGMEPrivateKey = layerOneKey;
             }
+            else if (walletType.data.isInCounterFactualStatus == true)
+            {
+                settings.Settings.MMorGMEPrivateKey = null;
+            }
             else
             {
                 if (string.IsNullOrEmpty(loopringAppPassCode) || string.IsNullOrEmpty(imagePath))
@@ -217,10 +221,8 @@ namespace MaizeUI.ViewModels
                 }
                 else if (walletType.data.isInCounterFactualStatus == true)
                 {
-                    Log = "This LSW L1 is not active. Please Activate it and retry.";
                     IsEoaTextBoxVisible = false;
-                    IsLswTextBoxVisible = false;
-                    IsEnabled = false;
+                    IsEnabled = true;
                 }
                 else
                 {

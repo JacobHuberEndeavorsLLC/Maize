@@ -66,7 +66,7 @@ while (userResponseReadyToMoveOn == "yes" || userResponseReadyToMoveOn == "y")
     {
         #region case 0
         case 0:
-            var test = await loopringService.RefreshNft();
+            //var test = await loopringService.RefreshNft();
             font.ToPrimary($" - {menuAndUtility.allUtilities.ElementAt(0).Value} -");
             Console.WriteLine();
             font.ToSecondary("\t What can this application do?");

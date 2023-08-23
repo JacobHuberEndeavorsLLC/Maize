@@ -60,6 +60,12 @@
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\MetadataUploadToInfuraWindow.axaml.cs">
+      <DependentUpon>MetadataUploadToInfuraWindow.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\MetadataRefreshCollectionWindow.axaml.cs">
+      <DependentUpon>MetadataRefreshCollectionWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\FindNftDataFromACollectionWindow.axaml.cs">
       <DependentUpon>FindNftDataFromACollectionWindow.axaml</DependentUpon>
     </Compile>

@@ -6,6 +6,8 @@ using Maize.Models.ApplicationSpecific;
 using MaizeUI.Views;
 using ReactiveUI;
 using System.Reactive;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace MaizeUI.ViewModels
 {
@@ -68,6 +70,9 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> AirdropMigrateWalletCommand { get; }
         public ReactiveCommand<Unit, Unit> ScriptingAirdropInputFileCommand { get; }
         public ReactiveCommand<Unit, Unit> ScriptingCryptoAirdropInputFileCommand { get; }
+        public ReactiveCommand<Unit, Unit> MetadataRefreshCollectionCommand { get; }
+        public ReactiveCommand<Unit, Unit> MetadataUploadToInfuraCommand { get; }
+        public ReactiveCommand<Unit, Unit> HelpFileCommand { get; }
 
         public MainMenuWindowViewModel()
         {
@@ -79,6 +84,10 @@ namespace MaizeUI.ViewModels
             AirdropMigrateWalletCommand = ReactiveCommand.Create(AirdropMigrateWallet);
             ScriptingAirdropInputFileCommand = ReactiveCommand.Create(ScriptingAirdropInputFile);
             ScriptingCryptoAirdropInputFileCommand = ReactiveCommand.Create(ScriptingCryptoAirdropInputFile);
+            MetadataRefreshCollectionCommand = ReactiveCommand.Create(MetadataRefreshCollection);
+            MetadataUploadToInfuraCommand = ReactiveCommand.Create(MetadataUploadToInfura);
+            HelpFileCommand = ReactiveCommand.Create(HelpFile);
+
 
         }
 
@@ -174,6 +183,45 @@ namespace MaizeUI.ViewModels
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void MetadataRefreshCollection()
+        {
+            var dialog = new MetadataRefreshCollectionWindow();
+            dialog.DataContext = new MetadataRefreshCollectionWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void MetadataUploadToInfura()
+        {
+            var dialog = new MetadataUploadToInfuraWindow();
+            dialog.DataContext = new MetadataUploadToInfuraWindowViewModel
+            {
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private void HelpFile()
+        {
+            string url = "https://maizehelps.art/docs";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {url}"));
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+            else
+            {
+            }
         }
     }
 

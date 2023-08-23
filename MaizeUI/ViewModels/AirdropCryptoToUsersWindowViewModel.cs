@@ -214,6 +214,9 @@ namespace MaizeUI.ViewModels
             auditInfo.transactionFeeTotal = 0;
             auditInfo.cryptoSentTotal = 0;
             int maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;
+            CounterFactualInfo isCounterFactual = new();
+            if (settings.MMorGMEPrivateKey == "")
+                isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.LoopringAccountId);
             foreach (var item in transferInfoCryptoList.Where(x => x.Activated == true).ToList())
             {
                 Log = $"Transfering {LoopringFeeSelectedOption} to wallet {transferInfoCryptoList.Where(x => x.Activated == true).ToList().IndexOf(item) + 1}/{transferInfoCryptoList.Where(x => x.Activated == true).ToList().Count()} ";
@@ -238,7 +241,8 @@ namespace MaizeUI.ViewModels
                     item.Memo,
                     item.Amount,
                     item.ToAddress,
-                    false
+                    false,
+               isCounterFactual
                     );
                 auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                 auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
@@ -280,7 +284,8 @@ namespace MaizeUI.ViewModels
                         item.Memo,
                         item.Amount,
                         item.ToAddress,
-                        true
+                        true,
+                        isCounterFactual
                         );
                     auditInfo.validAddress.AddRange(newAuditInfo.validAddress);
                     auditInfo.invalidAddress.AddRange(newAuditInfo.invalidAddress);
@@ -304,7 +309,7 @@ namespace MaizeUI.ViewModels
 
             var maizeFee = await CalculateMaizeFee(LoopringService, auditInfo.validAddress.Count(), MaizeFeeSelectedOption);
 
-            var maxFeeVolume = await loopringService.CobTransferTransactionFee(
+            var maxFeeVolume = await LoopringService.CobTransferTransactionFee(
                settings.Environment,
                Environment.Url,
                Environment.Exchange,
@@ -320,7 +325,8 @@ namespace MaizeUI.ViewModels
                settings.LoopringAddress,
                1,
                maizeMaxFeeTokenId,
-               MaizeFeeSelectedOption
+               MaizeFeeSelectedOption,
+               isCounterFactual
                );
             auditInfo.gasFeeTotal += maxFeeVolume;
 
