@@ -210,16 +210,16 @@ namespace MaizeUI.ViewModels
             {
                 isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.Settings.LoopringAccountId);
                 walletType = await loopringService.GetWalletType(settings.Settings.LoopringAddress);
-                if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
-                {
-                    IsEoaTextBoxVisible = false;
-                    settings.Settings.MMorGMEPrivateKey = "";
-                    IsEnabled = true;
-                }
-                else if (walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+                if (walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
                 {
                     IsEoaTextBoxVisible = true;
                     IsLswTextBoxVisible = false;
+                    IsEnabled = true;
+                }
+                else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
+                {
+                    IsEoaTextBoxVisible = false;
+                    settings.Settings.MMorGMEPrivateKey = "";
                     IsEnabled = true;
                 }
                 else
