@@ -1014,7 +1014,7 @@ namespace Maize.Services
             request.AddParameter("storageId", storageId);
             request.AddParameter("validUntil", validUntil);
             request.AddParameter("eddsaSignature", eddsaSignature);
-            if (isCounterFactual != null)
+            if (isCounterFactual.accountId != 0)
             {
                 request.AddParameter("counterFactualInfo.accountId", fromAccountId);
                 request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);
@@ -1571,7 +1571,7 @@ namespace Maize.Services
             request.AddParameter("storageId", storageId);
             request.AddParameter("validUntil", validUntil);
             request.AddParameter("eddsaSignature", eddsaSignature);
-            if (isCounterFactual != null)
+            if (isCounterFactual.accountId != 0)
             {
                 request.AddParameter("counterFactualInfo.accountId", fromAccountId);
                 request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);

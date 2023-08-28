@@ -1,27 +1,22 @@
 ﻿using Maize;
-using Maize.Helpers;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ReactiveUI;
-using static Maize.Models.ApplicationSpecific.Constants;
 using System.Reactive;
 using System.Text;
-using Maize.Models.ApplicationSpecific;
 using Maize.Services;
 using Maize.Models.Responses;
 using System.Security.Cryptography;
 using LoopringSmartWalletRecoveryPhraseExtractor;
-using NBitcoin.Secp256k1;
-using System;
 using OpenCvSharp;
 using Nethereum.HdWallet;
-using Avalonia.Media.TextFormatting.Unicode;
+using MaizeUI.Helpers;
 
 namespace MaizeUI.ViewModels
 {
     public class AppsettingsNoticeWindowViewModel : ViewModelBase
     {
         WalletTypeResponse walletType;
+        CounterFactualInfo? isCounterFactual;
 
         public string notice;
         public string location;
@@ -97,9 +92,10 @@ namespace MaizeUI.ViewModels
         public AppsettingsNoticeWindowViewModel()
         {
             Notice = "Here you will create an Input file for airdrops that have the same Crypto Amount and Memo. This can be modified after as needed.";
-            Log = $"Paste Account Information from Loopring.io > Avatar > Security > Export Account here and then the L1 Private Key/Image below.\r\n\r\n Example:\r\n{{\r\n    \"address\": \"0x1fdfef87d387e4basdjfhtyghtugh19cff06a982\",\r\n    \"accountId\": 11233,\r\n    \"level\": \"\",\r\n    \"nonce\": 1,\r\n    \"apiKey\": \"miWgX3jDo5zubs1VwYrPShtF5ythgnbhggmczTOwzUrS280AaNtf6v8CuVmwfP4f\",\r\n    \"publicX\": \"0x12167dbhguty675ud3c11bae8a343c138cfc2574349235688ae2d6ce68320ac8\",\r\n    \"publicY\": \"0x1d7e0c7d92b894dc27943a0fghtyghvnfjb0db0dbcc47d42f2914d9b00b84fd3\",\r\n    \"privateKey\": \"0x2ad857be54b8d02badc842ac54e25f5ythgjt0pol50331cc4894509c09f255b\"\r\n}}\r\n";
+            Log = $"Paste Account Information from Loopring.io > Avatar > Security > Export Account here and then the L1 Private Key/Image below if needed.\r\n\r\n Example (PASTE OVER ALL INFORMATION):\r\n{{\r\n    \"address\": \"0x1fdfef87d387e4basdjfhtyghtugh19cff06a982\",\r\n    \"accountId\": 11233,\r\n    \"level\": \"\",\r\n    \"nonce\": 1,\r\n    \"apiKey\": \"miWgX3jDo5zubs1VwYrPShtF5ythgnbhggmczTOwzUrS280AaNtf6v8CuVmwfP4f\",\r\n    \"publicX\": \"0x12167dbhguty675ud3c11bae8a343c138cfc2574349235688ae2d6ce68320ac8\",\r\n    \"publicY\": \"0x1d7e0c7d92b894dc27943a0fghtyghvnfjb0db0dbcc47d42f2914d9b00b84fd3\",\r\n    \"privateKey\": \"0x2ad857be54b8d02badc842ac54e25f5ythgjt0pol50331cc4894509c09f255b\"\r\n}}\r\n";
             IsLswTextBoxVisible = false; 
             IsEoaTextBoxVisible = false;
+            Website.OpenWebsite("https://loopring.io/#/trade/lite/LRC-ETH");
             SetupApsettingsFileCommand = ReactiveCommand.Create(SetupApsettingsFile);
         }
         private async void SetupApsettingsFile()
@@ -108,7 +104,7 @@ namespace MaizeUI.ViewModels
             IsEnabled = false;
             RootObject settings = SetupL2();
 
-            if (walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+            if (isCounterFactual.accountId == 0 && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
             {
                 if (string.IsNullOrEmpty(eoal1Key))
                 {
@@ -118,9 +114,9 @@ namespace MaizeUI.ViewModels
                 var layerOneKey = eoal1Key;
                 settings.Settings.MMorGMEPrivateKey = layerOneKey;
             }
-            else if (walletType.data.isInCounterFactualStatus == true)
+            else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
             {
-                settings.Settings.MMorGMEPrivateKey = null;
+                settings.Settings.MMorGMEPrivateKey = "";
             }
             else
             {
@@ -212,16 +208,18 @@ namespace MaizeUI.ViewModels
             RootObject settings = SetupL2();
             if (settings != null)
             {
+                isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.Settings.LoopringAccountId);
                 walletType = await loopringService.GetWalletType(settings.Settings.LoopringAddress);
-                if (walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+                if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
+                {
+                    IsEoaTextBoxVisible = false;
+                    settings.Settings.MMorGMEPrivateKey = "";
+                    IsEnabled = true;
+                }
+                else if (walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
                 {
                     IsEoaTextBoxVisible = true;
                     IsLswTextBoxVisible = false;
-                    IsEnabled = true;
-                }
-                else if (walletType.data.isInCounterFactualStatus == true)
-                {
-                    IsEoaTextBoxVisible = false;
                     IsEnabled = true;
                 }
                 else

@@ -152,6 +152,7 @@ namespace MaizeUI.ViewModels
 
         public static async Task<string> CheckForEthAddress(ILoopringService LoopringService, string apiKey, string address)
         {
+            if (address == null) return null;
             address = address.Trim().ToLower();
             if (address.Contains(".eth"))
             {

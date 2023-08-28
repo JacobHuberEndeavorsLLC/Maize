@@ -8,6 +8,7 @@ using ReactiveUI;
 using System.Reactive;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using MaizeUI.Helpers;
 
 namespace MaizeUI.ViewModels
 {
@@ -206,22 +207,7 @@ namespace MaizeUI.ViewModels
         }
         private void HelpFile()
         {
-            string url = "https://maizehelps.art/docs";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo("cmd", $"/c start {url}"));
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Process.Start("xdg-open", url);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", url);
-            }
-            else
-            {
-            }
+            Website.OpenWebsite("https://maizehelps.art/docs");
         }
     }
 
