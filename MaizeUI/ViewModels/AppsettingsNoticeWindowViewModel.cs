@@ -104,7 +104,7 @@ namespace MaizeUI.ViewModels
             IsEnabled = false;
             RootObject settings = SetupL2();
 
-            if (isCounterFactual.accountId == 0 && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+            if (isCounterFactual == null && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
             {
                 if (string.IsNullOrEmpty(eoal1Key))
                 {
@@ -210,7 +210,7 @@ namespace MaizeUI.ViewModels
             {
                 isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.Settings.LoopringAccountId);
                 walletType = await loopringService.GetWalletType(settings.Settings.LoopringAddress);
-                if (walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+                if (isCounterFactual == null && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
                 {
                     IsEoaTextBoxVisible = true;
                     IsLswTextBoxVisible = false;
@@ -218,6 +218,7 @@ namespace MaizeUI.ViewModels
                 }
                 else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
                 {
+                    IsLswTextBoxVisible = false;
                     IsEoaTextBoxVisible = false;
                     settings.Settings.MMorGMEPrivateKey = "";
                     IsEnabled = true;
