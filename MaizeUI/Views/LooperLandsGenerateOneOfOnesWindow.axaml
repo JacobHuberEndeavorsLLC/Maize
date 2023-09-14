@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
+        Width="600" Height="450"
+		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        CanResize="True"
+        x:Class="MaizeUI.Views.LooperLandsGenerateOneOfOnesWindow"
+        Title="Generate 1/1 Loopers">
+  <!--<Design.DataContext>
+    <vm:LooperLandsGenerateOneOfOnesWindowViewModel/>
+  </Design.DataContext>-->
+
+  <Border Padding="20,40,20,20">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- Title and Help Button -->
+      <TextBlock Grid.Row="0" Margin="0 0 10 0" Text="{Binding TitleText}" FontWeight="Bold" FontSize="18"/>
+      <Button Grid.Row="0" Margin="0 0 0 10" Click="OnHelpButtonClicked" Content="{Binding HelpButtonText}" HorizontalAlignment="Right"/>
+      
+    <!-- Main Content and Input -->
+<StackPanel Grid.Row="1" VerticalAlignment="Top">
+  <!-- Existing Content -->
+  <TextBlock Text="{Binding MainContent}" Margin="0 0 0 10"  FontSize="16" />
+
+  <!-- New Input Fields -->
+  <TextBox Margin="0 0 0 10" Watermark="NFT Name" ToolTip.Tip="Base name for the NFTs" Text="{Binding NftName}" />
+  <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0 0 0 10">
+    <TextBox Text="{Binding NftDescription}" Watermark="NFT Description" ToolTip.Tip="Description for the NFTs" IsReadOnly="False" TextWrapping="Wrap" Height="75" />
+  </ScrollViewer>
+  <!--<TextBox Margin="0 0 0 10" Watermark="NFT Description" ToolTip.Tip="Description for the NFTs" Text="{Binding NftDescription}" />-->
+  <TextBox Margin="0 0 0 10" Watermark="Collection Address" ToolTip.Tip="Blockchain Address for the Collection" Text="{Binding CollectionAddress}" />
+
+  <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
+    <NumericUpDown Margin="0 0 0 0" Width="105" Watermark="Royalty Percentage" ToolTip.Tip="Percentage of Royalties" Value="{Binding RoyaltyPercentage}" Increment="1" Minimum="0" Maximum="10" />
+    <NumericUpDown Margin="10 0 0 0" Width="150" Watermark="Iterations" ToolTip.Tip="Number of 1/1s to create" Value="{Binding TotalIterations}" Increment="1" Minimum="1" />
+    <TextBox Margin="10 0 0 0" Width="200" Watermark="Input Directory" ToolTip.Tip="Sprite's folder location" Text="{Binding InputDirectory}" />
+    <Button Width="75" Margin="10 0 0 0" Content="Browse" Command="{Binding OpenFolderCommand}" />
+  </StackPanel>
+
+</StackPanel>
+      
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 0 0 10">
+        <Button Width="75" Command="{Binding GenerateSpritesCommand}" IsEnabled="{Binding IsEnabled}">
+          <TextBlock Text="{Binding ProcessButtonText}" TextAlignment="Center"/>
+        </Button>
+      </StackPanel>
+      
+      <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+        <TextBox Text="{Binding Log}" Watermark="Logs will be output here..." IsReadOnly="True" TextWrapping="Wrap" Height="65" />
+      </ScrollViewer>
+    </Grid>
+  </Border>
+</Window>

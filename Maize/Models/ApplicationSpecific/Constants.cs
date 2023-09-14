@@ -5,6 +5,7 @@
         public const int NftType = 0;
         public const string MaxFeeToken = "LRC";
         public const string AccessLogo = "0x08dccae9dac82c69e6836977c932bb55e608d548d19e95addee8817f7edb5f8d";
+        public const string AccessPremiumContent = "0x22829c359ca1f7b1e9bbb2d95992e33bc92394f8f22254d340daa2769c0a2494";
         public const string MaizeLdsLogo = "0x2fa975f47dc5929980a8bc01ad5173302a9f6f246ae219ac7a0a4592547cdf87";
         public static string BaseDirectory = (AppDomain.CurrentDomain.BaseDirectory).Replace("\\", "/");
         public const string InputFolder = "Input/";

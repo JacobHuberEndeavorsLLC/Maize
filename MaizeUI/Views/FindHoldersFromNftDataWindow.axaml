@@ -3,26 +3,49 @@
         xmlns:vm="using:MaizeUI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-				mc:Ignorable="d" Width="600" Height="400"
+				mc:Ignorable="d" Width="600" Height="425"
 		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
 				CanResize="True"
         x:Class="MaizeUI.Views.FindHoldersFromNftDataWindow"
         Title="Find Holders From NFT Data">
 	<Design.DataContext>
     <vm:FindHoldersFromNftDataWindowViewModel/>
-	</Design.DataContext>
-  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
+	</Design.DataContext>    
+    
+    <Border Padding="20,40,20,20">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-    <TextBlock Margin="0 0 0 10" FontSize="15" Text="{Binding Notice}" TextWrapping="Wrap"/>
-    <!--<TextBlock Margin="0 0 0 10" HorizontalAlignment="Right" FontSize="12" ToolTip.Tip="Example: 0X266047b1b8fd705e74f8649e7967d310aab8926f2a79963309328e5eadbe5f8c" Text="❔" />-->
-    <!--<TextBox Margin="20 0 20 10" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Log}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="125" Width="520"/>-->
+        <!-- Title and Help Button -->
+        <TextBlock Grid.Row="0" Margin="0 0 10 0" Text="{Binding TitleText}" FontWeight="Bold" FontSize="18"/>
+        <Button Grid.Row="0" Margin="0 0 0 10" Click="OnHelpButtonClicked" Content="{Binding HelpButtonText}" HorizontalAlignment="Right"/>
 
-    <TextBox Margin="0 0 0 10" FontSize="12" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Location}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="200" Width="500"/>
-    <Button Margin="0 0 0 10" Width="100" Command="{Binding FindHoldersFromNftDataCommand}" IsEnabled="{Binding IsEnabled}">
-      <TextBlock Text="Find" TextAlignment="Center"/>
-    </Button>
+        <!-- Main Content and Input -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Top" >
+          <TextBlock Text="{Binding MainContent}" Margin="0 0 0 10"  FontSize="16" />
+          <TextBox IsEnabled="{Binding IsEnabled}" Margin="0 0 0 10" Watermark="{Binding WatermarkOne}"  FontSize="12" AcceptsReturn="True" IsReadOnly="False" Text="{Binding Location}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="140" />
+        </StackPanel>
 
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 0 0 10">
+          <Button Width="75" Command="{Binding FindHoldersFromNftDataCommand}" IsEnabled="{Binding IsEnabled}">
+            <TextBlock Text="{Binding FindButtonText}" TextAlignment="Center"/>
+          </Button>
+        </StackPanel>
 
-  </StackPanel>
+        <!-- Log Area -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+          <TextBox Text="{Binding Log}" Watermark="Logs will be output here..." IsReadOnly="True" TextWrapping="Wrap" Height="100" />
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
 </Window>

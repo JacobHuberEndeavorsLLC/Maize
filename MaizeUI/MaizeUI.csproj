@@ -30,17 +30,20 @@
   </ItemGroup>
   <ItemGroup>
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-	<PackageReference Include="Avalonia" Version="0.10.18" />
-	<PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
-	<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.18" />
+	<PackageReference Include="Avalonia" Version="11.0.4" />
+	<PackageReference Include="Avalonia.Desktop" Version="11.0.4" />
+	<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.4" />
+	<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.4" />
+	<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.4" />
 	<PackageReference Include="OpenCvSharp4" Version="4.8.0.20230708" />
 	<PackageReference Include="OpenCvSharp4.runtime.osx.10.15-x64" Version="4.6.0.20230105" />
 	<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.8.0.20230708" />
-	<PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
+	<PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Output\" />
+    <Folder Include="Things\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Maize\Maize.csproj" />
@@ -59,6 +62,9 @@
     </Compile>
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\LooperLandsGenerateOneOfOnesWindow.axaml.cs">
+      <DependentUpon>LooperLandsGenerateOneOfOnesWindow.axaml</DependentUpon>
     </Compile>
     <Compile Update="Views\MetadataUploadToInfuraWindow.axaml.cs">
       <DependentUpon>MetadataUploadToInfuraWindow.axaml</DependentUpon>

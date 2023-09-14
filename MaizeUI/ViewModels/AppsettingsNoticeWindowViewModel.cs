@@ -141,7 +141,7 @@ namespace MaizeUI.ViewModels
                 if (points != null && points.Length > 0)
                 {
                     // Draw a polygon around the detected QR code
-                    Cv2.Polylines(image, new Point[][] { points.Select(p => p.ToPoint()).ToArray() }, isClosed: true, color: OpenCvSharp.Scalar.Red);
+                    Cv2.Polylines(image, new OpenCvSharp.Point[][] { points.Select(p => p.ToPoint()).ToArray() }, isClosed: true, color: OpenCvSharp.Scalar.Red);
 
                     // Display the detected and decoded information
                     Notice = "QR Code Detected: " + decodedInfo;

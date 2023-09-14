@@ -687,26 +687,21 @@ namespace Maize.Services
         }
         public async Task<string> CheckForEthAddress(ILoopringService LoopringService, string apiKey, string address)
         {
+            if (address == null) return null;
+
             address = address.Trim().ToLower();
             if (address.Contains(".eth"))
             {
                 var apiSw = Stopwatch.StartNew();
-
                 var varHexAddress = await LoopringService.GetHexAddress(apiKey, address);
-                if (!String.IsNullOrEmpty(varHexAddress.data))
-                {
-                    Timers.ApiStopWatchCheck(apiSw);
-                    return varHexAddress.data;
-                }
-                else
-                {
-                    Timers.ApiStopWatchCheck(apiSw);
-                    return null;
-                }
 
+                Timers.ApiStopWatchCheck(apiSw);
+
+                return string.IsNullOrEmpty(varHexAddress.data) ? null : varHexAddress.data;
             }
             return address;
         }
+
         public async Task<NftTransferAuditInformation> NftTransfer(
             ILoopringService loopringService,
             int environment,

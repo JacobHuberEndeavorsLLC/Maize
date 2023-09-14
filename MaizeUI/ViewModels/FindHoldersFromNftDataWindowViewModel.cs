@@ -12,6 +12,12 @@ namespace MaizeUI.ViewModels
 {
     public class FindHoldersFromNftDataWindowViewModel : ViewModelBase 
     {
+        public string HelpButtonText { get; set; } = "Help";
+        public string FindButtonText { get; set; } = "Find";
+        public string TitleText { get; set; } = "NFT Holders From NFT Data";
+        public string MainContent { get; set; } = "Here you will find NFT holders from NFT Data.";
+        public string WatermarkOne { get; set; } = $"Place NFT Data here. One per line.\r\n\r\nExample:\r\n0x118fabbd46c9a5c724de4394198fc7e2807d0deea5ea41f0bb533615e51c2b4b\r\n0x08dccae9dac82c69e6836977c932bb55e608d548d19e95addee8817f7edb5f8d\r\n0x2ea5bb3cf95ceb87d89c3048ce0b44d53560c955579576b58486e8edb2cc108c";
+
         public string location;
         public string Location
         {
@@ -55,8 +61,6 @@ namespace MaizeUI.ViewModels
 
         public FindHoldersFromNftDataWindowViewModel()
         {
-            Location = $"Place NFT Data here. One per line.\r\n\r\nExample:\r\n0x118fabbd46c9a5c724de4394198fc7e2807d0deea5ea41f0bb533615e51c2b4b\r\n0x08dccae9dac82c69e6836977c932bb55e608d548d19e95addee8817f7edb5f8d\r\n0x2ea5bb3cf95ceb87d89c3048ce0b44d53560c955579576b58486e8edb2cc108c\r\n";
-            Notice = "Here you will find NFT Holders from NFT Data.";
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
         }
 
@@ -65,15 +69,11 @@ namespace MaizeUI.ViewModels
             string nftDatas = location;
             List<string> stringList = new List<string>(nftDatas.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
 
-            Location = "Retrieving Holders, please give me a moment...";
+            Log = "Retrieving Holders, please give me a moment...";
             IsEnabled = false;
             var sw = new Stopwatch();
             sw.Start();
             var howManyLines = Files.CheckInputFile();
-
-            //var filePath = $"{Constants.BaseDirectory}{Constants.InputFolder}{Constants.InputFile}";
-            //string[] linesArray = File.ReadAllLines(filePath);
-            //List<string> linesList = new List<string>(linesArray);
             var ownerAndAmount = new List<OwnerAndAmount>();
             var ownerAndTotal = new List<OwnerAndTotal>();
             NftHoldersResponse singleHolder = new();
@@ -97,7 +97,7 @@ namespace MaizeUI.ViewModels
                 singleHolder = await LoopringService.GetNftHolderSingle(settings.LoopringApiKey, line);
                 if (singleHolder.nftHolders.Count == 0)
                 {
-                    Location = "This does not appear to be an NFT Data\r\n\r\n NFT Data is not that same as NFT ID.";
+                    Log = "This does not appear to be an NFT Data\r\n\r\n NFT Data is not that same as NFT ID.";
                     break;
                 }
                 var collectionId = await LoopringService.FindCollectionIdFromHolder(settings.LoopringApiKey, singleHolder.nftHolders.First().accountId, line);
@@ -115,7 +115,7 @@ namespace MaizeUI.ViewModels
                     }
                     if (nfts.Item1.Count > 0)
                     {
-                        Location = $"Retrieving Collection Information: {allCollectionsNfts.Count()}/{total} Nfts retrieved...";
+                        Log = $"Retrieving Collection Information: {allCollectionsNfts.Count()}/{total} Nfts retrieved...";
                         total = nfts.Item2;
                         allCollectionsNfts.AddRange(nfts.Item1);
                         offset += 50;
@@ -139,7 +139,7 @@ namespace MaizeUI.ViewModels
                     var nft = allCollectionsNfts.SingleOrDefault(x => x.nftData == lineAgain);
                     if (nft != null)
                     {
-                        Location = $"Checking Collection Against other NFT Data: {iterationAgain++}/{initialLinesListCount} Nfts retrieved...";
+                        Log = $"Checking Collection Against other NFT Data: {iterationAgain++}/{initialLinesListCount} Nfts retrieved...";
                         stringList.Remove(lineAgain);
                         List<List<NftHolder>> allHolders = new List<List<NftHolder>>();
                         offset = 0;
@@ -162,7 +162,7 @@ namespace MaizeUI.ViewModels
                         var holderCounter = 0;
                         foreach (var nftHolder in allHolders.SelectMany(d => d))
                         {
-                            Location = $"Nft {counter}/{howManyLines} {nft.metadata.basename.name}: {++holderCounter}/{allHolders.SelectMany(d => d).Count()} Holders calculated...";
+                            Log = $"Nft {counter}/{howManyLines} {nft.metadata.basename.name}: {++holderCounter}/{allHolders.SelectMany(d => d).Count()} Holders calculated...";
                             if (nft.metadata.basename.name != null)
                             {
                                 ownerAndAmount.Add(new OwnerAndAmount
@@ -205,7 +205,7 @@ namespace MaizeUI.ViewModels
                 var fileNameTwo = ApplicationUtilitiesUI.WriteDataToCsvFile("NftHoldersAndTotals", ownerAndTotal.OrderByDescending(x => x.total));
                 sw.Stop();
                 var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
-                Location = $"{swTime}\r\n\r\nYour files are here:\r\n\r\n{fileName}\r\n\r\n{fileNameTwo}";
+                Log = $"{swTime}\r\n\r\nYour files are here:\r\n{fileName}\r\n\r\n{fileNameTwo}";
             }
             IsEnabled = true;
         }

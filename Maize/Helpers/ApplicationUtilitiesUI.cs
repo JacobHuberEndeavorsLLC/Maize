@@ -179,23 +179,25 @@ namespace Maize.Helpers
             stringToEncode = HttpUtility.UrlEncode(stringToEncode);
             return reg.Replace(stringToEncode, m => m.Value.ToUpperInvariant());
         }
-        public static async Task<Font> NftChecks(Settings s, ILoopringService loopringService, Font font)
+        public static async Task<bool> AccessPremiumContent(Settings s, ILoopringService loopringService)
         {
+            bool premiumAccess = false;
+
             if (s.Environment == 1)
             {
-                var nfts = await loopringService.GetNfts(s.LoopringApiKey, s.LoopringAccountId, $"{Constants.AccessLogo},{Constants.MaizeLdsLogo}");
+                var nfts = await loopringService.GetNfts(s.LoopringApiKey, s.LoopringAccountId, Constants.AccessPremiumContent);
 
-                //AccessNftCheck(font, nfts);
-                font = LDSNftCheck(font, nfts);
+                premiumAccess = PremiumContentCheck(nfts);
             }
-            return font;
+            return premiumAccess;
         }
-        public static void AccessNftCheck(Font font, NftBalance nfts)
+        public static bool PremiumContentCheck(NftBalance nfts)
         {
-            if (!nfts.data.Exists(x => x.nftData == Constants.AccessLogo))
-                AccessNftDisclaimer(font);
-            if (int.Parse(nfts.data.Where(x => x.nftData == Constants.AccessLogo).First().total) == 0)
-                AccessNftDisclaimer(font);
+            if (!nfts.data.Exists(x => x.nftData == Constants.AccessPremiumContent))
+                return false;
+            if (int.Parse(nfts.data.Where(x => x.nftData == Constants.AccessPremiumContent).First().total) == 0)
+                return false;
+            return true;
         }
         public static Font LDSNftCheck(Font font, NftBalance nfts)
         {
@@ -206,13 +208,12 @@ namespace Maize.Helpers
             }
             return font;
         }
-        public static void AccessNftDisclaimer(Font font)
+        public static void AccessNftDisclaimer()
         {
-            font.ToRed("In order to use this application you need to own 'Maize Origin Logo'.");
-            font.ToSecondary("You can purchase one on Loopexchange at https://loopexchange.art/collection/maizeorigin.");
-            font.ToTertiary("After obtaining one please be sure to restart the application.");
-            Console.ReadLine();
-            Environment.Exit(0);
+            //font.ToRed("In order to use this application you need to own 'Maize Origin Logo'.");
+            //font.ToSecondary("You can purchase one on Loopexchange at https://loopexchange.art/collection/maizeorigin.");
+            //font.ToTertiary("After obtaining one please be sure to restart the application.");
+            //Console.ReadLine();
         }
         public static async Task<List<Leaderboard>> LeaderBoardForMenu(Settings s, ILoopringService loopringService, Constants.Environment environment)
         {

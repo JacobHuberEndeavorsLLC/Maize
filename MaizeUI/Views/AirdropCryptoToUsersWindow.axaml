@@ -32,10 +32,10 @@
       <Button IsVisible="{Binding IsStartButtonVisible}" Margin="20 0 20 10" Width="100" Command="{Binding StartProcessCommand}" IsEnabled="{Binding IsEnabled}">
         <TextBlock Text="Start" TextAlignment="Center"/>
       </Button>
-      <ComboBox Margin="0 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" Items="{Binding LoopringFeeDropdown}"
+      <ComboBox Margin="0 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" ItemsSource="{Binding LoopringFeeDropdown}"
             SelectedItem="{Binding LoopringFeeSelectedOption}" />
 
-      <ComboBox Margin="10 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" Items="{Binding MaizeFeeDropdown}"
+      <ComboBox Margin="10 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" ItemsSource="{Binding MaizeFeeDropdown}"
                 SelectedItem="{Binding MaizeFeeSelectedOption}" ToolTip.Tip="0.001 USD per transfer" />
       <CheckBox Margin="10 0 10 10" IsVisible="{Binding IsCheckboxVisible}" VerticalAlignment="Top" HorizontalAlignment="Right" IsEnabled="{Binding IsEnabledCheckBox}" IsChecked="{Binding IsChecked}" Content="Pay Activation Fee" />
       <TextBlock Margin="10 7 10 10" IsVisible="{Binding IsFeeInfoVisible}" VerticalAlignment="Top" HorizontalAlignment="Right" Text="{Binding Notice2}" />

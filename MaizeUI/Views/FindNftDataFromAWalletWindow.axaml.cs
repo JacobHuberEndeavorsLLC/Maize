@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using MaizeUI.Helpers;
 
 namespace MaizeUI.Views
 {
@@ -9,10 +11,9 @@ namespace MaizeUI.Views
         {
             InitializeComponent();
         }
-
-        private void InitializeComponent()
+        public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            AvaloniaXamlLoader.Load(this);
+            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/lookups/nft-info-from-a-wallet");
         }
     }
 }

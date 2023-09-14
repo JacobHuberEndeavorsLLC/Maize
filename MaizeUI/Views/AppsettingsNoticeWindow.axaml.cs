@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using MaizeUI.ViewModels;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using MaizeUI.Helpers;
 
 namespace MaizeUI.Views
 {
@@ -13,12 +14,10 @@ namespace MaizeUI.Views
         {
             InitializeComponent();
         }
-
-        private void InitializeComponent()
+        public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            AvaloniaXamlLoader.Load(this);
+            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/setup-maize");
         }
-
         public async void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
             string filePath = await OpenImageFileDialog();
