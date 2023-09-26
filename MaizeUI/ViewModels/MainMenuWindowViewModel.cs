@@ -76,6 +76,7 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> MetadataUploadToInfuraCommand { get; }
         public ReactiveCommand<Unit, Unit> HelpFileCommand { get; }
         public ReactiveCommand<Unit, Unit> LooperLandsGenerateOneOfOnesCommand { get; }
+        public ReactiveCommand<Unit, Unit> GenerateOneOfOnesCommand { get; }
 
         public MainMenuWindowViewModel()
         {
@@ -91,6 +92,7 @@ namespace MaizeUI.ViewModels
             MetadataUploadToInfuraCommand = ReactiveCommand.Create(MetadataUploadToInfura);
             HelpFileCommand = ReactiveCommand.Create(HelpFile);
             LooperLandsGenerateOneOfOnesCommand = ReactiveCommand.Create(LooperLandsGenerateOneOfOnes);
+            GenerateOneOfOnesCommand = ReactiveCommand.Create(GenerateOneOfOnes);
 
 
         }
@@ -222,6 +224,21 @@ namespace MaizeUI.ViewModels
             }
             var dialog = new LooperLandsGenerateOneOfOnesWindow();
             dialog.DataContext = new LooperLandsGenerateOneOfOnesWindowViewModel
+            {
+            };
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+        private async void GenerateOneOfOnes()
+        {
+            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
+            if (premiumAccess == false)
+            {
+                Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
+                return;
+            }
+            var dialog = new GenerateOneOfOnesWindow();
+            dialog.DataContext = new GenerateOneOfOnesWindowViewModel
             {
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;

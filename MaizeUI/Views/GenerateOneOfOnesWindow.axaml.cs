@@ -5,20 +5,20 @@ using MaizeUI.ViewModels;
 
 namespace MaizeUI.Views
 {
-    public partial class LooperLandsGenerateOneOfOnesWindow : Window
+    public partial class GenerateOneOfOnesWindow : Window
     {
-        public LooperLandsGenerateOneOfOnesWindow()
+        public GenerateOneOfOnesWindow()
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
         }
         public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/one-of-one-creation/generate-one-of-one-loopers");
+            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/one-of-one-creation/generate-one-of-one-nfts");
         }
         private void OnDataContextChanged(object sender, EventArgs e)
         {
-            var viewModel = DataContext as LooperLandsGenerateOneOfOnesWindowViewModel;
+            var viewModel = DataContext as GenerateOneOfOnesWindowViewModel;
             if (viewModel != null)
             {
                 viewModel.RequestOpenFolder += OpenFolderDialog;
@@ -28,7 +28,7 @@ namespace MaizeUI.Views
         {
             var folderPickerDialog = new OpenFolderDialog { Title = "Select Input Directory" };
             var result = await folderPickerDialog.ShowAsync(this);
-            var viewModel = (LooperLandsGenerateOneOfOnesWindowViewModel)this.DataContext;
+            var viewModel = (GenerateOneOfOnesWindowViewModel)this.DataContext;
             if (!string.IsNullOrEmpty(result))
             {
                 viewModel.InputDirectory = result;

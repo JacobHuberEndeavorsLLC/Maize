@@ -13,7 +13,7 @@ namespace MaizeUI.Things
         {
             var properties = ExtractPropertiesFromSprites(orderedSprites);
 
-            properties["series"] = "alpha: mystic maize vault";
+            //properties["series"] = "alpha: mystic maize vault";
 
             var attributes = properties.Select(p => new { trait_type = p.Key, value = p.Value }).ToArray();
 
@@ -175,6 +175,30 @@ namespace MaizeUI.Things
                 }
             }
         }
+        public static void ProcessLayers(int iterationNumber, List<string> orderedLayers, string nftDirectory)
+        {
+            if (orderedLayers.Count > 0)
+            {
+                using (var firstSprite = Image.Load(orderedLayers[0]))
+                {
+                    using (var stackedSprite = new Image<Rgba32>(firstSprite.Width, firstSprite.Height))
+                    {
+
+                        foreach (var layerPath in orderedLayers)
+                        {
+                            using (var sprite = Image.Load(layerPath))
+                            {
+                                stackedSprite.Mutate(ctx => ctx.DrawImage(sprite, new Point(0, 0), 1f));
+                            }
+                        }
+
+                        string outputFileName = $"nft{iterationNumber}.png";
+                        var outputPath = Path.Combine(nftDirectory, outputFileName);
+                        stackedSprite.Save(outputPath);
+                    }
+                }
+            }
+        }
         public static void ProcessMetadata(List<string> orderedSprites, string iterationDirectory, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
         {
             if (orderedSprites.Count > 0)
@@ -185,6 +209,20 @@ namespace MaizeUI.Things
                     {
                         var iterationNumber = Helpers.GetIterationNumberFromFilePath(iterationDirectory);
                         string outputPath = Path.Combine(iterationDirectory, $"metadata{iterationNumber}.png");
+                        CreateMetadataJsonForSprite(outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                    }
+                }
+            }
+        }
+        public static void ProcessMetadataNfts(int iterationNumber, List<string> orderedSprites, string metadataDirectory, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
+        {
+            if (orderedSprites.Count > 0)
+            {
+                using (var firstSprite = Image.Load(orderedSprites[0]))
+                {
+                    using (var stackedSprite = new Image<Rgba32>(firstSprite.Width, firstSprite.Height))
+                    {
+                        string outputPath = Path.Combine(metadataDirectory, $"metadata{iterationNumber}.png");
                         CreateMetadataJsonForSprite(outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
                     }
                 }

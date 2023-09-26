@@ -107,24 +107,23 @@ namespace MaizeUI.Things
 
             if (randomChance <= 32 && standaloneDirectory != null)
             {
-                selected.AddRange(SelectRandomFromDirectory(standaloneDirectory, rng));
+                selected.AddRange(SelectRandomFromDirectory(standaloneDirectory));
             }
             else
             {
                 if (pairedDirectories.Count == 2)
                 {
-                    selected.AddRange(SelectRandomFromDirectory(pairedDirectories[0], rng));
-                    selected.AddRange(SelectRandomFromDirectory(pairedDirectories[1], rng));
+                    selected.AddRange(SelectRandomFromDirectory(pairedDirectories[0]));
+                    selected.AddRange(SelectRandomFromDirectory(pairedDirectories[1]));
                 }
             }
             return selected;
         }
         private static List<string> HandleGeneralCase(string directory, Random rng)
         {
-            return SelectRandomFromDirectory(directory, rng);
+            return SelectRandomFromDirectory(directory);
         }
-
-        private static List<string> SelectRandomFromDirectory(string directory, Random rng)
+        private static List<string> SelectRandomFromDirectory(string directory)
         {
             List<string> selected = new List<string>();
             var allFiles = Directory.GetFiles(directory, "*.png")
@@ -132,10 +131,36 @@ namespace MaizeUI.Things
                                     .ToArray();
             if (allFiles.Length > 0)
             {
-                var randomSprite = allFiles[rng.Next(allFiles.Length)];
-                selected.Add(randomSprite);
+                using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
+                {
+                    byte[] randomNumber = new byte[4];
+                    crypto.GetBytes(randomNumber);
+                    int randomIndex = Math.Abs(BitConverter.ToInt32(randomNumber, 0)) % allFiles.Length;
+
+                    // Ensure the index is within the bounds of the array
+                    if (randomIndex >= 0 && randomIndex < allFiles.Length)
+                    {
+                        var randomSprite = allFiles[randomIndex];
+                        selected.Add(randomSprite);
+                    }
+                }
             }
             return selected;
         }
+
+
+        //private static List<string> SelectRandomFromDirectory(string directory, Random rng)
+        //{
+        //    List<string> selected = new List<string>();
+        //    var allFiles = Directory.GetFiles(directory, "*.png")
+        //                            .Where(file => !Path.GetFileName(file).Contains("="))
+        //                            .ToArray();
+        //    if (allFiles.Length > 0)
+        //    {
+        //        var randomSprite = allFiles[rng.Next(allFiles.Length)];
+        //        selected.Add(randomSprite);
+        //    }
+        //    return selected;
+        //}
     }
 }

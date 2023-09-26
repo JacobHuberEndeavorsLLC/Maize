@@ -10,13 +10,13 @@ using System.Reactive.Concurrency;
 
 namespace MaizeUI.ViewModels
 {
-    public class LooperLandsGenerateOneOfOnesWindowViewModel : ViewModelBase
+    public class GenerateOneOfOnesWindowViewModel : ViewModelBase
     {
         public event Action RequestOpenFolder;
         public string HelpButtonText { get; set; } = "Help";
         public string ProcessButtonText { get; set; } = "Process";
-        public string TitleText { get; set; } = "Generate 1/1 Loopers";
-        public string MainContent { get; set; } = "Here you will generate 1/1 Loopers for Looper Lands from sprite sheets.";
+        public string TitleText { get; set; } = "Generate 1/1 NFTs";
+        public string MainContent { get; set; } = "Here you will generate 1/1 NFTs with metadata.";
 
         private int royaltyPercentage;
         public int RoyaltyPercentage
@@ -82,12 +82,12 @@ namespace MaizeUI.ViewModels
         }
 
         public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
-        public ReactiveCommand<Unit, Unit> GenerateSpritesCommand { get; }
+        public ReactiveCommand<Unit, Unit> GenerateNftsCommand { get; }
 
-        public LooperLandsGenerateOneOfOnesWindowViewModel()
+        public GenerateOneOfOnesWindowViewModel()
         {
             OpenFolderCommand = ReactiveCommand.CreateFromTask(() => OpenFolder());
-            GenerateSpritesCommand = ReactiveCommand.CreateFromTask(() => GenerateAndProcessSprites());
+            GenerateNftsCommand = ReactiveCommand.CreateFromTask(() => GenerateAndProcessNfts());
         }
         public async Task OpenFolder()
         {
@@ -115,9 +115,9 @@ namespace MaizeUI.ViewModels
                 Process.Start("open", folderPath);
             }
         }
-        private async Task GenerateAndProcessSprites()
+        private async Task GenerateAndProcessNfts()
         {
-            List<List<string>> allOrderedSprites = new List<List<string>>();
+            List<List<string>> allOrderedLayers = new List<List<string>>();
             Dictionary<string, int> spriteFrequency = new Dictionary<string, int>();
             string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}{collectionAddress}";
             Directory.CreateDirectory(outputDirectory);
@@ -131,23 +131,23 @@ namespace MaizeUI.ViewModels
                     bool meetConstraint;
                     do
                     {
-                        List<string> orderedSprites = Components.StackRandomSpritesFromSubdirectories(inputDirectory);
-                        isUnique = Components.CheckForDuplicates(orderedSprites);
+                        List<string> orderedLayers = Components.StackRandomSpritesFromSubdirectories(inputDirectory);
+                        isUnique = Components.CheckForDuplicates(orderedLayers);
 
                         // Temporary dictionary to hold the frequency counts for this iteration
-                        Dictionary<string, int> tempSpriteFrequency = new Dictionary<string, int>(spriteFrequency);
+                        Dictionary<string, int> tempLayerFrequency = new Dictionary<string, int>(spriteFrequency);
 
                         // Update temporary sprite frequencies
-                        foreach (var sprite in orderedSprites)
+                        foreach (var layer in orderedLayers)
                         {
-                            string spriteType = Path.GetFileNameWithoutExtension(sprite);
-                            if (tempSpriteFrequency.ContainsKey(spriteType))
+                            string spriteType = Path.GetFileNameWithoutExtension(layer);
+                            if (tempLayerFrequency.ContainsKey(spriteType))
                             {
-                                tempSpriteFrequency[spriteType]++;
+                                tempLayerFrequency[spriteType]++;
                             }
                             else
                             {
-                                tempSpriteFrequency[spriteType] = 1;
+                                tempLayerFrequency[spriteType] = 1;
                             }
                         }
 
@@ -155,7 +155,7 @@ namespace MaizeUI.ViewModels
                         meetConstraint = true;
 
                         // Check and enforce max percentages
-                        foreach (var sprite in orderedSprites)
+                        foreach (var sprite in orderedLayers)
                         {
                             string filename = Path.GetFileName(sprite);
                             Match match = Regex.Match(filename, @"X#(\d+)");
@@ -163,7 +163,7 @@ namespace MaizeUI.ViewModels
                             {
                                 int maxPercentage = int.Parse(match.Groups[1].Value);
                                 string spriteType = Path.GetFileNameWithoutExtension(sprite);
-                                if (tempSpriteFrequency[spriteType] / (double)totalIterations > maxPercentage / 100.0)
+                                if (tempLayerFrequency[spriteType] / (double)totalIterations > maxPercentage / 100.0)
                                 {
                                     meetConstraint = false;
                                     break;
@@ -174,14 +174,14 @@ namespace MaizeUI.ViewModels
                         if (isUnique && meetConstraint)
                         {
                             // Update the actual spriteFrequency dictionary
-                            spriteFrequency = tempSpriteFrequency;
+                            spriteFrequency = tempLayerFrequency;
 
-                            allOrderedSprites.Add(orderedSprites);
+                            allOrderedLayers.Add(orderedLayers);
                             break;
                         }
 
                     } while (true);
-                    if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
+                    if (i % 10 == 0 || i == allOrderedLayers.Count - 1)
                     {
                         // Update Log from the main thread
                         RxApp.MainThreadScheduler.Schedule(() => Log = $"Processing: {i - 1}/{totalIterations}");
@@ -191,23 +191,27 @@ namespace MaizeUI.ViewModels
 
             await Task.Run(() =>
             {
-                for (int i = 0; i < allOrderedSprites.Count; i++)
+                for (int i = 0; i < allOrderedLayers.Count; i++)
                 {
-                    string iterationDirectory = Path.Combine(outputDirectory, $"Iteration_{i + 1}");
-                    Directory.CreateDirectory(iterationDirectory); // Create unique folder for this iteration
-                    var nftName = $"{NftName} #{Things.Helpers.GetIterationNumberFromFilePath(iterationDirectory)}";
+                    string metadataDirectory = Path.Combine(outputDirectory, $"Metadatas");
+                    string nftDirectory = Path.Combine(outputDirectory, $"NFTs");
+                    Directory.CreateDirectory(metadataDirectory);
+                    Directory.CreateDirectory(nftDirectory);
 
-                    List<string> orderedSprites = allOrderedSprites[i];
-                    Components.ProcessMetadata(orderedSprites, iterationDirectory, collectionAddress, royaltyPercentage, nftName, nftDescription);
-                    Components.ProcessSprites(orderedSprites, iterationDirectory);
-                    if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
+                    var iterationNumber = i + 1;
+                    var nftName = $"{NftName} #{iterationNumber}";
+
+                    List<string> orderedLayers = allOrderedLayers[i];
+                    Components.ProcessMetadataNfts(iterationNumber, orderedLayers, metadataDirectory, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                    Components.ProcessLayers(iterationNumber, orderedLayers, nftDirectory);
+                    if (i % 10 == 0 || i == allOrderedLayers.Count - 1)
                     {
                         RxApp.MainThreadScheduler.Schedule(() => Log = $"Creating: {i}/{totalIterations}");
                     }
                 }
             });
             sw.Stop();
-            UpdateLog(sw.ElapsedMilliseconds, allOrderedSprites.Count, outputDirectory);
+            UpdateLog(sw.ElapsedMilliseconds, allOrderedLayers.Count, outputDirectory);
             ViewResults(outputDirectory);
         }
     }

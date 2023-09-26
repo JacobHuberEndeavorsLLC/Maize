@@ -63,6 +63,9 @@
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\GenerateOneOfOnesWindow.axaml.cs">
+      <DependentUpon>GenerateOneOfOnesWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\LooperLandsGenerateOneOfOnesWindow.axaml.cs">
       <DependentUpon>LooperLandsGenerateOneOfOnesWindow.axaml</DependentUpon>
     </Compile>

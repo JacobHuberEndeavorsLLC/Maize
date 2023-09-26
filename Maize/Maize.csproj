@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
-    <PackageReference Include="EPPlus" Version="6.0.8" />
     <PackageReference Include="JsonFlatten" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
@@ -34,7 +33,7 @@
     <None Update="Input\Environment\Amainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\testnetappsettings.json">
+    <None Update="Input\Environment\MYtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\Amainnetappsettings.json">
@@ -43,13 +42,13 @@
     <None Update="Input\Environment\Amainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\testnetappsettings.json">
+    <None Update="Input\Environment\MYtestnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Environment\mainnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Input\Environment\MYtestnetappsettings.json">
+    <None Update="Input\Environment\testnetappsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Input\Files\WannaCollab.json">
