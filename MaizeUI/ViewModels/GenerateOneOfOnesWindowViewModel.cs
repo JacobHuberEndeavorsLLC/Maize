@@ -3,7 +3,6 @@ using System.Reactive;
 using System.Text.RegularExpressions;
 using MaizeUI.Things;
 using Maize.Models.ApplicationSpecific;
-using OpenCvSharp;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reactive.Concurrency;
@@ -191,10 +190,11 @@ namespace MaizeUI.ViewModels
 
             await Task.Run(() =>
             {
+                string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
                 for (int i = 0; i < allOrderedLayers.Count; i++)
                 {
-                    string metadataDirectory = Path.Combine(outputDirectory, $"Metadatas");
-                    string nftDirectory = Path.Combine(outputDirectory, $"NFTs");
+                    string metadataDirectory = Path.Combine(outputDirectory, $"Metadatas_{timestamp}");
+                    string nftDirectory = Path.Combine(outputDirectory, $"NFTs_{timestamp}");
                     Directory.CreateDirectory(metadataDirectory);
                     Directory.CreateDirectory(nftDirectory);
 

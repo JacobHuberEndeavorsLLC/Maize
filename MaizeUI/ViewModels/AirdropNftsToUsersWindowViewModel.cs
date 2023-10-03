@@ -10,6 +10,7 @@ using Maize.Models;
 using Maize.Models.Responses;
 using System.Text.RegularExpressions;
 using Maize.Helpers;
+using MaizeUI.Helpers;
 
 namespace MaizeUI.ViewModels
 {
@@ -326,9 +327,8 @@ namespace MaizeUI.ViewModels
             if (MaizeFeeSelectedOption == "PEPE")
                 maizeMaxFeeTokenId = 272;
 
-            var maizeFee = await CalculateMaizeFee(LoopringService, auditInfo.validAddress.Count(), MaizeFeeSelectedOption);
+            var maizeFee = await Calculations.CalculateMaizeFee(LoopringService, auditInfo.validAddress.Count(), MaizeFeeSelectedOption);
 
-            //uncomment this asap
             var maxFeeVolume = await loopringService.CobTransferTransactionFee(
                settings.Environment,
                Environment.Url,
@@ -372,7 +372,7 @@ namespace MaizeUI.ViewModels
             string totalActivations = $"Transfers with wallet activation: {totalActivationsList.Count()}";
             var transferFees = (decimal.Parse((await LoopringService.GetNftOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 11)).fees.First(x => x.token == LoopringFeeSelectedOption).fee) / 1000000000000000000) * totalTransfersList.Count();
             var activationFees = (decimal.Parse((await LoopringService.GetNftOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 19)).fees.First(x => x.token == LoopringFeeSelectedOption).fee) / 1000000000000000000) * totalActivationsList.Count();
-            var maizeFee = await CalculateMaizeFee(LoopringService, transferInfoList.Count(), MaizeFeeSelectedOption); 
+            var maizeFee = await Calculations.CalculateMaizeFee(LoopringService, transferInfoList.Count(), MaizeFeeSelectedOption); 
 
             var userAssets = await LoopringService.GetUserAssetsForFees(settings.LoopringApiKey, settings.LoopringAccountId);
             var eth = userAssets.FirstOrDefault(asset => asset.tokenId == 0);
@@ -471,18 +471,6 @@ namespace MaizeUI.ViewModels
             }
             IsEnabledCheckBox = false;
             ViewStart();
-        }
-        public static async Task<decimal> CurrentTokenPriceInUsd(ILoopringService LoopringService, string maizeFee)
-        {
-            var varHexAddress = await LoopringService.GetTokens();
-            var currentFeePrice = (await LoopringService.GetTokenPrice()).data.Where(x=>x.token == varHexAddress.FirstOrDefault(x=>x.symbol == maizeFee).address).FirstOrDefault().price;
-            var convertToOneUsd = 1 / decimal.Parse(currentFeePrice);
-            
-            return convertToOneUsd;
-        }
-        public static async Task<decimal> CalculateMaizeFee(ILoopringService LoopringService, decimal totalTransactions, string MaizeFeeSelectedOption)
-        {
-            return Math.Round((await CurrentTokenPriceInUsd(LoopringService, MaizeFeeSelectedOption)) * (totalTransactions * Constants.LcrTransactionFee), 14);
         }
         private async void AirdropNftsToUsers()
         {

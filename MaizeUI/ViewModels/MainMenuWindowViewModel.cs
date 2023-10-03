@@ -6,8 +6,6 @@ using Maize.Models.ApplicationSpecific;
 using MaizeUI.Views;
 using ReactiveUI;
 using System.Reactive;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using MaizeUI.Helpers;
 using Maize.Helpers;
 
@@ -77,6 +75,7 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> HelpFileCommand { get; }
         public ReactiveCommand<Unit, Unit> LooperLandsGenerateOneOfOnesCommand { get; }
         public ReactiveCommand<Unit, Unit> GenerateOneOfOnesCommand { get; }
+        public ReactiveCommand<Unit, Unit> MintAndPinToIPFSCommand { get; }
 
         public MainMenuWindowViewModel()
         {
@@ -93,6 +92,7 @@ namespace MaizeUI.ViewModels
             HelpFileCommand = ReactiveCommand.Create(HelpFile);
             LooperLandsGenerateOneOfOnesCommand = ReactiveCommand.Create(LooperLandsGenerateOneOfOnes);
             GenerateOneOfOnesCommand = ReactiveCommand.Create(GenerateOneOfOnes);
+            MintAndPinToIPFSCommand = ReactiveCommand.Create(MintAndPinToIPFS);
 
 
         }
@@ -244,6 +244,21 @@ namespace MaizeUI.ViewModels
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
+        private async void MintAndPinToIPFS()
+        {
+            var dialog = new MintAndPinToIPFSWindow();
+            var viewModel = new MintAndPinToIPFSWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+            viewModel.Initialize(); // Call Initialize here
+            dialog.DataContext = viewModel;
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+        }
+
     }
 
 }

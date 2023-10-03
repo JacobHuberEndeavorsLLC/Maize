@@ -33,6 +33,11 @@ namespace Maize.Helpers
             {
                 nftMetadataName = "their LRC";
             }
+            else if (nftMetadataName == "MINT")
+            {
+                nftMetadataName = "a mint";
+            }
+
             if (validAddress.Count > 0)
             {
                 if (alreadyActivatedAddress.Count > 0)

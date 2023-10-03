@@ -43,7 +43,6 @@
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Output\" />
-    <Folder Include="Things\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Maize\Maize.csproj" />
@@ -62,6 +61,9 @@
     </Compile>
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\MintAndPinToIPFSWindow.axaml.cs">
+      <DependentUpon>MintAndPinToIPFSWindow.axaml</DependentUpon>
     </Compile>
     <Compile Update="Views\GenerateOneOfOnesWindow.axaml.cs">
       <DependentUpon>GenerateOneOfOnesWindow.axaml</DependentUpon>

@@ -34,8 +34,8 @@
                 {
                     Url = "https://uat2.loopring.io/",
                     Exchange = "0x12b7cccF30ba360e5041C6Ce239C9a188B709b2B",
-                    NftFactory = "0x7Da2849B1E5B9849553328aFe6E187C8621D8D5d",
-                    NftFactoryCollection = "0xfDDA90dbCc99B3a91e3fB1292991Ba1076d9E281",
+                    NftFactory = "0x0ad87482a1bfd0B3036Bb4b13708C88ACAe1b8bA",
+                    NftFactoryCollection = "0x0ad87482a1bfd0B3036Bb4b13708C88ACAe1b8bA",
                     MyAccountId = 15504,
                     MyAccountAddress = "0x37EA02537f3A7A7fFC221125245905Be3D5423e6",
                 };

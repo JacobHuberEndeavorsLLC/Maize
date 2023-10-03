@@ -57,6 +57,7 @@
         <Button Width="180" Content="Upload to Infura" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MetadataUploadToInfuraCommand}" />
       </StackPanel>
     </StackPanel>
+    <StackPanel Orientation="Horizontal">
     <StackPanel Margin="0 250 10 0">
       <TextBlock HorizontalAlignment="Left" VerticalAlignment="Bottom" Text="1/1 Creation:" FontSize="20" Margin="0 0 0 5" />
       <Button Width="180" IsEnabled="True" Margin="0 0 0 10" Command="{Binding GenerateOneOfOnesCommand}" Background="#eeed97">
@@ -82,7 +83,11 @@
         </StackPanel>
       </Button>
 
-
+    </StackPanel>
+      <StackPanel Margin="0 250 10 0">
+        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Minting:" FontSize="20" Margin="0 0 0 5" />
+        <Button Width="180" Content="With IPFS" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MintAndPinToIPFSCommand}" />
+      </StackPanel>
     </StackPanel>
   </Panel>
   </Panel>

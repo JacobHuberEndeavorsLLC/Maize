@@ -42,7 +42,7 @@
   <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
     <NumericUpDown Margin="0 0 0 0" Width="105" Watermark="Royalty Percentage" ToolTip.Tip="Percentage of Royalties" Value="{Binding RoyaltyPercentage}" Increment="1" Minimum="0" Maximum="10" />
     <NumericUpDown Margin="10 0 0 0" Width="150" Watermark="Iterations" ToolTip.Tip="Number of 1/1s to create" Value="{Binding TotalIterations}" Increment="1" Minimum="1" />
-    <TextBox Margin="10 0 0 0" Width="200" Watermark="Input Directory" ToolTip.Tip="Sprite's folder location" Text="{Binding InputDirectory}" />
+    <TextBox Margin="10 0 0 0" Width="200" Watermark="Input Directory" ToolTip.Tip="Image's folder location" Text="{Binding InputDirectory}" />
     <Button Width="75" Margin="10 0 0 0" Content="Browse" Command="{Binding OpenFolderCommand}" />
   </StackPanel>
 
