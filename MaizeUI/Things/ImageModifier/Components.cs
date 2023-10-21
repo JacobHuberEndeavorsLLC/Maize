@@ -9,7 +9,7 @@ namespace MaizeUI.Things
         public static HashSet<string> previousHashes = new HashSet<string>(); // Consider persisting this.
         public static List<string> selectedSprites = new List<string>();
 
-        public static void CreateMetadataJsonForSprite(string spriteFilePath, List<string> orderedSprites, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
+        public static void CreateMetadataJsonForSprite(string? metadataFilePath, string spriteFilePath, List<string> orderedSprites, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
         {
             var properties = ExtractPropertiesFromSprites(orderedSprites);
 
@@ -37,6 +37,11 @@ namespace MaizeUI.Things
             string jsonOutput = JsonConvert.SerializeObject(metadata, Formatting.Indented);
             string jsonFilePath = Path.ChangeExtension(spriteFilePath, ".json");
             File.WriteAllText(jsonFilePath, jsonOutput);
+            if (metadataFilePath != null)
+            {
+                jsonFilePath = Path.ChangeExtension(metadataFilePath, ".json");
+                File.WriteAllText(jsonFilePath, jsonOutput);
+            }
         }
         public static bool CheckForDuplicates(List<string> orderedSprites)
         {
@@ -137,7 +142,7 @@ namespace MaizeUI.Things
             })
             .ToList();
         }
-        public static void ProcessSprites(List<string> orderedSprites, string iterationDirectory)
+        public static void ProcessSprites(string nftDirectory, List<string> orderedSprites, string iterationDirectory)
         {
             if (orderedSprites.Count > 0)
             {
@@ -170,7 +175,7 @@ namespace MaizeUI.Things
                         Helpers.SaveResizedSprite(stackedSprite, 3, $"sprite{iterationNumber}_3x.png", iterationDirectory);
 
                         var backgroundColor = Helpers.GetDominantColor(orderedSprites.First());
-                        CreatePFPImageFromSprite(stackedSprite, backgroundColor, iterationDirectory);
+                        CreatePFPImageFromSprite(nftDirectory, stackedSprite, backgroundColor, iterationDirectory);
                     }
                 }
             }
@@ -199,7 +204,7 @@ namespace MaizeUI.Things
                 }
             }
         }
-        public static void ProcessMetadata(List<string> orderedSprites, string iterationDirectory, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
+        public static void ProcessMetadata(string metadataFilePath, List<string> orderedSprites, string iterationDirectory, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
         {
             if (orderedSprites.Count > 0)
             {
@@ -209,7 +214,8 @@ namespace MaizeUI.Things
                     {
                         var iterationNumber = Helpers.GetIterationNumberFromFilePath(iterationDirectory);
                         string outputPath = Path.Combine(iterationDirectory, $"metadata{iterationNumber}.png");
-                        CreateMetadataJsonForSprite(outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                        string metadataOutputPath = Path.Combine(metadataFilePath, $"metadata{iterationNumber}.png");
+                        CreateMetadataJsonForSprite(metadataOutputPath, outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
                     }
                 }
             }
@@ -223,21 +229,21 @@ namespace MaizeUI.Things
                     using (var stackedSprite = new Image<Rgba32>(firstSprite.Width, firstSprite.Height))
                     {
                         string outputPath = Path.Combine(metadataDirectory, $"metadata{iterationNumber}.png");
-                        CreateMetadataJsonForSprite(outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                        CreateMetadataJsonForSprite(null, outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
                     }
                 }
             }
         }
 
-        private static void CreatePFPImageFromSprite(Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory)
+        private static void CreatePFPImageFromSprite(string nftDirectory, Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory)
         {
-            int sectionWidth = 27;
-            int sectionHeight = 27;
+            int sectionWidth = 32;
+            int sectionHeight = 32;
 
-            using (var pfpImage = new Image<Rgba32>(27, 27, backgroundColor))
+            using (var pfpImage = new Image<Rgba32>(32, 32, backgroundColor))
             {
                 // Crop the section from the sprite
-                var spriteSection = sprite.Clone(ctx => ctx.Crop(new Rectangle(6, 28, sectionWidth, sectionHeight)));
+                var spriteSection = sprite.Clone(ctx => ctx.Crop(new Rectangle(0, 256, sectionWidth, sectionHeight)));
 
                 // Overlay the cropped sprite section onto the new image
                 pfpImage.Mutate(ctx => ctx.DrawImage(spriteSection, new Point(0, 0), 1f));
@@ -245,6 +251,10 @@ namespace MaizeUI.Things
                 string pfpFileName = $"pfp{Helpers.GetIterationNumberFromFilePath(baseDirectory)}.png";
                 string pfpPath = Path.Combine(baseDirectory, pfpFileName);
 
+                pfpImage.Save(pfpPath);
+                ResizeImage(pfpPath);
+
+                pfpPath = Path.Combine(nftDirectory, pfpFileName);
                 pfpImage.Save(pfpPath);
                 ResizeImage(pfpPath);
             }

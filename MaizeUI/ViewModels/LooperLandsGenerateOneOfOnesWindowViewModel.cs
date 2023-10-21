@@ -3,15 +3,70 @@ using System.Reactive;
 using System.Text.RegularExpressions;
 using MaizeUI.Things;
 using Maize.Models.ApplicationSpecific;
-using OpenCvSharp;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reactive.Concurrency;
+using Maize.Services;
+using Maize;
+using System.Collections.ObjectModel;
+using Maize.Models.Responses;
 
 namespace MaizeUI.ViewModels
 {
     public class LooperLandsGenerateOneOfOnesWindowViewModel : ViewModelBase
     {
+        private bool _isFeatureEnabled;
+        public bool IsFeatureEnabled
+        {
+            get { return _isFeatureEnabled; }
+            set { this.RaiseAndSetIfChanged(ref _isFeatureEnabled, value); }
+        }
+
+        public LoopringServiceUI loopringService;
+
+        public LoopringServiceUI LoopringService
+        {
+            get => loopringService;
+            set => this.RaiseAndSetIfChanged(ref loopringService, value);
+        }
+
+        public Settings settings;
+
+        public Settings Settings
+        {
+            get => settings;
+            set => this.RaiseAndSetIfChanged(ref settings, value);
+        }
+
+        private ObservableCollection<string> _collectionNames;
+        public ObservableCollection<string> CollectionNames
+        {
+            get => _collectionNames;
+            set => this.RaiseAndSetIfChanged(ref _collectionNames, value);
+        }
+
+        private string _selectedCollection;
+        public string SelectedCollection
+        {
+            get => _selectedCollection;
+            set
+            {
+                string oldValue = _selectedCollection;
+                _selectedCollection = value;
+                bool isChanged = !string.Equals(oldValue, value);
+
+                if (isChanged)
+                {
+                    this.RaiseAndSetIfChanged(ref _selectedCollection, value); // Assuming this triggers UI or other updates
+
+                    if (_collectionNameAddressMap.ContainsKey(value))
+                    {
+                        SelectedCollectionAddress = _collectionNameAddressMap[value];
+                    }
+                }
+            }
+        }
+        public string SelectedCollectionAddress { get; private set; }
         public event Action RequestOpenFolder;
         public string HelpButtonText { get; set; } = "Help";
         public string ProcessButtonText { get; set; } = "Process";
@@ -37,12 +92,6 @@ namespace MaizeUI.ViewModels
         {
             get => inputDirectory;
             set => this.RaiseAndSetIfChanged(ref inputDirectory, value);
-        }
-        public string collectionAddress;
-        public string CollectionAddress
-        {
-            get => collectionAddress;
-            set => this.RaiseAndSetIfChanged(ref collectionAddress, value);
         }
         public int totalIterations;
 
@@ -80,14 +129,45 @@ namespace MaizeUI.ViewModels
             get => _log;
             set => this.RaiseAndSetIfChanged(ref _log, value);
         }
-
+        private async Task InitializeAsync()
+        {
+            await FetchCollectionNamesFromApi();
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
         public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
         public ReactiveCommand<Unit, Unit> GenerateSpritesCommand { get; }
 
-        public LooperLandsGenerateOneOfOnesWindowViewModel()
+        public LooperLandsGenerateOneOfOnesWindowViewModel(Settings settings, LoopringServiceUI loopringService)
         {
+            this.settings = settings;
+            this.loopringService = loopringService;
+            InitializeAsync();
+            LoadCollectionNames();
             OpenFolderCommand = ReactiveCommand.CreateFromTask(() => OpenFolder());
             GenerateSpritesCommand = ReactiveCommand.CreateFromTask(() => GenerateAndProcessSprites());
+        }
+        private async void LoadCollectionNames()
+        {
+            await FetchCollectionNamesFromApi();
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
+
+        private Dictionary<string, string> _collectionNameAddressMap = new Dictionary<string, string>();
+        private async Task FetchCollectionNamesFromApi()
+        {
+            List<CollectionMinted> userCollections = await loopringService.GetUserMintedCollections(settings.LoopringApiKey, settings.LoopringAddress);
+
+            if (userCollections != null)
+            {
+                foreach (var collectionMinted in userCollections)
+                {
+                    if (collectionMinted?.collection != null)
+                    {
+                        _collectionNameAddressMap[collectionMinted.collection.name] = collectionMinted.collection.collectionAddress;
+                    }
+                }
+            }
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
         }
         public async Task OpenFolder()
         {
@@ -117,6 +197,7 @@ namespace MaizeUI.ViewModels
         }
         private async Task GenerateAndProcessSprites()
         {
+            var collectionAddress = SelectedCollectionAddress;
             List<List<string>> allOrderedSprites = new List<List<string>>();
             Dictionary<string, int> spriteFrequency = new Dictionary<string, int>();
             string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}{collectionAddress}";
@@ -127,12 +208,13 @@ namespace MaizeUI.ViewModels
             {
                 for (int i = 1; i <= totalIterations; i++)
                 {
-                    bool isUnique;
                     bool meetConstraint;
                     do
                     {
+                        bool isUnique = true;
                         List<string> orderedSprites = Components.StackRandomSpritesFromSubdirectories(inputDirectory);
-                        isUnique = Components.CheckForDuplicates(orderedSprites);
+                        if (!_isFeatureEnabled)
+                            isUnique = Components.CheckForDuplicates(orderedSprites);
 
                         // Temporary dictionary to hold the frequency counts for this iteration
                         Dictionary<string, int> tempSpriteFrequency = new Dictionary<string, int>(spriteFrequency);
@@ -191,15 +273,23 @@ namespace MaizeUI.ViewModels
 
             await Task.Run(() =>
             {
+                string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                string iterationsDirectory = Path.Combine(outputDirectory, $"Iterations_{timestamp}");
+                string metadataDirectory = Path.Combine(outputDirectory, $"Metadatas_{timestamp}");
+                string nftDirectory = Path.Combine(outputDirectory, $"NFTs_{timestamp}");
+                Directory.CreateDirectory(iterationsDirectory);
+                Directory.CreateDirectory(metadataDirectory);
+                Directory.CreateDirectory(nftDirectory);
+
                 for (int i = 0; i < allOrderedSprites.Count; i++)
                 {
-                    string iterationDirectory = Path.Combine(outputDirectory, $"Iteration_{i + 1}");
+                    string iterationDirectory = Path.Combine(iterationsDirectory, $"Iteration_{i + 1}");
                     Directory.CreateDirectory(iterationDirectory); // Create unique folder for this iteration
                     var nftName = $"{NftName} #{Things.Helpers.GetIterationNumberFromFilePath(iterationDirectory)}";
 
                     List<string> orderedSprites = allOrderedSprites[i];
-                    Components.ProcessMetadata(orderedSprites, iterationDirectory, collectionAddress, royaltyPercentage, nftName, nftDescription);
-                    Components.ProcessSprites(orderedSprites, iterationDirectory);
+                    Components.ProcessMetadata(metadataDirectory, orderedSprites, iterationDirectory, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                    Components.ProcessSprites(nftDirectory, orderedSprites, iterationDirectory);
                     if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
                     {
                         RxApp.MainThreadScheduler.Schedule(() => Log = $"Creating: {i}/{totalIterations}");

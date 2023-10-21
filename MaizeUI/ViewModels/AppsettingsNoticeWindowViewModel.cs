@@ -210,25 +210,37 @@ namespace MaizeUI.ViewModels
             {
                 isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.Settings.LoopringAccountId);
                 walletType = await loopringService.GetWalletType(settings.Settings.LoopringAddress);
-                if (isCounterFactual == null && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+                try
                 {
-                    IsEoaTextBoxVisible = true;
-                    IsLswTextBoxVisible = false;
-                    IsEnabled = true;
+                    if (isCounterFactual == null && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
+                    {
+                        IsEoaTextBoxVisible = true;
+                        IsLswTextBoxVisible = false;
+                        IsEnabled = true;
+                    }
+                    else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
+                    {
+                        IsLswTextBoxVisible = false;
+                        IsEoaTextBoxVisible = false;
+                        settings.Settings.MMorGMEPrivateKey = "";
+                        IsEnabled = true;
+                    }
+                    else
+                    {
+                        IsLswTextBoxVisible = true;
+                        IsEoaTextBoxVisible = false;
+                        IsEnabled = true;
+                    }
                 }
-                else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
+                catch (Exception e)
                 {
-                    IsLswTextBoxVisible = false;
-                    IsEoaTextBoxVisible = false;
-                    settings.Settings.MMorGMEPrivateKey = "";
-                    IsEnabled = true;
-                }
-                else
-                {
+                    // old LSW
                     IsLswTextBoxVisible = true;
                     IsEoaTextBoxVisible = false;
                     IsEnabled = true;
+
                 }
+
             }
         }
         static string QRCodeDecrypt(byte[] mnemonic, byte[] iv, byte[] salt, string passphrase)

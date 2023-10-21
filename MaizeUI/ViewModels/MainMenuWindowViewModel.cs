@@ -215,17 +215,14 @@ namespace MaizeUI.ViewModels
             Website.OpenWebsite("https://maizehelps.art/docs");
         }
         private async void LooperLandsGenerateOneOfOnes()
-        {
-            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
+        {            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
             if (premiumAccess == false)
             {
                 Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                 return;
             }
             var dialog = new LooperLandsGenerateOneOfOnesWindow();
-            dialog.DataContext = new LooperLandsGenerateOneOfOnesWindowViewModel
-            {
-            };
+            dialog.DataContext = new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
@@ -238,9 +235,7 @@ namespace MaizeUI.ViewModels
                 return;
             }
             var dialog = new GenerateOneOfOnesWindow();
-            dialog.DataContext = new GenerateOneOfOnesWindowViewModel
-            {
-            };
+            dialog.DataContext = new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }

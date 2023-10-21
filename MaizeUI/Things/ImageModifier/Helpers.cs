@@ -7,7 +7,9 @@ namespace MaizeUI.Things
 {
     public class Helpers
     {
-        public static Random rng = new Random();
+        private static readonly Random rng = new Random();
+        private const int RandomChanceThreshold = 32;
+        private const string ImageExtension = "*.png";
 
         public static void ResizeImage(string filePath)
         {
@@ -84,17 +86,11 @@ namespace MaizeUI.Things
         public static List<string> SelectSpritesFromDirectory(string directory)
         {
             List<string> selectedSprites = new List<string>();
-
             var subDirectories = Directory.GetDirectories(directory).ToList();
 
-            if (subDirectories.Count == 3)
-            {
-                selectedSprites.AddRange(HandleThreeSubDirectories(subDirectories));
-            }
-            else
-            {
-                selectedSprites.AddRange(HandleGeneralCase(directory, rng));
-            }
+            selectedSprites.AddRange(subDirectories.Count == 3 ?
+                HandleThreeSubDirectories(subDirectories) :
+                HandleGeneralCase(directory));
 
             return selectedSprites;
         }
@@ -103,64 +99,40 @@ namespace MaizeUI.Things
             List<string> selected = new List<string>();
             var pairedDirectories = subDirectories.Where(dir => dir.EndsWith("&")).ToList();
             var standaloneDirectory = subDirectories.Except(pairedDirectories).FirstOrDefault();
-            int randomChance = rng.Next(100);
 
-            if (randomChance <= 32 && standaloneDirectory != null)
+            if (rng.Next(100) <= RandomChanceThreshold && standaloneDirectory != null)
             {
                 selected.AddRange(SelectRandomFromDirectory(standaloneDirectory));
             }
-            else
+            else if (pairedDirectories.Count == 2)
             {
-                if (pairedDirectories.Count == 2)
-                {
-                    selected.AddRange(SelectRandomFromDirectory(pairedDirectories[0]));
-                    selected.AddRange(SelectRandomFromDirectory(pairedDirectories[1]));
-                }
+                selected.AddRange(SelectRandomFromDirectory(pairedDirectories[0]));
+                selected.AddRange(SelectRandomFromDirectory(pairedDirectories[1]));
             }
+
             return selected;
         }
-        private static List<string> HandleGeneralCase(string directory, Random rng)
+        private static List<string> HandleGeneralCase(string directory)
         {
             return SelectRandomFromDirectory(directory);
         }
         private static List<string> SelectRandomFromDirectory(string directory)
         {
             List<string> selected = new List<string>();
-            var allFiles = Directory.GetFiles(directory, "*.png")
-                                    .Where(file => !Path.GetFileName(file).Contains("="))
-                                    .ToArray();
+            var allFiles = Directory.GetFiles(directory, ImageExtension)
+                                     .Where(file => !Path.GetFileName(file).Contains("="))
+                                     .ToArray();
+
             if (allFiles.Length > 0)
             {
-                using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
+                int randomIndex = rng.Next(allFiles.Length);
+                if (randomIndex >= 0 && randomIndex < allFiles.Length)
                 {
-                    byte[] randomNumber = new byte[4];
-                    crypto.GetBytes(randomNumber);
-                    int randomIndex = Math.Abs(BitConverter.ToInt32(randomNumber, 0)) % allFiles.Length;
-
-                    // Ensure the index is within the bounds of the array
-                    if (randomIndex >= 0 && randomIndex < allFiles.Length)
-                    {
-                        var randomSprite = allFiles[randomIndex];
-                        selected.Add(randomSprite);
-                    }
+                    selected.Add(allFiles[randomIndex]);
                 }
             }
+
             return selected;
         }
-
-
-        //private static List<string> SelectRandomFromDirectory(string directory, Random rng)
-        //{
-        //    List<string> selected = new List<string>();
-        //    var allFiles = Directory.GetFiles(directory, "*.png")
-        //                            .Where(file => !Path.GetFileName(file).Contains("="))
-        //                            .ToArray();
-        //    if (allFiles.Length > 0)
-        //    {
-        //        var randomSprite = allFiles[rng.Next(allFiles.Length)];
-        //        selected.Add(randomSprite);
-        //    }
-        //    return selected;
-        //}
     }
 }

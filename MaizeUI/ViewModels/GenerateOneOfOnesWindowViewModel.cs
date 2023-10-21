@@ -6,11 +6,59 @@ using Maize.Models.ApplicationSpecific;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reactive.Concurrency;
+using System.Collections.ObjectModel;
+using Maize.Services;
+using Maize;
+using Maize.Models.Responses;
 
 namespace MaizeUI.ViewModels
 {
     public class GenerateOneOfOnesWindowViewModel : ViewModelBase
     {
+        public LoopringServiceUI loopringService;
+
+        public LoopringServiceUI LoopringService
+        {
+            get => loopringService;
+            set => this.RaiseAndSetIfChanged(ref loopringService, value);
+        }
+
+        public Settings settings;
+
+        public Settings Settings
+        {
+            get => settings;
+            set => this.RaiseAndSetIfChanged(ref settings, value);
+        }
+        private ObservableCollection<string> _collectionNames;
+        public ObservableCollection<string> CollectionNames
+        {
+            get => _collectionNames;
+            set => this.RaiseAndSetIfChanged(ref _collectionNames, value);
+        }
+
+        private string _selectedCollection;
+        public string SelectedCollection
+        {
+            get => _selectedCollection;
+            set
+            {
+                string oldValue = _selectedCollection;
+                _selectedCollection = value;
+                bool isChanged = !string.Equals(oldValue, value);
+
+                if (isChanged)
+                {
+                    this.RaiseAndSetIfChanged(ref _selectedCollection, value); // Assuming this triggers UI or other updates
+
+                    if (_collectionNameAddressMap.ContainsKey(value))
+                    {
+                        SelectedCollectionAddress = _collectionNameAddressMap[value];
+                    }
+                }
+            }
+        }
+        public string SelectedCollectionAddress { get; private set; }
         public event Action RequestOpenFolder;
         public string HelpButtonText { get; set; } = "Help";
         public string ProcessButtonText { get; set; } = "Process";
@@ -36,12 +84,6 @@ namespace MaizeUI.ViewModels
         {
             get => inputDirectory;
             set => this.RaiseAndSetIfChanged(ref inputDirectory, value);
-        }
-        public string collectionAddress;
-        public string CollectionAddress
-        {
-            get => collectionAddress;
-            set => this.RaiseAndSetIfChanged(ref collectionAddress, value);
         }
         public int totalIterations;
 
@@ -79,15 +121,48 @@ namespace MaizeUI.ViewModels
             get => _log;
             set => this.RaiseAndSetIfChanged(ref _log, value);
         }
+        private async Task InitializeAsync()
+        {
+            await FetchCollectionNamesFromApi();
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
 
         public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
         public ReactiveCommand<Unit, Unit> GenerateNftsCommand { get; }
 
-        public GenerateOneOfOnesWindowViewModel()
+        public GenerateOneOfOnesWindowViewModel(Settings settings, LoopringServiceUI loopringService)
         {
+            this.settings = settings;
+            this.loopringService = loopringService;
+            InitializeAsync();
+            LoadCollectionNames();
             OpenFolderCommand = ReactiveCommand.CreateFromTask(() => OpenFolder());
             GenerateNftsCommand = ReactiveCommand.CreateFromTask(() => GenerateAndProcessNfts());
         }
+        private async void LoadCollectionNames()
+        {
+            await FetchCollectionNamesFromApi();
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
+
+        private Dictionary<string, string> _collectionNameAddressMap = new Dictionary<string, string>();
+        private async Task FetchCollectionNamesFromApi()
+        {
+            List<CollectionMinted> userCollections = await loopringService.GetUserMintedCollections(settings.LoopringApiKey, settings.LoopringAddress);
+
+            if (userCollections != null)
+            {
+                foreach (var collectionMinted in userCollections)
+                {
+                    if (collectionMinted?.collection != null)
+                    {
+                        _collectionNameAddressMap[collectionMinted.collection.name] = collectionMinted.collection.collectionAddress;
+                    }
+                }
+            }
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
+
         public async Task OpenFolder()
         {
             // You'll trigger an event here that will be caught in your View's code-behind
@@ -116,6 +191,7 @@ namespace MaizeUI.ViewModels
         }
         private async Task GenerateAndProcessNfts()
         {
+            var collectionAddress = SelectedCollectionAddress;
             List<List<string>> allOrderedLayers = new List<List<string>>();
             Dictionary<string, int> spriteFrequency = new Dictionary<string, int>();
             string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}{collectionAddress}";

@@ -9,6 +9,7 @@ using System.Text;
 using Maize.Models;
 using Maize.Models.Responses;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace MaizeUI.ViewModels
 {
@@ -508,9 +509,10 @@ namespace MaizeUI.ViewModels
         }
         public static async Task<decimal> CurrentTokenPriceInUsd(ILoopringService LoopringService, string maizeFee)
         {
+            var culture = new CultureInfo("en-US");
             var varHexAddress = await LoopringService.GetTokens();
-            var currentFeePrice = (await LoopringService.GetTokenPrice()).data.Where(x=>x.token == varHexAddress.FirstOrDefault(x=>x.symbol == maizeFee).address).FirstOrDefault().price;
-            var convertToOneUsd = 1 / decimal.Parse(currentFeePrice);
+            var currentFeePrice = (await LoopringService.GetTokenPrice()).data.FirstOrDefault(x =>x.token == varHexAddress.FirstOrDefault(x=>x.symbol == maizeFee).address).price;
+            var convertToOneUsd = 1 / decimal.Parse(currentFeePrice, culture);
             
             return convertToOneUsd;
         }

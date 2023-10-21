@@ -20,6 +20,20 @@ namespace MaizeUI.ViewModels
         public List<string> MaizeFeeDropdown { get; }
         public string LoopringFeeSelectedOption { get; set; }
         public string MaizeFeeSelectedOption { get; set; }
+        public string RoyaltyWalletAddresses { get; set; }
+
+        private bool _isTextAndSkipVisible = true;
+        public bool IsTextAndSkipVisible
+        {
+            get => _isTextAndSkipVisible;
+            set => this.RaiseAndSetIfChanged(ref _isTextAndSkipVisible, value);
+        }        
+        private bool lockForMinting = false;
+        public bool LockForMinting
+        {
+            get => lockForMinting;
+            set => this.RaiseAndSetIfChanged(ref lockForMinting, value);
+        }
 
         private bool step1;
         private bool step2 = false;
@@ -74,6 +88,12 @@ namespace MaizeUI.ViewModels
             get => processButtonText;
             set => this.RaiseAndSetIfChanged(ref processButtonText, value);
         }
+        public string skipButtonText = "Metadata ready? 👉";
+        public string SkipButtonText
+        {
+            get => skipButtonText;
+            set => this.RaiseAndSetIfChanged(ref skipButtonText, value);
+        }
         private string stepDescription;
         public string StepDescription
         {
@@ -126,7 +146,7 @@ namespace MaizeUI.ViewModels
         }
 
         public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
-        public ReactiveCommand<Unit, Unit> MintAndPinCommand { get; }
+        public ReactiveCommand<string, Unit> MintAndPinCommand { get; }
 
         public int maxFeeTokenId;
         private Minter minter;
@@ -143,26 +163,35 @@ namespace MaizeUI.ViewModels
             LoopringFeeSelectedOption = LoopringFeeDropdown[0];
             MaizeFeeSelectedOption = MaizeFeeDropdown[0];
             OpenFolderCommand = ReactiveCommand.CreateFromTask(() => OpenFolder());
-            MintAndPinCommand = ReactiveCommand.CreateFromTask(() => MintAndPinToIPFS(minter));
+            MintAndPinCommand = ReactiveCommand.CreateFromTask<string>(parameter => MintAndPinToIPFS(minter, parameter));
         }
-        public async Task MintAndPinToIPFS(Minter minter)
+        public async Task MintAndPinToIPFS(Minter minter, string action)
         {
-            var isNulls = CheckForNullsStepOne(nftFolderCid, inputDirectory, LoopringFeeSelectedOption, LoopringFeeDropdown, MaizeFeeSelectedOption, MaizeFeeDropdown);
-            if (isNulls)
-                return;
-            
-            string[] allSubDirectories = Directory.GetDirectories(inputDirectory);
-
-            string metadataPath = allSubDirectories.FirstOrDefault(dir => dir.StartsWith(Path.Combine(inputDirectory, "Metadatas")));
-            string nftPath = allSubDirectories.FirstOrDefault(dir => dir.StartsWith(Path.Combine(inputDirectory, "NFTs")));
-
-            if (string.IsNullOrEmpty(metadataPath) || string.IsNullOrEmpty(nftPath))
+            if (action == "Skip")
             {
-                Log = "The selected folder must contain subfolders starting with 'Metadatas' and 'NFTs'.";
+                if (LoopringFeeSelectedOption == LoopringFeeDropdown[0] || MaizeFeeSelectedOption == MaizeFeeDropdown[0])
+                {
+                    SkipButtonText = "Select Fees ☝️";
+                    return;
+                }
+                SetMetadataUploadStep("Fees");
                 return;
             }
-            if (step1)
+            else if (step1 == true)
             {
+                var isNulls = CheckForNullsStepOne(nftFolderCid, inputDirectory, LoopringFeeSelectedOption, LoopringFeeDropdown, MaizeFeeSelectedOption, MaizeFeeDropdown);
+                if (isNulls)
+                    return;
+                string[] allSubDirectories = Directory.GetDirectories(inputDirectory);
+
+                string metadataPath = allSubDirectories.FirstOrDefault(dir => dir.StartsWith(Path.Combine(inputDirectory, "Metadatas")));
+                string nftPath = allSubDirectories.FirstOrDefault(dir => dir.StartsWith(Path.Combine(inputDirectory, "NFTs")));
+
+                if (string.IsNullOrEmpty(metadataPath) || string.IsNullOrEmpty(nftPath))
+                {
+                    Log = "The selected folder must contain subfolders starting with 'Metadatas' and 'NFTs'.";
+                    return;
+                }
 
                 var lineCount = Directory.GetFiles(metadataPath).Length;
                 maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;
@@ -175,14 +204,14 @@ namespace MaizeUI.ViewModels
 
                 if (!canAfford.Item1)
                 {
-                    Log = ($"Check your balance. Your Assets:\r\n{canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\nIt will cost around " +
+                    Log = ($"⚠️ Insufficient Funds ⚠️\r\n💰 Your Assets: {canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\n🚨🚨 It will cost around " +
                             $"{feeAmount / 1000000000000000000m} {LoopringFeeSelectedOption} to mint {lineCount} NFTs with a Maize Fee of {maizeFee} {MaizeFeeSelectedOption}");
                     return;
                 }
 
                 await ProcessMetadataFilesAsync(metadataPath, nftFolderCid);
 
-                Log = ($"Metadata Files updated:\r\nReview them at {metadataPath}.\r\n\r\nYour Assets:\r\n{canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\nIt will cost around " +
+                Log = ($"📁 Metadata Files updated 📁\r\nReview them at {metadataPath}.\r\n\r\n💰 Your Assets:\r\n{canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\n🚨🚨 It will cost around " +
                         $"{feeAmount / 1000000000000000000m} {LoopringFeeSelectedOption} to mint {lineCount} NFTs with a Maize Fee of {maizeFee} {MaizeFeeSelectedOption}");
                 return;
             }
@@ -193,6 +222,26 @@ namespace MaizeUI.ViewModels
                 return;
             }
             var metadataInformation = await IpfsHttpHelper.GetFolderDetails(metadataFolderCid);
+            if (ProcessButtonText == "Fees")
+            {
+                var offChainFee = await minter.GetMintFee(settings.LoopringApiKey, settings.LoopringAccountId, settings.LoopringAddress, Environment.NftFactoryCollection, null);
+                var fee = offChainFee.fees[maxFeeTokenId].fee;
+                decimal feeAmount = metadataInformation.cids.Count * decimal.Parse(fee);
+                var maizeFee = await Calculations.CalculateMaizeFee(LoopringService, metadataInformation.cids.Count, MaizeFeeSelectedOption);
+                var canAfford = await Calculations.CanUserAfford(loopringService, settings, MaizeFeeSelectedOption, LoopringFeeSelectedOption, maizeFee, feeAmount / 1000000000000000000m);
+
+                if (!canAfford.Item1)
+                {
+                    Log = ($"⚠️ Insufficient Funds ⚠️\r\n💰 Your Assets: {canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\n🚨🚨 It will cost around " +
+                            $"{feeAmount / 1000000000000000000m} {LoopringFeeSelectedOption} to mint {metadataInformation.cids.Count} NFTs with a Maize Fee of {maizeFee} {MaizeFeeSelectedOption}");
+                    return;
+                }
+                Log = ($"💰 Your Assets:\r\n{canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\n🚨🚨 It will cost around " +
+                            $"{feeAmount / 1000000000000000000m} {LoopringFeeSelectedOption} to mint {metadataInformation.cids.Count} NFTs with a Maize Fee of {maizeFee} {MaizeFeeSelectedOption}");
+                ProcessButtonText = "Mint";
+                LockForMinting = true;
+                return;
+            }
             await MintCids(metadataInformation.cids, metadataInformation.royaltyPercentage, metadataInformation.collectionAddress);
         }
         private static bool CheckForNullsStepOne(string nftFolderCid, string inputDirectory, string LoopringFeeSelectedOption, List<string> LoopringFeeDropdown, string MaizeFeeSelectedOption, List<string> MaizeFeeDropdown)
@@ -208,20 +257,25 @@ namespace MaizeUI.ViewModels
         private async Task ProcessMetadataFilesAsync(string metadataPath, string nftFolderCid)
         {
             MetadataModifier.UpdateMetadataFiles(metadataPath, nftFolderCid);
+            SetMetadataUploadStep("Mint");
+        }
+        private void SetMetadataUploadStep(string processButton)
+        {
             StepDescription = "2: Upload your Metadatas folder to IPFS and provide the folder's CID.";
-            ProcessButtonText = "Mint";
+            ProcessButtonText = processButton;
             Step1 = false;
             Step2 = true;
+            IsTextAndSkipVisible = false;
         }
-
-
         private async Task MintCids(List<string> cids, int royaltyPercentage, string collectionContractAddress)
         {
+            List<string> royaltyAddressesForCids = new List<string>(); // This list will store the royaltyAddress for each cid.
+
+            List<string> inputAddresses = string.IsNullOrEmpty(RoyaltyWalletAddresses) ? new List<string>() : RoyaltyWalletAddresses.Split(',').Select(a => a.Trim()).ToList();
+
             var sw = Stopwatch.StartNew();
-            string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}";
             var validUntil = ApplicationUtilitiesUI.GetUnixTimestamp() + (int)TimeSpan.FromDays(365).TotalSeconds;
             var maxFeeTokenId = 1;
-            var royaltyAddress = "";
 
             NftTransferAuditInformation auditInfo = new NftTransferAuditInformation();
             auditInfo.validAddress = new List<string>();
@@ -236,9 +290,37 @@ namespace MaizeUI.ViewModels
             if (settings.MMorGMEPrivateKey == "")
                 isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.LoopringAccountId);
 
-            if (string.IsNullOrEmpty(royaltyAddress))
+            if (inputAddresses.Count == 0)
             {
-                royaltyAddress = settings.LoopringAddress;
+                royaltyAddressesForCids = Enumerable.Repeat(settings.LoopringAddress, cids.Count).ToList();
+            }
+            else if (inputAddresses.Count == 1)
+            {
+                royaltyAddressesForCids = Enumerable.Repeat(inputAddresses[0], cids.Count).ToList();
+            }
+            else
+            {
+                int numAddresses = inputAddresses.Count;
+                int numCids = cids.Count;
+                int baseCidsPerAddress = numCids / numAddresses;
+                int remainder = numCids % numAddresses;
+
+                for (int i = 0; i < numAddresses; i++)
+                {
+                    int cidsForCurrentAddress = baseCidsPerAddress + (i < remainder ? 1 : 0);
+                    royaltyAddressesForCids.AddRange(Enumerable.Repeat(inputAddresses[i], cidsForCurrentAddress));
+                }
+
+                Random rng = new Random();
+                int n = royaltyAddressesForCids.Count;
+                while (n > 1)
+                {
+                    n--;
+                    int k = rng.Next(n + 1);
+                    var value = royaltyAddressesForCids[k];
+                    royaltyAddressesForCids[k] = royaltyAddressesForCids[n];
+                    royaltyAddressesForCids[n] = value;
+                }
             }
 
             var lineCount = cids.Count();
@@ -255,9 +337,11 @@ namespace MaizeUI.ViewModels
 
             Log = ($"Minting started on {collectionContractAddress}...");
 
-            foreach (var cid in cids)
+            List<(string cid, string royaltyAddress)> cidAddressPairs = new List<(string, string)>();
+            foreach (var (cid, royaltyAddress) in cids.Zip(royaltyAddressesForCids, (cid, royaltyAddress) => (cid, royaltyAddress)))
             {
                 string currentCid = cid.Trim();
+                cidAddressPairs.Add((currentCid, royaltyAddress));
                 count++;
                 Log = ($"Attempting mint {count} out of {lineCount} NFTs");
                 var mintResponse = await minter.MintCollection(settings.LoopringApiKey, settings.LoopringPrivateKey, settings.LoopringAddress, settings.LoopringAccountId, 0, royaltyPercentage, nftAmount, validUntil, maxFeeTokenId, Environment.NftFactoryCollection, Environment.Exchange, currentCid, collectionResult.collections[0].collection.baseUri, collectionContractAddress, royaltyAddress);
@@ -304,6 +388,19 @@ namespace MaizeUI.ViewModels
             var fileName = ApplicationUtilitiesUI.ShowAirdropAudit(auditInfo.validAddress, auditInfo.invalidAddress, auditInfo.banishAddress, auditInfo.invalidNftData, auditInfo.alreadyActivatedAddress, "MINT", auditInfo.gasFeeTotal, LoopringFeeSelectedOption, maizeFee, MaizeFeeSelectedOption);
             sw.Stop();
             var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
+            string csvFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}Output\\cid_address_pairs.csv";
+            using (StreamWriter sw2 = new StreamWriter(csvFilePath))
+            {
+                // Write header
+                sw2.WriteLine("CID,Address");
+
+                // Write each pair
+                foreach (var (cid, royaltyAddress) in cidAddressPairs)
+                {
+                    sw2.WriteLine($"{cid},{royaltyAddress}");
+                }
+            }
+            ApplicationUtilitiesUI.OpenFile(csvFilePath);
             Log = $"{swTime}\r\n\r\nYour audit file is here:\r\n\r\n{fileName}";
         }
         public async Task OpenFolder()

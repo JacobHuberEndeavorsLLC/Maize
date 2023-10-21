@@ -37,7 +37,13 @@
     <TextBox Text="{Binding NftDescription}" Watermark="NFT Description" ToolTip.Tip="Description for the NFTs" IsReadOnly="False" TextWrapping="Wrap" Height="75" />
   </ScrollViewer>
   <!--<TextBox Margin="0 0 0 10" Watermark="NFT Description" ToolTip.Tip="Description for the NFTs" Text="{Binding NftDescription}" />-->
-  <TextBox Margin="0 0 0 10" Watermark="Collection Address" ToolTip.Tip="Blockchain Address for the Collection" Text="{Binding CollectionAddress}" />
+  <!--<TextBox Margin="0 0 0 10" Watermark="Collection Address" ToolTip.Tip="Blockchain Address for the Collection" Text="{Binding CollectionAddress}" />-->
+  <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
+    <ComboBox ItemsSource="{Binding CollectionNames}"
+          SelectedItem="{Binding SelectedCollection}" ToolTip.Tip="Select a Collection" Width="200" />
+    <CheckBox Content="Allow Duplicates" IsChecked="{Binding IsFeatureEnabled}" VerticalAlignment="Top" Margin="10 0 0 0"/>
+  </StackPanel>
+
 
   <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
     <NumericUpDown Margin="0 0 0 0" Width="105" Watermark="Royalty Percentage" ToolTip.Tip="Percentage of Royalties" Value="{Binding RoyaltyPercentage}" Increment="1" Minimum="0" Maximum="10" />

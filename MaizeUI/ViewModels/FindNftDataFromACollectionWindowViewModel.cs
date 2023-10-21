@@ -145,8 +145,9 @@ namespace MaizeUI.ViewModels
             var collectionsNftsInformation = nftData.Select(m => new
             {
                 name = m.metadata.basename.name,
-                description = m.metadata.basename.description,
                 nftData = m.nftData,
+                m.total,
+                m.royaltyAddress,
                 metadataCid = m.metadata.uri.Replace("ipfs://", ""),
                 nftId = m.nftId,
                 minter = m.minter,
@@ -285,7 +286,7 @@ namespace MaizeUI.ViewModels
                     }
                 }
                 Thread.Sleep(1000);
-                var collectionsNftsInformation = allCollectionsNfts.Select(m => new { m.metadata.basename.name, m.metadata.basename.description, m.nftData, m.nftId, m.minter, m.tokenAddress, m.metadata.basename.properties }).ToList();
+                var collectionsNftsInformation = allCollectionsNfts.Select(m => new { m.metadata.basename.name, m.nftData, m.total, m.royaltyAddress, metadataCid = m.metadata.uri.Replace("ipfs://", ""), m.nftId, m.minter, m.tokenAddress, m.metadata.basename.properties }).ToList();
                 var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftInfoFromCollection", collectionsNftsInformation);
 
             }
