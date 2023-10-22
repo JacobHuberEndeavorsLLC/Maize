@@ -24,7 +24,7 @@
     <PackageReference Include="Nethereum.Signer.EIP712" Version="4.1.1" />
     <PackageReference Include="Nethereum.Web3" Version="4.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="PoseidonSharp" Version="1.0.0" />
+    <PackageReference Include="PoseidonSharp" Version="1.0.7" />
     <PackageReference Include="RestSharp" Version="110.2.0" />
     <PackageReference Include="SwiftExcel" Version="1.0.14" />
   </ItemGroup>
