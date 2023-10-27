@@ -200,7 +200,7 @@ namespace MaizeUI.ViewModels
             var collectionAddress = SelectedCollectionAddress;
             List<List<string>> allOrderedSprites = new List<List<string>>();
             Dictionary<string, int> spriteFrequency = new Dictionary<string, int>();
-            string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}{collectionAddress}";
+            string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}/{collectionAddress}";
             Directory.CreateDirectory(outputDirectory);
             var sw = Stopwatch.StartNew();
 

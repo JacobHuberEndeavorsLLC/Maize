@@ -38,7 +38,7 @@
             SelectedItem="{Binding LoopringFeeSelectedOption}" />
 
       <ComboBox Margin="10 0 10 10" IsEnabled="{Binding IsComboBoxEnabled}" ItemsSource="{Binding MaizeFeeDropdown}"
-                SelectedItem="{Binding MaizeFeeSelectedOption}" ToolTip.Tip="0.001 USD per transfer" />
+                SelectedItem="{Binding MaizeFeeSelectedOption}" ToolTip.Tip="0.002 USD per transfer" />
       <CheckBox Margin="10 0 10 10" IsVisible="{Binding IsCheckboxVisible}" VerticalAlignment="Top" HorizontalAlignment="Right" IsEnabled="{Binding IsEnabledCheckBox}" IsChecked="{Binding IsChecked}" Content="Pay Activation Fee" />
       <TextBlock Margin="10 7 10 10" IsVisible="{Binding IsFeeInfoVisible}" VerticalAlignment="Top" HorizontalAlignment="Right" Text="{Binding Notice2}" />
       

@@ -13,7 +13,7 @@
         public const string EnvironmentPath = "Input/Environment/";
         public const string InputFile = "Input.txt";
         public const string BanishFile = "Banish.txt";
-        public const decimal LcrTransactionFee = 0.001m;
+        public const decimal LcrTransactionFee = 0.002m;
         public static Environment GetNetworkConfig(int variable)
         {
             if (variable == 1)

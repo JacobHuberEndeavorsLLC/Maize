@@ -62,6 +62,9 @@
     <Compile Update="Views\AirdropNftsToUsersWindow.axaml.cs">
       <DependentUpon>AirdropNftsToUsersWindow.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\MintWindow.axaml.cs">
+      <DependentUpon>MintWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\MintAndPinToIPFSWindow.axaml.cs">
       <DependentUpon>MintAndPinToIPFSWindow.axaml</DependentUpon>
     </Compile>

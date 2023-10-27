@@ -9,7 +9,7 @@ namespace MaizeUI.Things
         public static HashSet<string> previousHashes = new HashSet<string>(); // Consider persisting this.
         public static List<string> selectedSprites = new List<string>();
 
-        public static void CreateMetadataJsonForSprite(string? metadataFilePath, string spriteFilePath, List<string> orderedSprites, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
+        public static void CreateMetadataJsonForSprite(string? metadataFilePath, string spriteFilePath, List<string> orderedSprites, int royaltyPercentage, string nftName, string nftDescription)
         {
             var properties = ExtractPropertiesFromSprites(orderedSprites);
 
@@ -27,7 +27,7 @@ namespace MaizeUI.Things
                 name = nftName,
                 royalty_percentage = royaltyPercentage,
                 description = nftDescription,
-                collection_metadata = $"https://nftinfos.loopring.io/{collectionAddress}",
+                collection_metadata = $"https://nftinfos.loopring.io/COLLECTION_PLACEHOLDER",
                 mint_channel = "Maize",
                 properties = properties,
                 attributes = attributes
@@ -215,12 +215,12 @@ namespace MaizeUI.Things
                         var iterationNumber = Helpers.GetIterationNumberFromFilePath(iterationDirectory);
                         string outputPath = Path.Combine(iterationDirectory, $"metadata{iterationNumber}.png");
                         string metadataOutputPath = Path.Combine(metadataFilePath, $"metadata{iterationNumber}.png");
-                        CreateMetadataJsonForSprite(metadataOutputPath, outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                        CreateMetadataJsonForSprite(metadataOutputPath, outputPath, orderedSprites, royaltyPercentage, nftName, nftDescription);
                     }
                 }
             }
         }
-        public static void ProcessMetadataNfts(int iterationNumber, List<string> orderedSprites, string metadataDirectory, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
+        public static void ProcessMetadataNfts(int iterationNumber, List<string> orderedSprites, string metadataDirectory, int royaltyPercentage, string nftName, string nftDescription)
         {
             if (orderedSprites.Count > 0)
             {
@@ -229,7 +229,7 @@ namespace MaizeUI.Things
                     using (var stackedSprite = new Image<Rgba32>(firstSprite.Width, firstSprite.Height))
                     {
                         string outputPath = Path.Combine(metadataDirectory, $"metadata{iterationNumber}.png");
-                        CreateMetadataJsonForSprite(null, outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                        CreateMetadataJsonForSprite(null, outputPath, orderedSprites, royaltyPercentage, nftName, nftDescription);
                     }
                 }
             }

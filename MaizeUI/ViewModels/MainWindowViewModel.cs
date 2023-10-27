@@ -36,7 +36,7 @@ namespace MaizeUI.ViewModels
         public MainWindowViewModel()
         {
             Greeting = "Welcome to Maize!";
-            Version = "v1.7.0";
+            Version = "v1.9.0";
             Slogan = "Cornveniently Manage your NFTs";
             Networks = new List<string> { "👇 choose", "💎 mainnet", "🧪 testnet" };
             SelectedNetwork = Networks[0];
@@ -46,91 +46,80 @@ namespace MaizeUI.ViewModels
         }
 
 
-        private async void VerifyAppSettings()
+        private async Task<(Settings, string)> LoadSettings(string network)
         {
-            if (selectedNetwork != Networks[0])
-            {
-                var network = selectedNetwork.Remove(0, 3);
-                string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
-                IConfiguration config = new ConfigurationBuilder()
+            string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
+            IConfiguration config = new ConfigurationBuilder()
                .AddJsonFile(appSettingsEnvironment)
                .AddEnvironmentVariables()
                .Build();
-                Settings settings = config.GetRequiredSection("Settings").Get<Settings>();
-                var environment = Constants.GetNetworkConfig(settings.Environment);
-                if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
-                {
-                    await ShowAppSettingsDialog($"Read the Below to setup the application. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", appSettingsEnvironment, environment);
-                }
-                else
-                {
-                    ILoopringService loopringService = new LoopringServiceUI(environment.Url);
-                    string signedMessage;
-                    do
-                    {
-                        signedMessage = EDDSAHelper.EddsaSignUrl(settings.LoopringPrivateKey, HttpMethod.Get, new List<(string Key, string Value)>() { ("accountId", settings.LoopringAccountId.ToString()) }, null, "api/v3/apiKey", environment.Url);
-                        if (signedMessage == "The value could not be parsed.")
-                        {
-                            await ShowAppSettingsDialog($"There was an issue with your Loopring account information. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", appSettingsEnvironment, environment);
-                            appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
-                            config = new ConfigurationBuilder()
-                           .AddJsonFile(appSettingsEnvironment)
-                           .AddEnvironmentVariables()
-                           .Build();
-                            settings = config.GetRequiredSection("Settings").Get<Settings>();
-                        }
-                    } while (signedMessage == "The value could not be parsed.");
-
-                    var apiKey = await loopringService.GetApiKey(settings.LoopringAccountId, signedMessage);
-                    if (apiKey != settings.LoopringApiKey)
-                    {
-                        await ShowAppSettingsDialog($"There was an issue with your Loopring account information. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", appSettingsEnvironment, environment);
-                        appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
-                        config = new ConfigurationBuilder()
-                       .AddJsonFile(appSettingsEnvironment)
-                       .AddEnvironmentVariables()
-                       .Build();
-                        settings = config.GetRequiredSection("Settings").Get<Settings>();
-                    }
-                    else
-                    {
-                        var ensResult = await loopringService.GetLoopringEns(settings.LoopringApiKey, settings.LoopringAddress);
-                        string ens = ensResult.data != "" ? $"🙋‍♂ {ensResult.data}" : $"🙋‍♂️ {settings.LoopringAddress.Substring(0, 6) + "..." + settings.LoopringAddress.Substring(settings.LoopringAddress.Length - 4)}!";
-                        ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan, ens);
-                    }
-                }
-            }
-        }
-        private async void RefreshAppSettings()
-        {
-            if (selectedNetwork != Networks[0])
-            {
-                var network = selectedNetwork.Remove(0, 3);
-                string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}{network}appsettings.json";
-                IConfiguration config = new ConfigurationBuilder()
-               .AddJsonFile(appSettingsEnvironment)
-               .AddEnvironmentVariables()
-               .Build();
-                Settings settings = config.GetRequiredSection("Settings").Get<Settings>();
-                var environment = Constants.GetNetworkConfig(settings.Environment);
-                await ShowAppSettingsDialog($"Read the Below to setup the application. Further help at https://maizehelps.art/docs/tutorials/setup-maize.", appSettingsEnvironment, environment);
-                
-            }
+            return (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
         }
 
-        private async Task ShowAppSettingsDialog(string notice, string location, Constants.Environment environment)
+        private async Task ShowNoticeDialog(string notice, string location, string url)
         {
             var dialog = new AppsettingsNoticeWindow();
             dialog.DataContext = new AppsettingsNoticeWindowViewModel
             {
                 Notice = notice,
                 Location = location,
-                LoopringService = new LoopringServiceUI(environment.Url),
+                LoopringService = new LoopringServiceUI(url),
             };
             dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Avalonia.Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
 
+        private async void VerifyOrRefreshAppSettings(bool isVerify)
+        {
+            if (selectedNetwork == Networks[0]) return;
+
+            string network = selectedNetwork.Remove(0, 3);
+            (Settings settings, string appSettingsEnvironment) = await LoadSettings(network);
+            var environment = Constants.GetNetworkConfig(settings.Environment);
+
+
+            if (isVerify)
+            {
+                // Verification-specific logic
+                if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
+                {
+                    await ShowNoticeDialog("Issue with Loopring account information", appSettingsEnvironment, environment.Url);
+                    return;
+                }
+
+                // More verification logic, like API calls
+                ILoopringService loopringService = new LoopringServiceUI(environment.Url);
+                // Assume you have a method to do the signing
+                string signedMessage = EDDSAHelper.EddsaSignUrl(settings.LoopringPrivateKey, HttpMethod.Get, new List<(string Key, string Value)>() { ("accountId", settings.LoopringAccountId.ToString()) }, null, "api/v3/apiKey", environment.Url);
+
+                var apiKey = await loopringService.GetApiKey(settings.LoopringAccountId, signedMessage);
+                if (apiKey != settings.LoopringApiKey)
+                {
+                    await ShowNoticeDialog("Issue with Loopring account information", appSettingsEnvironment, environment.Url);
+                    return;
+                }
+                var ensResult = await loopringService.GetLoopringEns(settings.LoopringApiKey, settings.LoopringAddress);
+                string ens = ensResult.data != "" ? $"🙋‍♂ {ensResult.data}" : $"🙋‍♂️ {settings.LoopringAddress.Substring(0, 6) + "..." + settings.LoopringAddress.Substring(settings.LoopringAddress.Length - 4)}!";
+                // If all checks pass, proceed to show the main menu
+                ShowMainMenuDialog(settings, environment, selectedNetwork, Version, Slogan, ens);
+            }
+            else
+            {
+                // Refresh-specific logic
+                await ShowNoticeDialog("Read the Below to setup the application.", appSettingsEnvironment, environment.Url);
+            }
+        }
+
+        // Your existing VerifyAppSettings and RefreshAppSettings would then simply call VerifyOrRefreshAppSettings with the appropriate boolean flag.
+        private async void VerifyAppSettings()
+        {
+            VerifyOrRefreshAppSettings(true);
+        }
+
+        private async void RefreshAppSettings()
+        {
+            VerifyOrRefreshAppSettings(false);
+        }
         private void ShowMainMenuDialog(Settings settings, Constants.Environment environment, string selectedNetwork, string version, string slogan, string ens)
         {
             var dialog = new MainMenuWindow();
@@ -149,7 +138,6 @@ namespace MaizeUI.ViewModels
             dialog.Show();
             mainWindow.Close();
         }
-
         private void HelpFile()
         {
             string url = "https://maizehelps.art/docs";
@@ -169,10 +157,5 @@ namespace MaizeUI.ViewModels
             {
             }
         }
-
-
-
-
-
     }
 }

@@ -8,15 +8,8 @@ using PoseidonSharp;
 using RestSharp;
 using System.Numerics;
 using Maize.Helpers;
-using Nethereum.BlockchainProcessing.BlockStorage.Entities.Mapping;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Reflection;
+using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace Maize
 {
@@ -34,6 +27,55 @@ namespace Maize
         public LoopringService(string environmentUrl)
         {
             _client = new RestClient(environmentUrl);
+        }
+        public async Task<string> PostMetadata(string metadataJson, string metadataFileName)
+        {
+            var request = new RestRequest("/api/v0/add");
+            request.AlwaysMultipartFormData = true;
+            request.AddParameter("stream-channels", "true", ParameterType.QueryString);
+            request.AddParameter("progress", "false", ParameterType.QueryString);
+
+            byte[] metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
+
+            request.AddFile("file", metadataBytes, metadataFileName, "application/json");
+
+            try
+            {
+                var response = await _client.PostAsync(request);
+                return JObject.Parse(response.Content)["Hash"].ToString();
+            }
+            catch (HttpRequestException httpException)
+            {
+                return null;
+            }
+        }
+        public async Task<string> PostImage(string filePath)
+        {
+
+            string path = Path.GetDirectoryName(filePath);
+            string image = Path.GetFileName(filePath);
+
+            Console.WriteLine("Path: " + path);
+            Console.WriteLine("Image: " + image);
+
+            var request = new RestRequest("/api/v0/add");
+            request.AlwaysMultipartFormData = true;
+            request.AddParameter("stream-channels", "true", ParameterType.QueryString);
+            request.AddParameter("progress", "false", ParameterType.QueryString);
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(path, image));
+
+            request.AddFile("file", fileBytes, image);
+
+            try
+            {
+                var response = await _client.PostAsync(request);
+
+                return "";
+            }
+            catch (HttpRequestException httpException)
+            {
+                return null;
+            }
         }
         public async Task<List<UserAssetsResponse>> GetUserAssetsForFees(string apiKey, int accountId)
         {

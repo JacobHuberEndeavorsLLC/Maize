@@ -12,6 +12,8 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Numerics;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace Maize.Services
 {
@@ -48,9 +50,61 @@ namespace Maize.Services
             }
         }
         readonly RestClient _client;
+        readonly RestClient _ipfsClient;
         public LoopringServiceUI(string environmentUrl)
         {
             _client = new RestClient(environmentUrl);
+            _ipfsClient = new RestClient("https://ipfs.loopring.io");
+        }
+        public async Task<string> PostMetadata(string metadataJson, string metadataFileName)
+        {
+            var request = new RestRequest("/api/v0/add");
+            request.AlwaysMultipartFormData = true;
+            request.AddParameter("stream-channels", "true", ParameterType.QueryString);
+            request.AddParameter("progress", "false", ParameterType.QueryString);
+
+            byte[] metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
+
+            request.AddFile("file", metadataBytes, metadataFileName, "application/json");
+
+            try
+            {
+                var response = await _ipfsClient.PostAsync(request);
+                return JObject.Parse(response.Content)["Hash"].ToString();
+            }
+            catch (HttpRequestException httpException)
+            {
+                return null;
+            }
+        }
+
+        public async Task<string> PostImage(string filePath)
+        {
+
+            string path = Path.GetDirectoryName(filePath);
+            string image = Path.GetFileName(filePath);
+
+            Console.WriteLine("Path: " + path);
+            Console.WriteLine("Image: " + image);
+
+            var request = new RestRequest("/api/v0/add");
+            request.AlwaysMultipartFormData = true;
+            request.AddParameter("stream-channels", "true", ParameterType.QueryString);
+            request.AddParameter("progress", "false", ParameterType.QueryString);
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(path, image));
+
+            request.AddFile("file", fileBytes, image);
+
+            try
+            {
+                var response = await _ipfsClient.PostAsync(request);
+                return JObject.Parse(response.Content)["Hash"].ToString();
+
+            }
+            catch (HttpRequestException httpException)
+            {
+                return null;
+            }
         }
         public async Task<List<UserAssetsResponse>> GetUserAssetsForFees(string apiKey, int accountId)
         {
@@ -85,7 +139,6 @@ namespace Maize.Services
                 if (data.collections.Count != 0) 
                 {
                     allData.AddRange(data.collections);
-                    Font.ClearLine();
                 }
                 return allData;
             }
@@ -145,7 +198,6 @@ namespace Maize.Services
                     if (data.collections.Count != 0)
                     {
                         allData.AddRange(data.collections.ToList());
-                        Font.ClearLine();
                     }
                 }
                 return allData;
@@ -192,7 +244,6 @@ namespace Maize.Services
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<NftResponseFromCollection>(response.Content!);
                 var total = data.totalNum;
-                Font.ClearLine();
 
                 while (total > 50)
                 {
@@ -201,7 +252,6 @@ namespace Maize.Services
                     response = await _client.GetAsync(request);
                     var moreData = JsonConvert.DeserializeObject<NftResponseFromCollection>(response.Content!);
                     data.nftTokenInfos.AddRange(moreData.nftTokenInfos);
-                    Font.ClearLine();
                     offset += 50;
                 }
                 return data;

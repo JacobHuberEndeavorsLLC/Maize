@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Maize;
 using Maize.Services;
@@ -76,6 +77,7 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> LooperLandsGenerateOneOfOnesCommand { get; }
         public ReactiveCommand<Unit, Unit> GenerateOneOfOnesCommand { get; }
         public ReactiveCommand<Unit, Unit> MintAndPinToIPFSCommand { get; }
+        public ReactiveCommand<Unit, Unit> MintCommand { get; }
 
         public MainMenuWindowViewModel()
         {
@@ -93,138 +95,106 @@ namespace MaizeUI.ViewModels
             LooperLandsGenerateOneOfOnesCommand = ReactiveCommand.Create(LooperLandsGenerateOneOfOnes);
             GenerateOneOfOnesCommand = ReactiveCommand.Create(GenerateOneOfOnes);
             MintAndPinToIPFSCommand = ReactiveCommand.Create(MintAndPinToIPFS);
+            MintCommand = ReactiveCommand.Create(Mint);
 
 
         }
-
         private async void FindNftDataFromAWallet()
         {
-            var dialog = new FindNftDataFromAWalletWindow();
-            dialog.DataContext = new FindNftDataFromAWalletWindowViewModel
+            await ShowDialog<FindNftDataFromAWalletWindow, FindNftDataFromAWalletWindowViewModel>(new FindNftDataFromAWalletWindowViewModel
             {
                 LoopringService = new LoopringServiceUI(Environment.Url),
                 Settings = settings
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            });
         }
         private async void FindNftDataFromACollection()
         {
-            var dialog = new FindNftDataFromACollectionWindow();
-            dialog.DataContext = new FindNftDataFromACollectionWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await ShowDialog<FindNftDataFromACollectionWindow, FindNftDataFromACollectionWindowViewModel>(
+                new FindNftDataFromACollectionWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings
+                });
         }
         private async void FindHoldersFromNftData()
         {
-            var dialog = new FindHoldersFromNftDataWindow();
-            dialog.DataContext = new FindHoldersFromNftDataWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await ShowDialog<FindHoldersFromNftDataWindow, FindHoldersFromNftDataWindowViewModel>(
+                new FindHoldersFromNftDataWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings
+                });
         }
         private async void AirdropNftsToUsers()
         {
-            var dialog = new AirdropNftsToUsersWindow();
-            dialog.DataContext = new AirdropNftsToUsersWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
-                Environment = environment
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await ShowDialog<AirdropNftsToUsersWindow, AirdropNftsToUsersWindowViewModel>(
+                new AirdropNftsToUsersWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings,
+                    Environment = environment
+                });
         }
         private async void AirdropCryptoToUsers()
         {
-            var dialog = new AirdropCryptoToUsersWindow();
-            dialog.DataContext = new AirdropCryptoToUsersWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
-                Environment = environment
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await ShowDialog<AirdropCryptoToUsersWindow, AirdropCryptoToUsersWindowViewModel>(
+                new AirdropCryptoToUsersWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings,
+                    Environment = environment
+                });
         }
         private async void AirdropMigrateWallet()
         {
-            var dialog = new AirdropMigrateWalletWindow();
-            dialog.DataContext = new AirdropMigrateWalletWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
-                Environment = environment
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await ShowDialog<AirdropMigrateWalletWindow, AirdropMigrateWalletWindowViewModel>(
+                new AirdropMigrateWalletWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings,
+                    Environment = environment
+                });
         }
         private async void ScriptingAirdropInputFile()
         {
-            var dialog = new ScriptingAirdropInputFileWindow();
-            dialog.DataContext = new ScriptingAirdropInputFileWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
-                Environment = environment
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await ShowDialog<ScriptingAirdropInputFileWindow, ScriptingAirdropInputFileWindowViewModel>(
+                new ScriptingAirdropInputFileWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings,
+                    Environment = environment
+                });
         }
         private async void ScriptingCryptoAirdropInputFile()
         {
-            var dialog = new ScriptingCryptoAirdropInputFileWindow();
-            dialog.DataContext = new ScriptingCryptoAirdropInputFileWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
-                Environment = environment
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
-        }
+            await ShowDialog<ScriptingCryptoAirdropInputFileWindow, ScriptingCryptoAirdropInputFileWindowViewModel>(
+                new ScriptingCryptoAirdropInputFileWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings,
+                    Environment = environment
+                });
+            }
         private async void MetadataRefreshCollection()
         {
-            var dialog = new MetadataRefreshCollectionWindow();
-            dialog.DataContext = new MetadataRefreshCollectionWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
-        }
-        private async void MetadataUploadToInfura()
-        {
-            var dialog = new MetadataUploadToInfuraWindow();
-            dialog.DataContext = new MetadataUploadToInfuraWindowViewModel
-            {
-            };
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
-        }
-        private void HelpFile()
-        {
-            Website.OpenWebsite("https://maizehelps.art/docs");
+            await ShowDialog<MetadataRefreshCollectionWindow, MetadataRefreshCollectionWindowViewModel>(
+                new MetadataRefreshCollectionWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings
+                });
         }
         private async void LooperLandsGenerateOneOfOnes()
-        {            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
+        {
+            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
             if (premiumAccess == false)
             {
                 Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                 return;
             }
-            var dialog = new LooperLandsGenerateOneOfOnesWindow();
-            dialog.DataContext = new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+
+            await ShowDialog<LooperLandsGenerateOneOfOnesWindow, LooperLandsGenerateOneOfOnesWindowViewModel>(
+                new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url)));
         }
         private async void GenerateOneOfOnes()
         {
@@ -234,26 +204,40 @@ namespace MaizeUI.ViewModels
                 Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                 return;
             }
-            var dialog = new GenerateOneOfOnesWindow();
-            dialog.DataContext = new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+
+            await ShowDialog<GenerateOneOfOnesWindow, GenerateOneOfOnesWindowViewModel>(
+                new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url))
+);
         }
         private async void MintAndPinToIPFS()
         {
-            var dialog = new MintAndPinToIPFSWindow();
-            var viewModel = new MintAndPinToIPFSWindowViewModel
-            {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
-                Environment = environment
-            };
-            viewModel.Initialize(); // Call Initialize here
+            await ShowDialog<MintAndPinToIPFSWindow, MintAndPinToIPFSWindowViewModel>(
+                new MintAndPinToIPFSWindowViewModel
+                {
+                    LoopringService = new LoopringServiceUI(Environment.Url),
+                    Settings = settings,
+                    Environment = environment
+                });
+        }
+        private async void Mint()
+        {
+            await ShowDialog<MintWindow, MintWindowViewModel>(
+            new MintWindowViewModel(settings, new LoopringServiceUI(Environment.Url)));
+        }
+        private async Task ShowDialog<TDialog, TViewModel>(TViewModel viewModel) where TDialog : Window, new() where TViewModel : class
+        {
+            var dialog = new TDialog();
             dialog.DataContext = viewModel;
-            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner;
+            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
         }
-
+        private async void MetadataUploadToInfura()
+        {
+            await ShowDialog<MetadataUploadToInfuraWindow, MetadataUploadToInfuraWindowViewModel>(new MetadataUploadToInfuraWindowViewModel());
+        }
+        private void HelpFile()
+        {
+            Website.OpenWebsite("https://maizehelps.art/docs");
+        }
     }
-
 }

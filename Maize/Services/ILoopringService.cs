@@ -1,11 +1,14 @@
 ﻿using Maize.Models;
 using Maize.Models.Responses;
+using RestSharp;
 
 namespace Maize
 {
     public interface ILoopringService
     {
         Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress);
+        Task<string> PostImage(string filePath);
+        Task<string> PostMetadata(string metadataJson, string metadataFileName);
         Task<List<UserAssetsResponse>> GetUserAssetsForFees(string apiKey, int accountId);
         Task<List<CollectionMinted>> GetUserMintedCollections(string apiKey, string owner);
         Task<List<CollectionOwned>> GetUserOwnedCollections(string apiKey, int accountId);

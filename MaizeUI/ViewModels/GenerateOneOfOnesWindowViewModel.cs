@@ -15,6 +15,12 @@ namespace MaizeUI.ViewModels
 {
     public class GenerateOneOfOnesWindowViewModel : ViewModelBase
     {
+        private bool _isFeatureEnabled;
+        public bool IsFeatureEnabled
+        {
+            get { return _isFeatureEnabled; }
+            set { this.RaiseAndSetIfChanged(ref _isFeatureEnabled, value); }
+        }
         public LoopringServiceUI loopringService;
 
         public LoopringServiceUI LoopringService
@@ -191,10 +197,10 @@ namespace MaizeUI.ViewModels
         }
         private async Task GenerateAndProcessNfts()
         {
-            var collectionAddress = SelectedCollectionAddress;
+            //var collectionAddress = SelectedCollectionAddress;
             List<List<string>> allOrderedLayers = new List<List<string>>();
             Dictionary<string, int> spriteFrequency = new Dictionary<string, int>();
-            string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}{collectionAddress}";
+            string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}NFT_Generation_{DateTime.Now.ToString("yyyyMMddHHmmss")}";
             Directory.CreateDirectory(outputDirectory);
             var sw = Stopwatch.StartNew();
 
@@ -202,12 +208,13 @@ namespace MaizeUI.ViewModels
             {
                 for (int i = 1; i <= totalIterations; i++)
                 {
-                    bool isUnique;
+                    bool isUnique = true;
                     bool meetConstraint;
                     do
                     {
                         List<string> orderedLayers = Components.StackRandomSpritesFromSubdirectories(inputDirectory);
-                        isUnique = Components.CheckForDuplicates(orderedLayers);
+                        if (!_isFeatureEnabled)
+                            isUnique = Components.CheckForDuplicates(orderedLayers);
 
                         // Temporary dictionary to hold the frequency counts for this iteration
                         Dictionary<string, int> tempLayerFrequency = new Dictionary<string, int>(spriteFrequency);
@@ -278,7 +285,7 @@ namespace MaizeUI.ViewModels
                     var nftName = $"{NftName} #{iterationNumber}";
 
                     List<string> orderedLayers = allOrderedLayers[i];
-                    Components.ProcessMetadataNfts(iterationNumber, orderedLayers, metadataDirectory, collectionAddress, royaltyPercentage, nftName, nftDescription);
+                    Components.ProcessMetadataNfts(iterationNumber, orderedLayers, metadataDirectory, royaltyPercentage, nftName, nftDescription);
                     Components.ProcessLayers(iterationNumber, orderedLayers, nftDirectory);
                     if (i % 10 == 0 || i == allOrderedLayers.Count - 1)
                     {
