@@ -79,7 +79,7 @@
         </Button.Styles>
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="⭐" Width="16" Height="16" VerticalAlignment="Center" Foreground="Black"/>
-          <TextBlock Text="Generate 1/1 Loopers" Margin="5,0,0,0" Foreground="Black"/>
+          <TextBlock Text="Generate Looper Lands" Margin="5,0,0,0" Foreground="Black"/>
         </StackPanel>
       </Button>
 

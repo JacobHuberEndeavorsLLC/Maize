@@ -9,6 +9,7 @@ namespace Maize
         Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress);
         Task<string> PostImage(string filePath);
         Task<string> PostMetadata(string metadataJson, string metadataFileName);
+        Task<decimal?> GetRecommendedGasPrice();
         Task<List<UserAssetsResponse>> GetUserAssetsForFees(string apiKey, int accountId);
         Task<List<CollectionMinted>> GetUserMintedCollections(string apiKey, string owner);
         Task<List<CollectionOwned>> GetUserOwnedCollections(string apiKey, int accountId);

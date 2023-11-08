@@ -40,8 +40,10 @@
     <TextBox HorizontalAlignment="Right" IsVisible="{Binding Step1}" Margin="0 0 0 10" Width="225" Watermark="Metadatas and NFTs Folder" ToolTip.Tip="Metadata and Image's folder location" Text="{Binding InputDirectory}" />
     <Button HorizontalAlignment="Right" IsVisible="{Binding Step1}" Width="75" Margin="10 0 0 10" Content="Browse" Command="{Binding OpenFolderCommand}" />
     <TextBox HorizontalAlignment="Right" IsVisible="{Binding Step2}" IsReadOnly="{Binding LockForMinting}" Margin="0 0 0 10" TextWrapping="Wrap" Height="75" Width="390" Watermark="Different Royalty Addresses (Optional)" ToolTip.Tip="Enter wallet addresses separated by commas" Text="{Binding RoyaltyWalletAddresses}" />
-  </StackPanel>
+      <TextBox Width="240" Margin="0 0 0 10" IsVisible="{Binding StepLL}" Watermark="Looper Land's Project Name" ToolTip.Tip="Name of Looper Lands Project" Text="{Binding LooperLandsProjectName}" />
+    </StackPanel>
 
+      <ComboBox IsVisible="{Binding StepLL}" Margin="0 0 0 10" ToolTip.Tip="Choose the Item" SelectedIndex="0" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}" Width="120" Height="31" />
   </StackPanel>
       <DockPanel Grid.Row="2" Margin="0 0 0 10">
         <!--<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">

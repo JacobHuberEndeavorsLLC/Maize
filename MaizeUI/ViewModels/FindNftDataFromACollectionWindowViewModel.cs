@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reactive;
 using Maize.Models.ApplicationSpecific;
 using OpenCvSharp;
+using MaizeUI.Helpers;
 
 namespace MaizeUI.ViewModels
 {
@@ -144,6 +145,8 @@ namespace MaizeUI.ViewModels
         {
             var collectionsNftsInformation = nftData.Select(m => new
             {
+                NFTCID = m.metadata.basename.image.Replace("ipfs://", ""),
+                NFTAnimation = m.metadata.extra?.animationUrl?.Replace("ipfs://", "") ?? null,
                 name = m.metadata.basename.name,
                 nftData = m.nftData,
                 m.total,
@@ -186,7 +189,11 @@ namespace MaizeUI.ViewModels
                 if (allCollectionsNfts == null) return;
             }
             var fileName = WriteNftInfoToCsv(allCollectionsNfts);
-
+            //foreach (var item in allCollectionsNfts)
+            //{
+            //    Thread.Sleep(3000);
+            //    Website.OpenWebsite($"{item.metadata.basename.image.Replace("ipfs://", "https://ipfs.loopring.io/ipfs/")}");
+            //}
             sw.Stop();
             UpdateLog(sw.ElapsedMilliseconds, allCollectionsNfts.Count(), fileName);
             HideTextBox();
@@ -285,7 +292,7 @@ namespace MaizeUI.ViewModels
                         break;
                     }
                 }
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
                 var collectionsNftsInformation = allCollectionsNfts.Select(m => new { m.metadata.basename.name, m.nftData, m.total, m.royaltyAddress, metadataCid = m.metadata.uri.Replace("ipfs://", ""), m.nftId, m.minter, m.tokenAddress, m.metadata.basename.properties }).ToList();
                 var fileName = ApplicationUtilitiesUI.WriteDataToCsvFile("NftInfoFromCollection", collectionsNftsInformation);
 

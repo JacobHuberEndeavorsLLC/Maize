@@ -3,7 +3,6 @@ using System.Reactive;
 using Maize.Models.ApplicationSpecific;
 using Maize.Services;
 using Maize;
-using MaizeUI.Things;
 using LoopMintSharp;
 using Maize.Helpers;
 using System.Diagnostics;
@@ -13,11 +12,23 @@ using Maize.Models;
 using Maize.Models.Responses;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
+using CsvHelper.Configuration;
+using CsvHelper;
+using System.Globalization;
+using Newtonsoft.Json;
 
 namespace MaizeUI.ViewModels
 {
     public class MintWindowViewModel : ViewModelBase
     {
+        public List<string> Items { get; set; }
+        public string selectedItem;
+
+        public string SelectedItem
+        {
+            get => selectedItem;
+            set => this.RaiseAndSetIfChanged(ref selectedItem, value);
+        }
         private string _selectedCollection;
         public string SelectedCollection
         {
@@ -37,7 +48,12 @@ namespace MaizeUI.ViewModels
         public string LoopringFeeSelectedOption { get; set; }
         public string MaizeFeeSelectedOption { get; set; }
         public string RoyaltyWalletAddresses { get; set; }
-
+        public string looperLandsProjectName;
+        public string LooperLandsProjectName
+        {
+            get => looperLandsProjectName;
+            set => this.RaiseAndSetIfChanged(ref looperLandsProjectName, value);
+        }
         private bool _isTextAndSkipVisible = true;
         public bool IsTextAndSkipVisible
         {
@@ -52,7 +68,8 @@ namespace MaizeUI.ViewModels
         }
 
         private bool step1;
-        private bool step2 = false;
+        private bool step2;
+        private bool stepLL;
         public bool Step1
         {
             get => step1;
@@ -62,6 +79,11 @@ namespace MaizeUI.ViewModels
         {
             get => step2;
             set => this.RaiseAndSetIfChanged(ref step2, value);
+        }
+        public bool StepLL
+        {
+            get => stepLL;
+            set => this.RaiseAndSetIfChanged(ref stepLL, value);
         }
 
         public LoopringServiceUI loopringService;
@@ -109,7 +131,7 @@ namespace MaizeUI.ViewModels
             await UpdateCollectionNames();
         }
         public event Action RequestOpenFolder;
-        public string processButtonText = "Preview";
+        public string processButtonText = "Check";
         public string ProcessButtonText
         {
             get => processButtonText;
@@ -180,6 +202,8 @@ namespace MaizeUI.ViewModels
 
         public MintWindowViewModel(Settings settings, LoopringServiceUI loopringService)
         {
+            Items = new List<string> { "👇 choose", "🦸‍ Looper", "🗡 Weapon", "🎣 Fishing Rod" };
+            SelectedItem = Items[0];
             this.settings = settings;
             this.loopringService = loopringService;
             this.environment = Constants.GetNetworkConfig(settings.Environment);
@@ -187,6 +211,8 @@ namespace MaizeUI.ViewModels
             LoadCollectionNames();
             NftAmount = 1;
             step1 = true;
+            step2 = false;
+            stepLL = false;
             StepDescription = "1: Select Collection, Fees, and browse to your folders file path.";
             MainContent = "Here you will Mint your NFTs on Loopring.";
             LoopringFeeDropdown = new List<string> { "Loopring Fee", "ETH", "LRC" };
@@ -231,6 +257,15 @@ namespace MaizeUI.ViewModels
             ProcessButtonText = buttonTitle;
             Step1 = false;
             Step2 = true;
+            StepLL = false;
+        }
+        private void StepLooperLands(string buttonTitle)
+        {
+            StepDescription = "1a: Enter in Looper Lands information.";
+            ProcessButtonText = buttonTitle;
+            Step1 = false;
+            Step2 = false;
+            StepLL = true;
         }
         public async Task Mint(Minter minter)
         {
@@ -239,6 +274,8 @@ namespace MaizeUI.ViewModels
             string[] allSubDirectories = Directory.GetDirectories(inputDirectory);
             var metadataPath = GetSubDirectory(allSubDirectories, "Metadatas");
             var nftPath = GetSubDirectory(allSubDirectories, "NFTs");
+            var bulkUploadPath = GetSubDirectory(allSubDirectories, "BulkUpload");
+            if (bulkUploadPath != null && stepLL == true && (SelectedItem.Contains("choose") || string.IsNullOrEmpty(LooperLandsProjectName))) return;
             if (metadataPath == null || nftPath == null)
             {
                 Log = "The selected folder must contain subfolders starting with 'Metadatas' and 'NFTs'.";
@@ -246,7 +283,7 @@ namespace MaizeUI.ViewModels
             }
             var lineCount = Directory.GetFiles(metadataPath).Length;
             
-            if (step1 == true)
+            if (step1 == true || stepLL == true)
             {
                 var isNulls = CheckForNullsStepOne(inputDirectory, LoopringFeeSelectedOption, LoopringFeeDropdown, MaizeFeeSelectedOption, MaizeFeeDropdown);
                 if (isNulls)
@@ -269,11 +306,14 @@ namespace MaizeUI.ViewModels
 
                 Log = ($"💰 Your Assets:\r\n{canAfford.userEth} ETH | {canAfford.userLrc} LRC | {canAfford.userPepe} PEPE\r\n\r\n🚨🚨 It will cost around " +
                         $"{feeAmount / 1000000000000000000m} {LoopringFeeSelectedOption} to mint {lineCount} NFTs with a Maize Fee of {maizeFee} {MaizeFeeSelectedOption}");
-                StepTwo("Mint");
+                if (bulkUploadPath != null && StepLL == false)
+                    StepLooperLands("Preview");
+                else
+                    StepTwo("Mint");
                 return;
             }
             LockForMinting = true;
-            await MintCids(nftPath, metadataPath);
+            await MintCids(nftPath, metadataPath, bulkUploadPath);
         }
         private static bool CheckForNullsStepOne(string inputDirectory, string LoopringFeeSelectedOption, List<string> LoopringFeeDropdown, string MaizeFeeSelectedOption, List<string> MaizeFeeDropdown)
         {
@@ -283,7 +323,7 @@ namespace MaizeUI.ViewModels
                 return true;
             return false;
         }
-        private async Task MintCids(string nftPath, string metadataPath)
+        private async Task MintCids(string nftPath, string metadataPath, string? bulkUploadPath)
         {
             // Get all the full file paths in the directories
             string[] nftFilesFullPaths = Directory.GetFiles(nftPath);
@@ -362,8 +402,22 @@ namespace MaizeUI.ViewModels
             Log = ($"Minting started on {SelectedCollectionAddress}...");
 
             List<(string name, string royaltyAddress)> cidAddressPairs = new List<(string, string)>();
+            List<OutputRecord> outputRecords = new List<OutputRecord>();
             foreach (var (cid, royaltyAddress) in nftFileNames.Zip(royaltyAddressesForCids, (cid, royaltyAddress) => (cid, royaltyAddress)))
             {
+                //var limit = true;
+                //do
+                //{
+                //    var recommendedGasPrice = await loopringService.GetRecommendedGasPrice();
+                //    limit = (recommendedGasPrice >= 17961166704) ? true : false;
+                //    if (limit)
+                //    {
+                //        await Task.Delay(5000);
+                //        Log = ($"Gas at {recommendedGasPrice}. Waiting for it to go below 17961166704.");
+                //    }
+
+                //} while (limit);
+
                 var nftCid = await loopringService.PostImage(cid);
                 string numberPart = Regex.Match(Path.GetFileName(cid), @"\d+").Value;
                 string metadataFileName = $"metadata{numberPart}.json";
@@ -391,6 +445,29 @@ namespace MaizeUI.ViewModels
                     auditInfo.validAddress.Add(mintResponse.Item1.metadataCid);
                 }
                 await Task.Delay(500);
+
+                if (bulkUploadPath != null)
+                {
+                    string assetType;
+                    if (selectedItem == Items[1])
+                        assetType = "armor";
+                    else if (selectedItem == Items[2])
+                        assetType = "weapon";
+                    else if (selectedItem == Items[3])
+                        assetType = "fishingrod";
+                    else
+                        assetType = "";
+                    OutputRecord outputRecord = new OutputRecord
+                    {
+                        LooperName = name, // Assuming LooperName exists in the original CSV
+                        ShortNFTID = mintResponse.Item1.nftId,
+                        NFTID = $"{settings.LoopringAddress}-0-{SelectedCollectionAddress}-{mintResponse.Item1.nftId}-{royaltyPercentage}",
+                        projectname = LooperLandsProjectName, // Replace with actual project name
+                        assetyype = assetType // Replace with actual asset type
+                    };
+                    RenameFilesInDirectory(bulkUploadPath, Path.GetFileName(cid), mintResponse.Item1.nftId + Path.GetExtension(Path.GetFileName(cid)));
+                    outputRecords.Add(outputRecord);
+                }
             }
 
             maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;
@@ -436,6 +513,14 @@ namespace MaizeUI.ViewModels
                     sw2.WriteLine($"{name},{royaltyAddress}");
                 }
             }
+            if (bulkUploadPath != null)
+            {
+                using (var writer = new StreamWriter($"{bulkUploadPath}ToLooperLands.csv"))
+                using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false }))
+                {
+                    csv.WriteRecords(outputRecords);
+                }
+            }
             ApplicationUtilitiesUI.OpenFile(csvFilePath);
             Log = $"{swTime}\r\n\r\nYour audit file is here:\r\n\r\n{fileName}";
         }
@@ -475,6 +560,43 @@ namespace MaizeUI.ViewModels
             string oldValue = _selectedCollection;
             _selectedCollection = value;
             return !string.Equals(oldValue, value) && _collectionNameAddressMap.ContainsKey(value);
+        }
+        static void RenameFilesInDirectory(string directoryPath, string targetFileName, string newFileName)
+        {
+            try
+            {
+                // Get all files in the current directory
+                string[] files = Directory.GetFiles(directoryPath);
+
+                // Rename matching files
+                foreach (string file in files)
+                {
+                    if (Path.GetFileName(file) == targetFileName)
+                    {
+                        string newFilePath = Path.Combine(directoryPath, newFileName);
+                        File.Move(file, newFilePath);
+                    }
+                }
+
+                // Recursively search subdirectories
+                string[] subdirectories = Directory.GetDirectories(directoryPath);
+                foreach (string subdirectory in subdirectories)
+                {
+                    RenameFilesInDirectory(subdirectory, targetFileName, newFileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+        public class OutputRecord
+        {
+            public string LooperName { get; set; }
+            public string ShortNFTID { get; set; }
+            public string NFTID { get; set; }
+            public string projectname { get; set; }
+            public string assetyype { get; set; }
         }
     }
 }

@@ -49,6 +49,32 @@ namespace Maize
                 return null;
             }
         }
+        public async Task<decimal?> GetRecommendedGasPrice()
+        {
+            var request = new RestRequest("api/v3/eth/recommendedGasPrice");
+
+            try
+            {
+                var response = await _client.GetAsync(request);
+
+                if (response.IsSuccessful)
+                {
+                    var responseData = JsonConvert.DeserializeObject<GasPriceResponse>(response.Content);
+
+                    // Convert the string price to a decimal (or another numeric type)
+                    if (decimal.TryParse(responseData?.Price, out var gasPrice))
+                    {
+                        return gasPrice;
+                    }
+                }
+            }
+            catch (HttpRequestException httpException)
+            {
+                // Handle the exception as needed
+            }
+
+            return null;
+        }
         public async Task<string> PostImage(string filePath)
         {
 

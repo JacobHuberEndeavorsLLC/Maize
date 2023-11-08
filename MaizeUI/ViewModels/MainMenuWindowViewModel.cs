@@ -9,6 +9,8 @@ using ReactiveUI;
 using System.Reactive;
 using MaizeUI.Helpers;
 using Maize.Helpers;
+using Microsoft.Extensions.Configuration;
+using NBitcoin;
 
 namespace MaizeUI.ViewModels
 {
@@ -186,7 +188,13 @@ namespace MaizeUI.ViewModels
         }
         private async void LooperLandsGenerateOneOfOnes()
         {
-            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
+            string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}mainnetappsettings.json";
+            IConfiguration config = new ConfigurationBuilder()
+               .AddJsonFile(appSettingsEnvironment)
+               .AddEnvironmentVariables()
+               .Build();
+            var mainnet = (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
+            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
             if (premiumAccess == false)
             {
                 Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
@@ -198,7 +206,13 @@ namespace MaizeUI.ViewModels
         }
         private async void GenerateOneOfOnes()
         {
-            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(settings, loopringService = new LoopringServiceUI(Environment.Url));
+            string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}mainnetappsettings.json";
+            IConfiguration config = new ConfigurationBuilder()
+               .AddJsonFile(appSettingsEnvironment)
+               .AddEnvironmentVariables()
+               .Build();
+            var mainnet = (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
+            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
             if (premiumAccess == false)
             {
                 Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");

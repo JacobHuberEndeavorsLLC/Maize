@@ -576,22 +576,26 @@ namespace MaizeUI.ViewModels
             }
 
             validCounter = 0;
-            foreach (var item in transferInfoList.DistinctBy(x => x.ToAddress))
+            if (settings.LoopringAccountId != 267277)
             {
-                Log = $"Checking Wallets: {++validCounter}/{transferInfoList.DistinctBy(x => x.ToAddress).Count()}";
-                var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await LoopringService.CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
-
-                if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
+                foreach (var item in transferInfoList.DistinctBy(x => x.ToAddress))
                 {
-                    buildAttentionLines.Append($"Attention at line {transferInfoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
-                    item.Activated = false;
+                    Log = $"Checking Wallets: {++validCounter}/{transferInfoList.DistinctBy(x => x.ToAddress).Count()}";
+                    var walletAddressCheck = await LoopringService.GetUserAccountInformationFromOwner(await LoopringService.CheckForEthAddress(LoopringService, settings.LoopringApiKey, item.ToAddress));
 
-                    foreach (var duplicateItem in transferInfoList.Where(x => x.ToAddress == item.ToAddress))
+                    if (walletAddressCheck == null || (walletAddressCheck.tags != "FirstUpdateAccountPaid" && walletAddressCheck.nonce == 0))
                     {
-                        duplicateItem.Activated = false;
+                        buildAttentionLines.Append($"Attention at line {transferInfoList.IndexOf(item) + 1}: {item.ToAddress} Loopring account is not active.\r\n");
+                        item.Activated = false;
+
+                        foreach (var duplicateItem in transferInfoList.Where(x => x.ToAddress == item.ToAddress))
+                        {
+                            duplicateItem.Activated = false;
+                        }
                     }
                 }
             }
+
             if (buildinvalidLines.ToString().Contains("Error"))
             {
                 Log = $"{buildinvalidLines}\r\nPlease fix the above errors in your Input file and then press Next.";

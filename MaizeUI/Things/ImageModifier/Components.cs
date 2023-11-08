@@ -13,8 +13,6 @@ namespace MaizeUI.Things
         {
             var properties = ExtractPropertiesFromSprites(orderedSprites);
 
-            //properties["series"] = "alpha: mystic maize vault";
-
             var attributes = properties.Select(p => new { trait_type = p.Key, value = p.Value }).ToArray();
 
             var nftPropertiesHash = Helpers.HashDictionary(properties);
@@ -29,8 +27,8 @@ namespace MaizeUI.Things
                 description = nftDescription,
                 collection_metadata = $"https://nftinfos.loopring.io/COLLECTION_PLACEHOLDER",
                 mint_channel = "Maize",
-                properties = properties,
-                attributes = attributes
+                properties,
+                attributes
             };
 
             // Serialize to JSON and write to file
@@ -142,7 +140,7 @@ namespace MaizeUI.Things
             })
             .ToList();
         }
-        public static void ProcessSprites(string nftDirectory, List<string> orderedSprites, string iterationDirectory)
+        public static void ProcessSprites(string nftDirectory, List<string> orderedSprites, string iterationDirectory, string bulkUploadDirectory, string selectedItem)
         {
             if (orderedSprites.Count > 0)
             {
@@ -151,14 +149,10 @@ namespace MaizeUI.Things
                     using (var stackedSprite = new Image<Rgba32>(firstSprite.Width, firstSprite.Height))
                     {
                         var iterationNumber = Helpers.GetIterationNumberFromFilePath(iterationDirectory);
-                        //string outputPath = Path.Combine(iterationDirectory, $"metadata{iterationNumber}.png");
-                        //var metadataOutput = CreateMetadataJsonForSprite(outputPath, orderedSprites, collectionAddress, royaltyPercentage, nftName, nftDescription);
-
-                        //File.WriteAllText(metadataOutput.filepath, metadataOutput.output);
 
                         foreach (var spritePath in orderedSprites)
                         {
-                            if (!spritePath.Contains("background"))
+                            if (!spritePath.Contains("background") && !spritePath.Contains("bobber"))
                             {
                                 using (var sprite = Image.Load(spritePath))
                                 {
@@ -167,17 +161,174 @@ namespace MaizeUI.Things
                             }
                         }
 
-                        string outputFileName = $"sprite{iterationNumber}_1x.png";
+                        string outputFileName = $"sprite_{iterationNumber}_1x.png";
                         var outputPath = Path.Combine(iterationDirectory, outputFileName);
                         stackedSprite.Save(outputPath);
+                        outputFileName = $"{iterationNumber}.png";
+                        outputPath = Path.Combine($"{bulkUploadDirectory}\\1", outputFileName);
+                        stackedSprite.Save(outputPath);
 
-                        Helpers.SaveResizedSprite(stackedSprite, 2, $"sprite{iterationNumber}_2x.png", iterationDirectory);
-                        Helpers.SaveResizedSprite(stackedSprite, 3, $"sprite{iterationNumber}_3x.png", iterationDirectory);
+                        Helpers.SaveResizedSprite(stackedSprite, 2, $"sprite_{iterationNumber}_2x.png", iterationDirectory);
+                        Helpers.SaveResizedSprite(stackedSprite, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\2");
+                        Helpers.SaveResizedSprite(stackedSprite, 3, $"sprite_{iterationNumber}_3x.png", iterationDirectory);
+                        Helpers.SaveResizedSprite(stackedSprite, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\3");
+
 
                         var backgroundColor = Helpers.GetDominantColor(orderedSprites.First());
-                        CreatePFPImageFromSprite(nftDirectory, stackedSprite, backgroundColor, iterationDirectory);
+
+                        if (selectedItem.Contains("Looper"))
+                            CreatePFPImageFromSprite(nftDirectory, stackedSprite, backgroundColor, iterationDirectory, bulkUploadDirectory);
+                        else if(selectedItem.Contains("Weapon"))
+                        {
+                            CreateWeaponItem(stackedSprite, iterationDirectory, iterationNumber, bulkUploadDirectory);
+                            CreatePFPImageFromSpriteWeapon(stackedSprite, backgroundColor, nftDirectory, iterationNumber, bulkUploadDirectory);
+                        }
+                        else if (selectedItem.Contains("Fishing Rod"))
+                        {
+                            string targetFileName = "bobber";
+
+                            string filePathContainingBobber = orderedSprites.FirstOrDefault(filePath => filePath.Contains(targetFileName, StringComparison.OrdinalIgnoreCase));
+                            CreateFishingItem(filePathContainingBobber, iterationDirectory, iterationNumber, bulkUploadDirectory);
+                            CreatePFPImageFromSpriteFishing(filePathContainingBobber, stackedSprite, backgroundColor, nftDirectory, iterationNumber);
+                        }
                     }
                 }
+            }
+        }
+        private static void CreatePFPImageFromSpriteFishing(string bobber, Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory, int iterationNumber)
+        {
+            int sectionWidth = 30;
+            int sectionHeight = 30;
+
+            using (var pfpImage = new Image<Rgba32>(27, 27, backgroundColor))
+            {
+                // Adjusted coordinates for top-left corner to start cropping
+                int startX = 16; // moved 1 pixel to the left
+                int startY = 61; // moved 2 pixels up
+
+                // Crop the section from the sprite
+                var spriteSection = sprite.Clone(ctx => ctx.Crop(new Rectangle(startX, startY, sectionWidth, sectionHeight)));
+
+                // Load the bobber image
+                using (var bobberImage = Image.Load<Rgba32>(bobber))
+                {
+                    // Crop the desired section from the bobber image
+                    var bobberSection = bobberImage.Clone(ctx => ctx.Crop(new Rectangle(0, 0, 15, 15)));
+
+                    // Overlay the cropped bobber section onto the pfpImage
+                    pfpImage.Mutate(ctx =>
+                    {
+                        ctx.DrawImage(spriteSection, new Point(0, 0), 1f);
+                        ctx.DrawImage(bobberSection, new Point(0, 0), 1f); // Adjust the position as needed
+                    });
+                }
+
+                string pfpFileName = $"{iterationNumber}.png";
+                string pfpPath = Path.Combine(baseDirectory, pfpFileName);
+
+                pfpImage.Save(pfpPath);
+                ResizeImage(pfpPath);
+            }
+        }
+        private static void CreateFishingItem(string bobber, string baseDirectory, int iterationNumber, string bulkUploadDirectory)
+        {
+            // Load the bobber image
+            using (var bobberImage = Image.Load<Rgba32>(bobber))
+            {
+                // Create a copy of the bobber image
+                var utilityImage = bobberImage.Clone();
+
+                // Save the modified image with the new name
+                string utilityFileName = $"item_{iterationNumber}.png";
+                string utilityPath = Path.Combine(baseDirectory, utilityFileName);
+                utilityImage.Save(utilityPath);
+
+                utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0, 5));
+                utilityImage.Save(utilityPath);
+
+                Helpers.SaveResizedSprite(utilityImage, 2, $"item_{iterationNumber}_2x.png", baseDirectory);
+                Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
+                Helpers.SaveResizedSprite(utilityImage, 3, $"item_{iterationNumber}_3x.png", baseDirectory);
+                Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+            }
+        }
+        private static void CreatePFPImageFromSpriteWeapon(Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory, int iterationNumber, string bulkUploadDirectory)
+        {
+            int sectionWidth = 30;
+            int sectionHeight = 30;
+
+            using (var pfpImage = new Image<Rgba32>(27, 27, backgroundColor))
+            {
+                // Adjusted coordinates for top-left corner to start cropping
+                int startX = 16; // moved 1 pixel to the left
+                int startY = 61; // moved 2 pixels up
+
+                // Crop the section from the sprite
+                var spriteSection = sprite.Clone(ctx => ctx.Crop(new Rectangle(startX, startY, sectionWidth, sectionHeight)));
+
+                // Overlay the cropped sprite section onto the new image
+                pfpImage.Mutate(ctx => ctx.DrawImage(spriteSection, new Point(0, 0), 1f));
+
+                string pfpFileName = $"{iterationNumber}.png";
+                string pfpPath = Path.Combine(baseDirectory, pfpFileName);
+
+                pfpImage.Save(pfpPath);
+                ResizeImage(pfpPath);
+            }
+        }
+        private static Rectangle FindSpriteBounds(Image<Rgba32> sprite, Rectangle searchBounds)
+        {
+            int xMin = int.MaxValue, xMax = int.MinValue, yMin = int.MaxValue, yMax = int.MinValue;
+
+            for (int y = searchBounds.Top; y < searchBounds.Bottom; y++)
+            {
+                for (int x = searchBounds.Left; x < searchBounds.Right; x++)
+                {
+                    Rgba32 pixel = sprite[x, y];
+                    if (pixel.A > 0) // Non-transparent pixel found
+                    {
+                        xMin = Math.Min(xMin, x);
+                        xMax = Math.Max(xMax, x);
+                        yMin = Math.Min(yMin, y);
+                        yMax = Math.Max(yMax, y);
+                    }
+                }
+            }
+
+            if (xMin <= xMax && yMin <= yMax)
+            {
+                return new Rectangle(xMin, yMin, xMax - xMin + 1, yMax - yMin + 1);
+            }
+            else
+            {
+                throw new Exception("Sprite not found within the specified search bounds.");
+            }
+        }
+        private static void CreateWeaponItem(Image<Rgba32> sprite, string baseDirectory, int iterationNumber, string bulkUploadDirectory)
+        {
+            Rectangle searchBounds = new Rectangle(0, 400, 31, 31);
+            Rectangle cropRectangle = FindSpriteBounds(sprite, searchBounds);
+
+            var spriteSection = sprite.Clone(ctx => ctx.Crop(cropRectangle));
+
+            using (var utilityImage = new Image<Rgba32>(96, 16))
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    utilityImage.Mutate(ctx => ctx.DrawImage(spriteSection, new Point(i * 16 + 3, 3), 1f));
+                }
+
+                string utilityFileName = $"item_{iterationNumber}.png"; // Replace with your file-naming logic
+                string utilityPath = Path.Combine(baseDirectory, utilityFileName);
+                utilityImage.Save(utilityPath);
+
+                utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0,5));
+                utilityImage.Save(utilityPath);
+
+                Helpers.SaveResizedSprite(utilityImage, 2, $"item_{iterationNumber}_2x.png", baseDirectory);
+                Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
+                Helpers.SaveResizedSprite(utilityImage, 3, $"item_{iterationNumber}_3x.png", baseDirectory);
+                Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
             }
         }
         public static void ProcessLayers(int iterationNumber, List<string> orderedLayers, string nftDirectory)
@@ -204,7 +355,7 @@ namespace MaizeUI.Things
                 }
             }
         }
-        public static void ProcessMetadata(string metadataFilePath, List<string> orderedSprites, string iterationDirectory, string collectionAddress, int royaltyPercentage, string nftName, string nftDescription)
+        public static void ProcessMetadata(string metadataFilePath, List<string> orderedSprites, string iterationDirectory, int royaltyPercentage, string nftName, string nftDescription)
         {
             if (orderedSprites.Count > 0)
             {
@@ -235,26 +386,30 @@ namespace MaizeUI.Things
             }
         }
 
-        private static void CreatePFPImageFromSprite(string nftDirectory, Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory)
+        private static void CreatePFPImageFromSprite(string nftDirectory, Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory, string bulkUploadDirectory)
         {
-            int sectionWidth = 32;
-            int sectionHeight = 32;
+            int sectionWidth = 27;
+            int sectionHeight = 27;
 
-            using (var pfpImage = new Image<Rgba32>(32, 32, backgroundColor))
+            using (var pfpImage = new Image<Rgba32>(27, 27, backgroundColor))
             {
                 // Crop the section from the sprite
-                var spriteSection = sprite.Clone(ctx => ctx.Crop(new Rectangle(0, 256, sectionWidth, sectionHeight)));
+                var spriteSection = sprite.Clone(ctx => ctx.Crop(new Rectangle(6, 28, sectionWidth, sectionHeight)));
 
                 // Overlay the cropped sprite section onto the new image
                 pfpImage.Mutate(ctx => ctx.DrawImage(spriteSection, new Point(0, 0), 1f));
 
-                string pfpFileName = $"pfp{Helpers.GetIterationNumberFromFilePath(baseDirectory)}.png";
+                string pfpFileName = $"{Helpers.GetIterationNumberFromFilePath(baseDirectory)}.png";
                 string pfpPath = Path.Combine(baseDirectory, pfpFileName);
 
                 pfpImage.Save(pfpPath);
                 ResizeImage(pfpPath);
 
                 pfpPath = Path.Combine(nftDirectory, pfpFileName);
+                pfpImage.Save(pfpPath);
+                ResizeImage(pfpPath);
+
+                pfpPath = Path.Combine($"{bulkUploadDirectory}\\profilepic", pfpFileName);
                 pfpImage.Save(pfpPath);
                 ResizeImage(pfpPath);
             }

@@ -251,7 +251,10 @@ namespace MaizeUI.ViewModels
             for (int i = 0; i < allCollectionsNfts.Count; i++)
             {
                 var item = allCollectionsNfts[i];
-                refreshAudit.Add(await loopringService.RefreshNft(item.nftId, item.tokenAddress));
+                var response = await loopringService.RefreshNft(item.nftId, item.tokenAddress);
+                response.name = item.metadata.basename.name; // Make sure to set the nftId in the response object
+                response.nftId = item.nftId; // Make sure to set the nftId in the response object
+                refreshAudit.Add(response);
                 Log = $"Refreshing {i + 1}/{allCollectionsNfts.Count()}";
             }
 

@@ -119,7 +119,7 @@ namespace MaizeUI.ViewModels
                     break;
                 }
             }
-            string outputFilePath = $"{Constants.BaseDirectory}{Constants.OutputFolder}{allCollectionsNfts.SingleOrDefault(x=>x.nftData==nftData).metadata.basename.name}_Input.txt";
+            string outputFilePath = $"{Constants.BaseDirectory}{Constants.OutputFolder}{allCollectionsNfts.SingleOrDefault(x=>x.nftData==nftData).nftData}_Input.txt";
             try
             {
                 List<string> processedLines = new List<string>();
