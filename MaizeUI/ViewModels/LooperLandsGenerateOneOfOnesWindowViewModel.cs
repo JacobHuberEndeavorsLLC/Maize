@@ -239,7 +239,7 @@ namespace MaizeUI.ViewModels
                 Directory.CreateDirectory(metadataDirectory);
                 Directory.CreateDirectory(nftDirectory);
 
-                string bulkUploadDirectory = Path.Combine(outputDirectory, $"BulkUpload_{DateTime.UtcNow.ToString("yyyy-MM-dd-HH")}");
+                string bulkUploadDirectory = Path.Combine(outputDirectory, $"BulkUpload_{timestamp}");
                 Directory.CreateDirectory(bulkUploadDirectory);
                 Directory.CreateDirectory(bulkUploadDirectory + "\\1");
                 Directory.CreateDirectory(bulkUploadDirectory + "\\2");
@@ -253,7 +253,7 @@ namespace MaizeUI.ViewModels
                 {
                     string iterationDirectory = Path.Combine(iterationsDirectory, $"Iteration_{i + 1}");
                     Directory.CreateDirectory(iterationDirectory);
-                    var nftName = $"{NftName} #{Things.Helpers.GetIterationNumberFromFilePath(iterationDirectory)}";
+                    var nftName = $"{NftName} {Things.Helpers.GetIterationNumberFromFilePath(iterationDirectory)}";
 
                     List<string> orderedSprites = allOrderedSprites[i];
                     Components.ProcessMetadata(metadataDirectory, orderedSprites, iterationDirectory, royaltyPercentage, nftName, nftDescription);

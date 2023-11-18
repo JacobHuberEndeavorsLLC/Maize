@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using CsvHelper.Configuration;
 using CsvHelper;
 using System.Globalization;
-using Newtonsoft.Json;
+using System.IO.Compression;
 
 namespace MaizeUI.ViewModels
 {
@@ -274,6 +274,7 @@ namespace MaizeUI.ViewModels
             string[] allSubDirectories = Directory.GetDirectories(inputDirectory);
             var metadataPath = GetSubDirectory(allSubDirectories, "Metadatas");
             var nftPath = GetSubDirectory(allSubDirectories, "NFTs");
+            var animationPath = GetSubDirectory(allSubDirectories, "Animations");
             var bulkUploadPath = GetSubDirectory(allSubDirectories, "BulkUpload");
             if (bulkUploadPath != null && stepLL == true && (SelectedItem.Contains("choose") || string.IsNullOrEmpty(LooperLandsProjectName))) return;
             if (metadataPath == null || nftPath == null)
@@ -313,7 +314,7 @@ namespace MaizeUI.ViewModels
                 return;
             }
             LockForMinting = true;
-            await MintCids(nftPath, metadataPath, bulkUploadPath);
+            await MintCids(nftPath, metadataPath, bulkUploadPath, animationPath);
         }
         private static bool CheckForNullsStepOne(string inputDirectory, string LoopringFeeSelectedOption, List<string> LoopringFeeDropdown, string MaizeFeeSelectedOption, List<string> MaizeFeeDropdown)
         {
@@ -323,14 +324,18 @@ namespace MaizeUI.ViewModels
                 return true;
             return false;
         }
-        private async Task MintCids(string nftPath, string metadataPath, string? bulkUploadPath)
+        private async Task MintCids(string nftPath, string metadataPath, string? bulkUploadPath, string? animationPath)
         {
             // Get all the full file paths in the directories
             string[] nftFilesFullPaths = Directory.GetFiles(nftPath);
+            string[] animationFilesFullPaths;
+            if (animationPath != null)
+                animationFilesFullPaths = Directory.GetFiles(animationPath);
             string[] metadataFilesFullPaths = Directory.GetFiles(metadataPath);
 
             // Extract just the filenames from the full paths
             List<string> nftFileNames = nftFilesFullPaths.ToList();
+            List<string> animationFileNames = metadataFilesFullPaths.ToList();
             List<string> metadataFileNames = metadataFilesFullPaths.ToList();
 
             var lineCount = nftFileNames.Count();
@@ -418,15 +423,22 @@ namespace MaizeUI.ViewModels
 
                 //} while (limit);
 
-                var nftCid = await loopringService.PostImage(cid);
+                var fileExtensions = new List<string> { ".json", ".jpeg", ".jpg", ".gif", ".webp", ".png", ".mp3", ".mpeg", ".mp4", ".mpeg4", ".glb" };
+
                 string numberPart = Regex.Match(Path.GetFileName(cid), @"\d+").Value;
-                string metadataFileName = $"metadata{numberPart}.json";
-                string metadataFullPath = Path.Combine(metadataPath, metadataFileName);
+                string metadataFullPath = FindFileByNumber(metadataPath, numberPart, fileExtensions);                    
 
-                (int royaltyPercentage, string name, string updatedJsonMetadata) = MetadataModifier.UpdateAndFetchRoyalty(metadataFullPath, nftCid, SelectedCollectionAddress);
-                string metadataHash = await loopringService.PostMetadata(updatedJsonMetadata, metadataFileName);
+                var nftCid = await loopringService.PostImage(cid);
+
+                string animationCid = null;
+                if (animationPath != null)
+                {
+                    var animationFullPath = FindFileByNumber(animationPath, numberPart, fileExtensions);
+                    animationCid = await loopringService.PostImage(animationFullPath);
+                }
+                (int royaltyPercentage, string name, string updatedJsonMetadata) = MetadataModifier.UpdateAndFetchRoyalty(metadataFullPath, nftCid, animationCid, SelectedCollectionAddress);
+                string metadataHash = await loopringService.PostMetadata(updatedJsonMetadata, Path.GetFileName(metadataFullPath));
              
-
                 string currentCid = metadataHash.Trim();
 
                 cidAddressPairs.Add((name, royaltyAddress));
@@ -459,7 +471,7 @@ namespace MaizeUI.ViewModels
                         assetType = "";
                     OutputRecord outputRecord = new OutputRecord
                     {
-                        LooperName = name, // Assuming LooperName exists in the original CSV
+                        LooperName = name.Replace("#", ""), // Assuming LooperName exists in the original CSV
                         ShortNFTID = mintResponse.Item1.nftId,
                         NFTID = $"{settings.LoopringAddress}-0-{SelectedCollectionAddress}-{mintResponse.Item1.nftId}-{royaltyPercentage}",
                         projectname = LooperLandsProjectName, // Replace with actual project name
@@ -501,29 +513,60 @@ namespace MaizeUI.ViewModels
             var fileName = ApplicationUtilitiesUI.ShowAirdropAudit(auditInfo.validAddress, auditInfo.invalidAddress, auditInfo.banishAddress, auditInfo.invalidNftData, auditInfo.alreadyActivatedAddress, "MINT", auditInfo.gasFeeTotal, LoopringFeeSelectedOption, maizeFee, MaizeFeeSelectedOption);
             sw.Stop();
             var swTime = $"This took {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? Math.Round(Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m / 60, 3) : Convert.ToDecimal(sw.ElapsedMilliseconds) / 1000m)} {(sw.ElapsedMilliseconds > (1 * 60 * 1000) ? "minutes" : "seconds")} to complete.";
-            string csvFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}Output\\cid_address_pairs.csv";
-            using (StreamWriter sw2 = new StreamWriter(csvFilePath))
+            if (cidAddressPairs != null && cidAddressPairs.DistinctBy(x=>x.royaltyAddress).Count() > 1)
             {
-                // Write header
-                sw2.WriteLine("CID,Address");
-
-                // Write each pair
-                foreach (var (name, royaltyAddress) in cidAddressPairs)
+                string csvFilePath = $"{AppDomain.CurrentDomain.BaseDirectory}Output\\NFT_address_pairs.csv";
+                using (StreamWriter sw2 = new StreamWriter(csvFilePath))
                 {
-                    sw2.WriteLine($"{name},{royaltyAddress}");
+                    sw2.WriteLine("NFT,Address");
+                    foreach (var (name, royaltyAddress) in cidAddressPairs)
+                    {
+                        sw2.WriteLine($"{name},{royaltyAddress}");
+                    }
                 }
+                ApplicationUtilitiesUI.OpenFile(csvFilePath);
             }
             if (bulkUploadPath != null)
             {
-                using (var writer = new StreamWriter($"{bulkUploadPath}ToLooperLands.csv"))
+                using (var writer = new StreamWriter($"{bulkUploadPath}\\ToLooperLands.csv"))
                 using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false }))
                 {
                     csv.WriteRecords(outputRecords);
                 }
+                ApplicationUtilitiesUI.OpenFile(inputDirectory);
+
+                // Call the method to create the text file with instructions
+                CreateInstructionTextFile(inputDirectory + "\\ReadMeForNextSteps.txt");
             }
-            ApplicationUtilitiesUI.OpenFile(csvFilePath);
+            ZipFolderAndDeleteSource(bulkUploadPath, $"{Path.GetDirectoryName(bulkUploadPath)}\\ToLooperLands.zip");
             Log = $"{swTime}\r\n\r\nYour audit file is here:\r\n\r\n{fileName}";
         }
+        public static string FindFileByNumber(string directoryPath, string number, IEnumerable<string> fileExtensions)
+        {
+            string[] files = Directory.GetFiles(directoryPath);
+
+            // Regex pattern to match the number as a standalone word
+            string exactMatchPattern = $@"(?<!\d){number}(?!\d)";
+
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileName(file);
+
+                // Use Regex for precise matching
+                if (Regex.IsMatch(fileName, exactMatchPattern) && fileExtensions.Any(ext => fileName.EndsWith(ext)))
+                {
+                    return file;
+                }
+            }
+
+            Console.WriteLine("No matching file found.");
+            return null;
+        }
+
+
+
+
+
         public async Task OpenFolder()
         {
             RequestOpenFolder?.Invoke();
@@ -590,7 +633,48 @@ namespace MaizeUI.ViewModels
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
-        public class OutputRecord
+        static void ZipFolderAndDeleteSource(string sourceFolder, string zipFilePath)
+        {
+            try
+            {
+                // Zip the folder
+                ZipFile.CreateFromDirectory(sourceFolder, zipFilePath);
+
+                // Delete the original folder
+                Directory.Delete(sourceFolder, true); // Set the second argument to true to delete subdirectories and files
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+        static void CreateInstructionTextFile(string filePath)
+        {
+            // Content to be written to the text file
+            string content = @"Now take your BulkUpload folder to the Looper Lands discord.
+
+1. https://discord.gg/QRqDEqsNjT
+2. Go to the channel #open-a-ticket
+3. type in /open and click the /open link
+4. click subject and type 'BulkUpload from <Your Wallet address>'
+   example: BulkUpload from 0x6458CC5902D4F9e466B599E220D1663C4718625A
+5. Click into the created ticket
+6. Give the LL team a nice message and upload the ToLooperLands.zip file. 
+7. Done!
+8. Keep an eye on your ticket ^_^";
+
+            try
+            {
+                // Write the content to the text file
+                File.WriteAllText(filePath, content);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+    public class OutputRecord
         {
             public string LooperName { get; set; }
             public string ShortNFTID { get; set; }
@@ -599,4 +683,3 @@ namespace MaizeUI.ViewModels
             public string assetyype { get; set; }
         }
     }
-}

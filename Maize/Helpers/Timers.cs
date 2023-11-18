@@ -8,7 +8,7 @@ namespace Maize.Helpers
         {
             apiSw.Stop();
             TimeSpan elapsed = apiSw.Elapsed;
-            TimeSpan maxDelay = TimeSpan.FromSeconds(0.2);
+            TimeSpan maxDelay = TimeSpan.FromSeconds(1);
 
             if (elapsed < maxDelay)
             {

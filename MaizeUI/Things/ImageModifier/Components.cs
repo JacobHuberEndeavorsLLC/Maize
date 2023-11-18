@@ -43,21 +43,25 @@ namespace MaizeUI.Things
         }
         public static bool CheckForDuplicates(List<string> orderedSprites)
         {
-            var currentHash = Helpers.HashDictionary(ExtractPropertiesFromSprites(orderedSprites));
+            var currentHash = Helpers.HashDictionary(ExtractPropertiesFromSprites(orderedSprites, true));
             if (previousHashes.Contains(currentHash)) return false;
 
             previousHashes.Add(currentHash);
             return true;
         }
-        public static Dictionary<string, string> ExtractPropertiesFromSprites(List<string> orderedSprites)
+        public static Dictionary<string, string> ExtractPropertiesFromSprites(List<string> orderedSprites, bool excludeMarkedDirectories = false)
         {
             var properties = new Dictionary<string, string>();
 
             foreach (var spritePath in orderedSprites)
             {
                 var directoryName = new DirectoryInfo(Path.GetDirectoryName(spritePath)).Name;
-                directoryName = Regex.Replace(directoryName, @"^\s*\d+_|&$", "");
-                directoryName = directoryName.Replace("_", " "); // Replace underscore with space
+                if (excludeMarkedDirectories && Regex.IsMatch(directoryName, @"^\d+!_"))
+                {
+                    continue;
+                }
+                directoryName = Regex.Replace(directoryName, @"^\d+!?|&$", "").Trim();
+                directoryName = directoryName.Replace("_", " ").Trim();
 
                 var spriteName = Path.GetFileNameWithoutExtension(spritePath);
                 spriteName = Regex.Replace(spriteName, @"^X#\d{1,2}", "");
@@ -117,15 +121,17 @@ namespace MaizeUI.Things
             {
                 var dirInfo = new DirectoryInfo(Path.GetDirectoryName(sprite));
 
-                // Find the directory starting with a number followed by '_'
-                while (!Regex.IsMatch(dirInfo.Name, @"^\d+_") && dirInfo.Parent != null)
+                // Adjust the regex to capture a number possibly followed by '!'
+                while (!Regex.IsMatch(dirInfo.Name, @"^\d+!?_") && dirInfo.Parent != null)
                 {
                     dirInfo = dirInfo.Parent;
                 }
 
                 string[] parts = dirInfo.Name.Split('_');
                 int number = 0;
-                if (parts.Length >= 2 && int.TryParse(parts[0], out number))
+
+                // Use regex to extract the number without '!'
+                if (parts.Length >= 2 && int.TryParse(Regex.Match(parts[0], @"\d+").Value, out number))
                 {
                     return number;
                 }
@@ -140,6 +146,7 @@ namespace MaizeUI.Things
             })
             .ToList();
         }
+
         public static void ProcessSprites(string nftDirectory, List<string> orderedSprites, string iterationDirectory, string bulkUploadDirectory, string selectedItem)
         {
             if (orderedSprites.Count > 0)

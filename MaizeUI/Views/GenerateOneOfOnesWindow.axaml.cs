@@ -14,7 +14,7 @@ namespace MaizeUI.Views
         }
         public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/one-of-one-creation/generate-one-of-one-nfts");
+            Maize.Helpers.Things.OpenUrl("https://maizehelps.art/docs/tutorials/one-of-one-creation/generate-one-of-one-nfts");
         }
         private void OnDataContextChanged(object sender, EventArgs e)
         {

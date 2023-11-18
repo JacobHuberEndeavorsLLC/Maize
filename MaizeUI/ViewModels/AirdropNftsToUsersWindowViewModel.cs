@@ -226,6 +226,7 @@ namespace MaizeUI.ViewModels
             {
                 foreach (var item in transferInfoList.Where(x => x.Activated == false).DistinctBy(x=>x.ToAddress).ToList())
                 {
+                    var apiSw = Stopwatch.StartNew();
                     Log = $"Transfering NFT with activation {transferInfoList.Where(x => x.Activated == false).ToList().IndexOf(item) + 1}/{transferInfoList.Where(x => x.Activated == false).DistinctBy(x => x.ToAddress).Count()} ";
                     // nft transfer
                     var newAuditInfo = await LoopringService.NftTransfer(
@@ -277,11 +278,13 @@ namespace MaizeUI.ViewModels
                     {
                         duplicateItem.Activated = true;
                     }
+                    Timers.ApiStopWatchCheck(apiSw);
                 }
             }
 
             foreach (var item in tempTransferInfoList.Where(x => x.Activated == true).ToList())
             {
+                var apiSw = Stopwatch.StartNew();
                 Log = $"Transfering NFT {tempTransferInfoList.Where(x => x.Activated == true).ToList().IndexOf(item) + 1}/{tempTransferInfoList.Where(x => x.Activated == true).ToList().Count()} ";
                 // nft transfer
                 var newAuditInfo = await LoopringService.NftTransfer(
@@ -327,7 +330,7 @@ namespace MaizeUI.ViewModels
                 auditInfo.gasFeeTotal += newAuditInfo.gasFeeTotal;
                 auditInfo.transactionFeeTotal += newAuditInfo.transactionFeeTotal;
                 auditInfo.nftSentTotal += newAuditInfo.nftSentTotal;
-
+                Timers.ApiStopWatchCheck(apiSw);
             }
 
             maxFeeTokenId = ("ETH" == LoopringFeeSelectedOption) ? 0 : 1;

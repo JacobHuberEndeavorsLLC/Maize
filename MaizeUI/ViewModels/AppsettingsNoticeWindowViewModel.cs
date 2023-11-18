@@ -15,9 +15,15 @@ namespace MaizeUI.ViewModels
 {
     public class AppsettingsNoticeWindowViewModel : ViewModelBase
     {
+        private readonly AccountService _accountService;
         WalletTypeResponse walletType;
         CounterFactualInfo? isCounterFactual;
-
+        private string _watermark;
+        public string Watermark
+        {
+            get => _watermark;
+            set => this.RaiseAndSetIfChanged(ref _watermark, value);
+        }
         public string notice;
         public string location;
         public string eoal1Key;
@@ -89,20 +95,25 @@ namespace MaizeUI.ViewModels
 
         public ReactiveCommand<Unit, Unit> SetupApsettingsFileCommand { get; }
 
-        public AppsettingsNoticeWindowViewModel()
+        public AppsettingsNoticeWindowViewModel(string notice, string location, LoopringServiceUI loopringService, AccountService accountService)
         {
-            Notice = "Here you will create an Input file for airdrops that have the same Crypto Amount and Memo. This can be modified after as needed.";
-            Log = $"Paste Account Information from Loopring.io > Avatar > Security > Export Account here and then the L1 Private Key/Image below if needed.\r\n\r\n Example (PASTE OVER ALL INFORMATION):\r\n{{\r\n    \"address\": \"0x1fdfef87d387e4basdjfhtyghtugh19cff06a982\",\r\n    \"accountId\": 11233,\r\n    \"level\": \"\",\r\n    \"nonce\": 1,\r\n    \"apiKey\": \"miWgX3jDo5zubs1VwYrPShtF5ythgnbhggmczTOwzUrS280AaNtf6v8CuVmwfP4f\",\r\n    \"publicX\": \"0x12167dbhguty675ud3c11bae8a343c138cfc2574349235688ae2d6ce68320ac8\",\r\n    \"publicY\": \"0x1d7e0c7d92b894dc27943a0fghtyghvnfjb0db0dbcc47d42f2914d9b00b84fd3\",\r\n    \"privateKey\": \"0x2ad857be54b8d02badc842ac54e25f5ythgjt0pol50331cc4894509c09f255b\"\r\n}}\r\n";
-            IsLswTextBoxVisible = false; 
+            _accountService = accountService;
+            Notice = notice;
+            Location = location;
+            LoopringService = loopringService;
+            Maize.Helpers.Things.OpenUrl("https://loopring.io/#/trade/lite/LRC-ETH");
+            Watermark = $"Paste Account Information from Loopring.io > Avatar > Security > Export Account here and then the L1 Private Key/Image below if needed.\r\n\r\n Example:\r\n{{\r\n    \"address\": \"0x1fdfef87d387e4basdjfhtyghtugh19cff06a982\",\r\n    \"accountId\": 11233,\r\n    \"level\": \"\",\r\n    \"nonce\": 1,\r\n    \"apiKey\": \"miWgX3jDo5zubs1VwYrPShtF5ythgnbhggmczTOwzUrS280AaNtf6v8CuVmwfP4f\",\r\n    \"publicX\": \"0x12167dbhguty675ud3c11bae8a343c138cfc2574349235688ae2d6ce68320ac8\",\r\n    \"publicY\": \"0x1d7e0c7d92b894dc27943a0fghtyghvnfjb0db0dbcc47d42f2914d9b00b84fd3\",\r\n    \"privateKey\": \"0x2ad857be54b8d02badc842ac54e25f5ythgjt0pol50331cc4894509c09f255b\"\r\n}}\r\n";
+            IsLswTextBoxVisible = false;
             IsEoaTextBoxVisible = false;
-            Website.OpenWebsite("https://loopring.io/#/trade/lite/LRC-ETH");
             SetupApsettingsFileCommand = ReactiveCommand.Create(SetupApsettingsFile);
         }
+        public event Action<string> OnSettingsFileSaved;
+        public event Action RequestClose;
+
         private async void SetupApsettingsFile()
         {
-
             IsEnabled = false;
-            RootObject settings = SetupL2();
+            RootObject settings = _accountService.SetupL2(log, location);
 
             if (isCounterFactual == null && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
             {
@@ -114,7 +125,11 @@ namespace MaizeUI.ViewModels
                 var layerOneKey = eoal1Key;
                 settings.Settings.MMorGMEPrivateKey = layerOneKey;
             }
-            else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false)
+            else if (isCounterFactual == null && walletType.data.isContract == true) // need  to account for
+            {
+                settings.Settings.MMorGMEPrivateKey = "";
+            }
+            else if (isCounterFactual.accountId != 0 && walletType.data.isContract == false) // need  to account for
             {
                 settings.Settings.MMorGMEPrivateKey = "";
             }
@@ -174,40 +189,20 @@ namespace MaizeUI.ViewModels
                     settings.Settings.MMorGMEPrivateKey = layerOneKey;
                 }
             }
-            string updatedJsonString = JsonConvert.SerializeObject(settings);
+            await _accountService.CreateNewAccountAsync(settings);
 
-            await File.WriteAllTextAsync(location, updatedJsonString);
-            Notice = "Done!";
-            Log = "Close this window and click the check mark on the Menu again.";
-            IsLswTextBoxVisible = false;
-            IsEoaTextBoxVisible = false;
+
+            RequestClose?.Invoke();
+            OnSettingsFileSaved?.Invoke(settings.Settings.LoopringAddress);
 
         }
-        private RootObject SetupL2()
-        {
-            string jsonString = log.Trim();
-            if ((jsonString.StartsWith("{") && jsonString.EndsWith("}")) || //For object
-        (jsonString.StartsWith("[") && jsonString.EndsWith("]"))) //For array
-            {
-                WalletDetails walletDetails = JsonConvert.DeserializeObject<WalletDetails>(jsonString);
-                string appSettingsEnvironment = location;
-                RootObject settings = JsonConvert.DeserializeObject<RootObject>(File.ReadAllText(appSettingsEnvironment));
-
-                settings.Settings.LoopringAccountId = (int)walletDetails.AccountId;
-                settings.Settings.LoopringAddress = walletDetails.Address;
-                settings.Settings.LoopringApiKey = walletDetails.ApiKey;
-                settings.Settings.LoopringPrivateKey = walletDetails.PrivateKey;
-                
-                return settings;
-            }
-
-            return null;
-        }
+        
         private async void UpdateTextBoxVisibilityAsync()
         {
-            RootObject settings = SetupL2();
+            RootObject settings = _accountService.SetupL2(log, location);
             if (settings != null)
             {
+                IsEnabled = false;
                 isCounterFactual = await LoopringService.GetCounterFactualInfo(settings.Settings.LoopringAccountId);
                 walletType = await loopringService.GetWalletType(settings.Settings.LoopringAddress);
                 try

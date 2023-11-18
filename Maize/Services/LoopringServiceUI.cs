@@ -30,10 +30,8 @@ namespace Maize.Services
             request.AddHeader("Content-Type", "application/json");
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.PostAsync(request);
                 var data = JsonConvert.DeserializeObject< RefreshNftResponse> (response.Content!);
-                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -112,10 +110,8 @@ namespace Maize.Services
             request.AddParameter("tokens", "0,1,272");
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<List<UserAssetsResponse>>(response.Content!);
-                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -133,13 +129,11 @@ namespace Maize.Services
 
                 if (response.IsSuccessful)
                 {
-                    var apiSw = Stopwatch.StartNew();
                     var responseData = JsonConvert.DeserializeObject<GasPriceResponse>(response.Content);
 
                     // Convert the string price to a decimal (or another numeric type)
                     if (decimal.TryParse(responseData?.Price, out var gasPrice))
                     {
-                        Timers.ApiStopWatchCheck(apiSw);
                         return gasPrice;
                     }
                 }
@@ -163,14 +157,12 @@ namespace Maize.Services
             request.AddParameter("offset", offset);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<UserOwnedCollectionResponse>(response.Content!);
                 if (data.collections.Count != 0) 
                 {
                     allData.AddRange(data.collections);
                 }
-                Timers.ApiStopWatchCheck(apiSw);
                 return allData;
             }
             catch (HttpRequestException httpException)
@@ -189,14 +181,12 @@ namespace Maize.Services
             request.AddParameter("offset", offset);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<UserOwnedCollectionResponse>(response.Content!);
                 if (data.totalNum != 0)
                 {
                     allData.AddRange(data.collections);
                 }
-                Timers.ApiStopWatchCheck(apiSw);
                 return (allData, data.totalNum);
             }
             catch (HttpRequestException httpException)
@@ -216,17 +206,14 @@ namespace Maize.Services
             request.AddParameter("offset", offset);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<UserMintedCollectionResponse>(response.Content!);
                 if (data.collections.Count != 0)
                 {
                     allData.AddRange(data.collections.ToList());
                 }
-                Timers.ApiStopWatchCheck(apiSw);
                 while (data.collections.Count != 0)
                 {
-                    apiSw = Stopwatch.StartNew();
                     offset += 12;
                     request.AddOrUpdateParameter("offset", offset);
                     response = await _client.GetAsync(request);
@@ -235,7 +222,6 @@ namespace Maize.Services
                     {
                         allData.AddRange(data.collections.ToList());
                     }
-                    Timers.ApiStopWatchCheck(apiSw);
                 }
                 return allData;
             }
@@ -255,14 +241,12 @@ namespace Maize.Services
             request.AddParameter("offset", offset);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<UserMintedCollectionResponse>(response.Content!);
                 if (data.totalNum != 0)
                 {
                     allData.AddRange(data.collections);
                 }
-                Timers.ApiStopWatchCheck(apiSw);
                 return (allData, data.totalNum);
             }
             catch (HttpRequestException httpException)
@@ -285,7 +269,6 @@ namespace Maize.Services
                 var data = JsonConvert.DeserializeObject<NftResponseFromCollection>(response.Content!);
                 var total = data.totalNum;
 
-                Timers.ApiStopWatchCheck(apiSw);
                 while (total > 50)
                 {
                     apiSw = Stopwatch.StartNew();
@@ -295,7 +278,6 @@ namespace Maize.Services
                     var moreData = JsonConvert.DeserializeObject<NftResponseFromCollection>(response.Content!);
                     data.nftTokenInfos.AddRange(moreData.nftTokenInfos);
                     offset += 50;
-                    Timers.ApiStopWatchCheck(apiSw);
                 }
                 return data;
             }
@@ -466,10 +448,8 @@ namespace Maize.Services
             request.AddParameter("owner", owner);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<AccountInformationResponse>(response.Content!);
-                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -732,11 +712,9 @@ namespace Maize.Services
             request.AddParameter("nftDatas", nftData);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<NftBalance>(response.Content!);
                 counter++;
-                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -753,10 +731,9 @@ namespace Maize.Services
             request.AddParameter("sellTokenId", sellTokenId);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<StorageId>(response.Content!);
-                Timers.ApiStopWatchCheck(apiSw);
+
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -773,10 +750,8 @@ namespace Maize.Services
             request.AddParameter("amount", amount);
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.GetAsync(request);
                 var data = JsonConvert.DeserializeObject<OffchainFee>(response.Content!);
-                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)
@@ -791,9 +766,7 @@ namespace Maize.Services
             address = address.Trim().ToLower();
             if (address.Contains(".eth"))
             {
-                var apiSw = Stopwatch.StartNew();
                 var varHexAddress = await LoopringService.GetHexAddress(apiKey, address);
-                Timers.ApiStopWatchCheck(apiSw);
 
                 return string.IsNullOrEmpty(varHexAddress.data) ? null : varHexAddress.data;
             }
@@ -1120,10 +1093,8 @@ namespace Maize.Services
                 request.AddParameter("payPayeeUpdateAccount", "true");
             try
             {
-                var apiSw = Stopwatch.StartNew();
                 var response = await _client.ExecutePostAsync(request);
                 var data = response.Content;
-                Timers.ApiStopWatchCheck(apiSw);
                 return data;
             }
             catch (HttpRequestException httpException)

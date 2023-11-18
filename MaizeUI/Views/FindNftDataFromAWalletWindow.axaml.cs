@@ -13,7 +13,7 @@ namespace MaizeUI.Views
         }
         public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/lookups/nft-info-from-a-wallet");
+            Maize.Helpers.Things.OpenUrl("https://maizehelps.art/docs/tutorials/lookups/nft-info-from-a-wallet");
         }
     }
 }

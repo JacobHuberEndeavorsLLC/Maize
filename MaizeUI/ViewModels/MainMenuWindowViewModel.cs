@@ -11,11 +11,26 @@ using MaizeUI.Helpers;
 using Maize.Helpers;
 using Microsoft.Extensions.Configuration;
 using NBitcoin;
+using Splat;
 
 namespace MaizeUI.ViewModels
 {
     public class MainMenuWindowViewModel : ViewModelBase
     {
+        public Window OwnerWindow { get; private set; } 
+
+        private readonly IDialogService _dialogService;
+        public Action LogoutAction { get; }
+        private bool _isMainnetSelected;
+        public bool IsMainnetSelected
+        {
+            get => _isMainnetSelected;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _isMainnetSelected, value);
+                SelectedNetwork = _isMainnetSelected ? "💎 main" : "🧪 test";
+            }
+        }
         public string ens;
         public string Ens
         {
@@ -78,11 +93,16 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> HelpFileCommand { get; }
         public ReactiveCommand<Unit, Unit> LooperLandsGenerateOneOfOnesCommand { get; }
         public ReactiveCommand<Unit, Unit> GenerateOneOfOnesCommand { get; }
-        public ReactiveCommand<Unit, Unit> MintAndPinToIPFSCommand { get; }
         public ReactiveCommand<Unit, Unit> MintCommand { get; }
+        public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
 
-        public MainMenuWindowViewModel()
+        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow)
         {
+            LogoutAction = logoutAction;
+            _dialogService = dialogService;
+            OwnerWindow = ownerWindow;
+            LogoutAction = logoutAction;
+            _dialogService = dialogService;
             FindNftDataFromAWalletCommand = ReactiveCommand.Create(FindNftDataFromAWallet);
             FindNftDataFromACollectionCommand = ReactiveCommand.Create(FindNftDataFromACollection);
             FindHoldersFromNftDataCommand = ReactiveCommand.Create(FindHoldersFromNftData);
@@ -96,113 +116,127 @@ namespace MaizeUI.ViewModels
             HelpFileCommand = ReactiveCommand.Create(HelpFile);
             LooperLandsGenerateOneOfOnesCommand = ReactiveCommand.Create(LooperLandsGenerateOneOfOnes);
             GenerateOneOfOnesCommand = ReactiveCommand.Create(GenerateOneOfOnes);
-            MintAndPinToIPFSCommand = ReactiveCommand.Create(MintAndPinToIPFS);
             MintCommand = ReactiveCommand.Create(Mint);
-
-
+            LogoutCommand = ReactiveCommand.Create(Logout);
         }
+        public void Logout()
+        {
+            LogoutAction?.Invoke();
+        }
+
         private async void FindNftDataFromAWallet()
         {
-            await ShowDialog<FindNftDataFromAWalletWindow, FindNftDataFromAWalletWindowViewModel>(new FindNftDataFromAWalletWindowViewModel
+            var viewModel = new FindNftDataFromAWalletWindowViewModel
             {
                 LoopringService = new LoopringServiceUI(Environment.Url),
                 Settings = settings
-            });
+            };
+
+            await _dialogService.ShowDialogAsync<FindNftDataFromAWalletWindow, FindNftDataFromAWalletWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void FindNftDataFromACollection()
         {
-            await ShowDialog<FindNftDataFromACollectionWindow, FindNftDataFromACollectionWindowViewModel>(
-                new FindNftDataFromACollectionWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings
-                });
+            var viewModel = new FindNftDataFromACollectionWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings
+            };
+
+            await _dialogService.ShowDialogAsync<FindNftDataFromACollectionWindow, FindNftDataFromACollectionWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void FindHoldersFromNftData()
         {
-            await ShowDialog<FindHoldersFromNftDataWindow, FindHoldersFromNftDataWindowViewModel>(
-                new FindHoldersFromNftDataWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings
-                });
+            var viewModel = new FindHoldersFromNftDataWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings
+            };
+
+            await _dialogService.ShowDialogAsync<FindHoldersFromNftDataWindow, FindHoldersFromNftDataWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void AirdropNftsToUsers()
         {
-            await ShowDialog<AirdropNftsToUsersWindow, AirdropNftsToUsersWindowViewModel>(
-                new AirdropNftsToUsersWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings,
-                    Environment = environment
-                });
+            var viewModel = new AirdropNftsToUsersWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+
+            await _dialogService.ShowDialogAsync<AirdropNftsToUsersWindow, AirdropNftsToUsersWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void AirdropCryptoToUsers()
         {
-            await ShowDialog<AirdropCryptoToUsersWindow, AirdropCryptoToUsersWindowViewModel>(
-                new AirdropCryptoToUsersWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings,
-                    Environment = environment
-                });
+            var viewModel = new AirdropCryptoToUsersWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+
+            await _dialogService.ShowDialogAsync<AirdropCryptoToUsersWindow, AirdropCryptoToUsersWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void AirdropMigrateWallet()
         {
-            await ShowDialog<AirdropMigrateWalletWindow, AirdropMigrateWalletWindowViewModel>(
-                new AirdropMigrateWalletWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings,
-                    Environment = environment
-                });
+            var viewModel = new AirdropMigrateWalletWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+
+            await _dialogService.ShowDialogAsync<AirdropMigrateWalletWindow, AirdropMigrateWalletWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void ScriptingAirdropInputFile()
         {
-            await ShowDialog<ScriptingAirdropInputFileWindow, ScriptingAirdropInputFileWindowViewModel>(
-                new ScriptingAirdropInputFileWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings,
-                    Environment = environment
-                });
+            var viewModel = new ScriptingAirdropInputFileWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+
+            await _dialogService.ShowDialogAsync<ScriptingAirdropInputFileWindow, ScriptingAirdropInputFileWindowViewModel>(viewModel, OwnerWindow);
         }
         private async void ScriptingCryptoAirdropInputFile()
         {
-            await ShowDialog<ScriptingCryptoAirdropInputFileWindow, ScriptingCryptoAirdropInputFileWindowViewModel>(
-                new ScriptingCryptoAirdropInputFileWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings,
-                    Environment = environment
-                });
-            }
+            var viewModel = new ScriptingCryptoAirdropInputFileWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings,
+                Environment = environment
+            };
+
+            await _dialogService.ShowDialogAsync<ScriptingCryptoAirdropInputFileWindow, ScriptingCryptoAirdropInputFileWindowViewModel>(viewModel, OwnerWindow);
+        }
         private async void MetadataRefreshCollection()
         {
-            await ShowDialog<MetadataRefreshCollectionWindow, MetadataRefreshCollectionWindowViewModel>(
-                new MetadataRefreshCollectionWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings
-                });
+            var viewModel = new MetadataRefreshCollectionWindowViewModel
+            {
+                LoopringService = new LoopringServiceUI(Environment.Url),
+                Settings = settings
+            };
+
+            await _dialogService.ShowDialogAsync<MetadataRefreshCollectionWindow, MetadataRefreshCollectionWindowViewModel>(viewModel, OwnerWindow);
         }
+
         private async void LooperLandsGenerateOneOfOnes()
         {
             string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}mainnetappsettings.json";
             IConfiguration config = new ConfigurationBuilder()
-               .AddJsonFile(appSettingsEnvironment)
-               .AddEnvironmentVariables()
-               .Build();
+                .AddJsonFile(appSettingsEnvironment)
+                .AddEnvironmentVariables()
+                .Build();
             var mainnet = (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
             var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
             if (premiumAccess == false)
             {
-                Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
+                Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                 return;
             }
 
-            await ShowDialog<LooperLandsGenerateOneOfOnesWindow, LooperLandsGenerateOneOfOnesWindowViewModel>(
-                new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url)));
+            var viewModel = new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
+            await _dialogService.ShowDialogAsync<LooperLandsGenerateOneOfOnesWindow, LooperLandsGenerateOneOfOnesWindowViewModel>(viewModel);
         }
         private async void GenerateOneOfOnes()
         {
@@ -215,43 +249,26 @@ namespace MaizeUI.ViewModels
             var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
             if (premiumAccess == false)
             {
-                Website.OpenWebsite("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
+                Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                 return;
             }
-
-            await ShowDialog<GenerateOneOfOnesWindow, GenerateOneOfOnesWindowViewModel>(
-                new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url))
-);
-        }
-        private async void MintAndPinToIPFS()
-        {
-            await ShowDialog<MintAndPinToIPFSWindow, MintAndPinToIPFSWindowViewModel>(
-                new MintAndPinToIPFSWindowViewModel
-                {
-                    LoopringService = new LoopringServiceUI(Environment.Url),
-                    Settings = settings,
-                    Environment = environment
-                });
+            var viewModel = new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
+            await _dialogService.ShowDialogAsync<GenerateOneOfOnesWindow, GenerateOneOfOnesWindowViewModel>(viewModel);
         }
         private async void Mint()
         {
-            await ShowDialog<MintWindow, MintWindowViewModel>(
-            new MintWindowViewModel(settings, new LoopringServiceUI(Environment.Url)));
+            var viewModel = new MintWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
+            await _dialogService.ShowDialogAsync<MintWindow, MintWindowViewModel>(viewModel);
         }
-        private async Task ShowDialog<TDialog, TViewModel>(TViewModel viewModel) where TDialog : Window, new() where TViewModel : class
-        {
-            var dialog = new TDialog();
-            dialog.DataContext = viewModel;
-            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
-        }
+
         private async void MetadataUploadToInfura()
         {
-            await ShowDialog<MetadataUploadToInfuraWindow, MetadataUploadToInfuraWindowViewModel>(new MetadataUploadToInfuraWindowViewModel());
+            var viewModel = new MetadataUploadToInfuraWindowViewModel();
+            await _dialogService.ShowDialogAsync<MetadataUploadToInfuraWindow, MetadataUploadToInfuraWindowViewModel>(viewModel, OwnerWindow);
         }
         private void HelpFile()
         {
-            Website.OpenWebsite("https://maizehelps.art/docs");
+            Maize.Helpers.Things.OpenUrl("https://maizehelps.art/docs");
         }
     }
 }

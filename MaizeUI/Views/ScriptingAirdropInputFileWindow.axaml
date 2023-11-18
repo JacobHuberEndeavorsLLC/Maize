@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 				mc:Ignorable="d" Width="600" Height="400"
 		    WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
-				CanResize="True"
+        CanResize="True"
         x:Class="MaizeUI.Views.ScriptingAirdropInputFileWindow"
         Title="Scripting Input File for an Airdrop">
 	<Design.DataContext>

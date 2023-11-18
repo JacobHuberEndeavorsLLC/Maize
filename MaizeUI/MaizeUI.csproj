@@ -30,11 +30,11 @@
   </ItemGroup>
   <ItemGroup>
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-	<PackageReference Include="Avalonia" Version="11.0.4" />
-	<PackageReference Include="Avalonia.Desktop" Version="11.0.4" />
-	<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.4" />
-	<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.4" />
-	<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.4" />
+	<PackageReference Include="Avalonia" Version="11.0.5" />
+	<PackageReference Include="Avalonia.Desktop" Version="11.0.5" />
+	<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
+	<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.5" />
+	<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.5" />
 	<PackageReference Include="OpenCvSharp4" Version="4.8.0.20230708" />
 	<PackageReference Include="OpenCvSharp4.runtime.osx.10.15-x64" Version="4.6.0.20230105" />
 	<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.8.0.20230708" />
@@ -64,9 +64,6 @@
     </Compile>
     <Compile Update="Views\MintWindow.axaml.cs">
       <DependentUpon>MintWindow.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Views\MintAndPinToIPFSWindow.axaml.cs">
-      <DependentUpon>MintAndPinToIPFSWindow.axaml</DependentUpon>
     </Compile>
     <Compile Update="Views\GenerateOneOfOnesWindow.axaml.cs">
       <DependentUpon>GenerateOneOfOnesWindow.axaml</DependentUpon>

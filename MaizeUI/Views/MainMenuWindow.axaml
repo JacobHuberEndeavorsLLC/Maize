@@ -27,9 +27,19 @@
     <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" ToolTip.Tip="{Binding Version}" Height="50" />
     <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 50 0 0" Text="{Binding Slogan}" />
       <StackPanel>
-        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 0 0 5" Text="{Binding Ens}" />
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 5 5" Text="{Binding Ens}" />
+        <Button HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="Logout" Margin="0 0 0 5" Content="[←| ]" Command="{Binding LogoutCommand}"/>
+        </StackPanel>
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-          <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 5 0" Text="{Binding SelectedNetwork}" />
+          <!--<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 5 0" Text="{Binding SelectedNetwork}" />-->
+          <ToggleButton IsEnabled="false" IsChecked="{Binding IsMainnetSelected, Mode=TwoWay}"
+              Content="{Binding SelectedNetwork}"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Width="80"
+              Margin="0,0,5,0" />
           <Button HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 0 0" Content="Help" Command="{Binding HelpFileCommand}"/>
         </StackPanel>
       </StackPanel>
@@ -87,7 +97,6 @@
       <StackPanel Margin="0 250 10 0">
         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Minting:" FontSize="20" Margin="0 0 0 5" />
         <Button Width="180" Content="Standard" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MintCommand}" />
-        <Button Width="180" Content="With IPFS" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MintAndPinToIPFSCommand}" />
       </StackPanel>
     </StackPanel>
   </Panel>

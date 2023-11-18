@@ -16,7 +16,7 @@ namespace MaizeUI.Views
         }
         public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            Website.OpenWebsite("https://maizehelps.art/docs/tutorials/setup-maize");
+            Maize.Helpers.Things.OpenUrl("https://maizehelps.art/docs/tutorials/setup-maize");
         }
         public async void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
