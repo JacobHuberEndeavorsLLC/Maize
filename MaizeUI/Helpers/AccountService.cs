@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.ObjectModel;
 using Nethereum.Model;
 using Newtonsoft.Json;
+using System.Net.Http.Json;
+using System.Text;
 
 namespace MaizeUI.Helpers
 {
@@ -93,8 +95,7 @@ namespace MaizeUI.Helpers
 
         public void DeleteAccount(string accountAddress)
         {
-            string directoryPath = Constants.BaseDirectory + Constants.EnvironmentPath;
-            string fullFileName = FindFullFileName(accountAddress, directoryPath);
+            string fullFileName = FindFullFileName(accountAddress);
 
             if (fullFileName != null)
             {
@@ -116,11 +117,12 @@ namespace MaizeUI.Helpers
                 // Handle the case where the file is not found or accountAddress is invalid
             }
         }
-        public async Task CreateNewAccountAsync(RootObject settings)
+        public async Task CreateNewAccountAsync(RootObject settings, string userPassword)
         {
-            string updatedJsonString = JsonConvert.SerializeObject(settings);
             var environment = settings.Settings.Environment == 1 ? "_main" : "_test";
-            await File.WriteAllTextAsync(Constants.BaseDirectory + Constants.EnvironmentPath + settings.Settings.LoopringAddress + $"{environment}.json", updatedJsonString);
+            string updatedJsonString = JsonConvert.SerializeObject(settings);
+            string encryptedContent = Encryption.EncryptString(updatedJsonString, userPassword);
+            await File.WriteAllTextAsync(Constants.BaseDirectory + Constants.EnvironmentPath + settings.Settings.LoopringAddress + $"{environment}.json", encryptedContent);
             UpdateSelectedAccount(settings.Settings.LoopringAddress);
 
             // Refresh the accounts list
@@ -158,61 +160,60 @@ namespace MaizeUI.Helpers
 
             return null;
         }
-        public void EnsureAppSettingsFile(string appSettingsEnvironment)
+        public async Task<(Settings, string)> LoadSettings(string userPassword)
         {
-            // Check if the file exists
-            if (!File.Exists(appSettingsEnvironment))
-            {
-                var environment = appSettingsEnvironment.Contains("main") == true ? 1 : 5;
-                // Create a default RootObject with your structure
-                RootObject defaultSettings = new RootObject
-                {
-                    Settings = new Settings
-                    {
-                        LoopringApiKey = "default_api_key", // Replace with default or empty value
-                        LoopringPrivateKey = "default_private_key", // Replace with default or empty value
-                        LoopringAddress = "default_address", // Replace with default or empty value
-                        LoopringAccountId = 0, // Replace with default or empty value
-                        ValidUntil = 1700000000, // Adjust if needed
-                        Environment = environment, // Adjust if needed
-                        MMorGMEPrivateKey = "default_private_key" // Replace with default or empty value
-                    }
-                };
-
-                // Serialize the default settings to JSON
-                string json = JsonConvert.SerializeObject(defaultSettings, Formatting.Indented);
-
-                // Write the JSON to the file
-                File.WriteAllText(appSettingsEnvironment, json);
-            }
-        }
-        public async Task<(Settings, string)> LoadSettings()
-        {
-            string appSettingsEnvironment = $"{FindFullFileName(SelectedAccount, Constants.BaseDirectory + Constants.EnvironmentPath)}";
+            string appSettingsEnvironment = $"{FindFullFileName(SelectedAccount)}";
             try
             {
+                string encryptedContent = await File.ReadAllTextAsync(appSettingsEnvironment);
+                string decryptedContent = Encryption.DecryptString(encryptedContent, userPassword);
+
                 IConfiguration config = new ConfigurationBuilder()
-                   .AddJsonFile(appSettingsEnvironment)
-                   .AddEnvironmentVariables()
-                   .Build();
+                    .AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(decryptedContent)))
+                    .AddEnvironmentVariables()
+                    .Build();
+
                 return (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
             }
             catch (Exception)
             {
-                //appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}PLACEHOLDER_{ExtractNetworkType(SelectedNetwork)}.json";
+                // Handle exceptions (e.g., decryption failure, file not found, etc.)
                 return (null, null);
             }
         }
-        private string FindFullFileName(string shortenedAddress, string directoryPath)
+        public async Task<(Settings, string)> LoadMainSettingsForPremium(string userPassword, string account)
         {
+            string appSettingsEnvironment = FindFullFileName(account, "main");
+            try
+            {
+                string encryptedContent = await File.ReadAllTextAsync(appSettingsEnvironment);
+                string decryptedContent = Encryption.DecryptString(encryptedContent, userPassword);
+
+                IConfiguration config = new ConfigurationBuilder()
+                    .AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(decryptedContent)))
+                    .AddEnvironmentVariables()
+                    .Build();
+
+                return (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
+            }
+            catch (Exception)
+            {
+                // Handle exceptions (e.g., decryption failure, file not found, etc.)
+                return (null, null);
+            }
+        }
+        private string FindFullFileName(string shortenedAddress, string networkType = null)
+        {
+            string directoryPath = Constants.BaseDirectory + Constants.EnvironmentPath;
             if (!string.IsNullOrEmpty(shortenedAddress))
             {
                 string startPattern = shortenedAddress.Substring(0, 6);
                 string endPattern = shortenedAddress.Substring(shortenedAddress.Length - 4);
+                string network = networkType ?? ExtractNetworkType(SelectedNetwork);
+
                 try
                 {
-
-                    return Directory.GetFiles(directoryPath, $"{startPattern}*{endPattern}_{ExtractNetworkType(SelectedNetwork)}.json").First();
+                    return Directory.GetFiles(directoryPath, $"{startPattern}*{endPattern}_{network}.json").First();
                 }
                 catch (Exception ex)
                 {
@@ -222,6 +223,7 @@ namespace MaizeUI.Helpers
 
             return null;
         }
+
         public void RefreshAccountsList(string newAccountAddress = null)
         {
             LoadAccounts(); // Load accounts if not already done elsewhere

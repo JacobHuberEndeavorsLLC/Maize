@@ -24,6 +24,12 @@ namespace MaizeUI.ViewModels
             get => _watermark;
             set => this.RaiseAndSetIfChanged(ref _watermark, value);
         }
+        private string _password;
+        public string Password
+        {
+            get => _password;
+            set => this.RaiseAndSetIfChanged(ref _password, value);
+        }
         public string notice;
         public string location;
         public string eoal1Key;
@@ -114,7 +120,12 @@ namespace MaizeUI.ViewModels
         {
             IsEnabled = false;
             RootObject settings = _accountService.SetupL2(log, location);
-
+            if (string.IsNullOrEmpty(_password))
+            {
+                Notice = "Please enter in your password";
+                IsEnabled = true;
+                return;
+            }
             if (isCounterFactual == null && walletType.data.isInCounterFactualStatus == false && walletType.data.isContract == false)
             {
                 if (string.IsNullOrEmpty(eoal1Key))
@@ -189,7 +200,8 @@ namespace MaizeUI.ViewModels
                     settings.Settings.MMorGMEPrivateKey = layerOneKey;
                 }
             }
-            await _accountService.CreateNewAccountAsync(settings);
+
+            await _accountService.CreateNewAccountAsync(settings, _password);
 
 
             RequestClose?.Invoke();

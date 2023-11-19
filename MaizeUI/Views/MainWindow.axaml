@@ -54,7 +54,13 @@
             <Button Grid.Column="2" ToolTip.Tip="Create Account" Margin="5,0,0,0" Content="➕" Command="{Binding CreateAppSettingsCommand}" />
             <Button Grid.Column="3" ToolTip.Tip="Delete Account" Margin="5,0,0,0" Content="🗑️" Command="{Binding DeleteAccountCommand}" />
         </Grid>
+
         </Panel>
+        <StackPanel Margin="5 0 0 0" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <!-- ... other elements ... -->
+          <TextBox PasswordChar="*" Margin="0 5 137 0" Text="{Binding Password}" Width="140" Height="31" Watermark="Account Password"/>
+          <TextBlock Text="{Binding InvalidPasswordMessage}" Foreground="Red" Margin="0 5 137 0" HorizontalAlignment="Center"/>
+        </StackPanel>
       </StackPanel>
     </Panel>
 

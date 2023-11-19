@@ -27,8 +27,11 @@
 
     <Image Source="{Binding ImagePath}" />
 
-    <Button Margin="20 0 20 10"  HorizontalAlignment="Right" Width="100" Command="{Binding SetupApsettingsFileCommand}" IsEnabled="{Binding IsEnabled}">
-      <TextBlock Text="Create" TextAlignment="Center"/>
-    </Button>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20 0 20 10">
+      <TextBox ToolTip.Tip="Used to log into Maize with this account" PasswordChar="*" Margin="0 0 10 0" Text="{Binding Password}" Width="200" Watermark="Enter Account Password"/>
+      <Button Width="100" Command="{Binding SetupApsettingsFileCommand}" IsEnabled="{Binding IsEnabled}">
+        <TextBlock Text="Create" TextAlignment="Center"/>
+      </Button>
+    </StackPanel>
   </StackPanel>
 </Window>

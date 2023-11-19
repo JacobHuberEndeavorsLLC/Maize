@@ -12,6 +12,7 @@ using Maize.Helpers;
 using Microsoft.Extensions.Configuration;
 using NBitcoin;
 using Splat;
+using System;
 
 namespace MaizeUI.ViewModels
 {
@@ -31,6 +32,8 @@ namespace MaizeUI.ViewModels
                 SelectedNetwork = _isMainnetSelected ? "💎 main" : "🧪 test";
             }
         }
+        public AccountService _accountService;
+        public string userPassword;
         public string ens;
         public string Ens
         {
@@ -73,6 +76,7 @@ namespace MaizeUI.ViewModels
         }
 
         public LoopringServiceUI loopringService;
+        private string _userPassword;
 
         public LoopringServiceUI LoopringService
         {
@@ -96,8 +100,10 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> MintCommand { get; }
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
 
-        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow)
+        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow, AccountService accountService, string userPassword)
         {
+            _userPassword = userPassword ?? string.Empty;
+            _accountService = accountService;
             LogoutAction = logoutAction;
             _dialogService = dialogService;
             OwnerWindow = ownerWindow;
@@ -222,17 +228,24 @@ namespace MaizeUI.ViewModels
 
         private async void LooperLandsGenerateOneOfOnes()
         {
-            string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}mainnetappsettings.json";
-            IConfiguration config = new ConfigurationBuilder()
-                .AddJsonFile(appSettingsEnvironment)
-                .AddEnvironmentVariables()
-                .Build();
-            var mainnet = (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
-            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
-            if (premiumAccess == false)
+            foreach (var item in _accountService.MainnetAccounts)
             {
-                Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
-                return;
+                try
+                {
+                    var mainnet = await _accountService.LoadMainSettingsForPremium(_userPassword, item);
+                    var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
+                    if (premiumAccess == false || item == _accountService.MainnetAccounts.Last())
+                    {
+                        Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
+                        return;
+                    }
+                    else if (premiumAccess == true)
+                        break;
+                }
+                catch (Exception)
+                {
+
+                }
             }
 
             var viewModel = new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
@@ -240,17 +253,24 @@ namespace MaizeUI.ViewModels
         }
         private async void GenerateOneOfOnes()
         {
-            string appSettingsEnvironment = $"{Constants.BaseDirectory}{Constants.EnvironmentPath}mainnetappsettings.json";
-            IConfiguration config = new ConfigurationBuilder()
-               .AddJsonFile(appSettingsEnvironment)
-               .AddEnvironmentVariables()
-               .Build();
-            var mainnet = (config.GetRequiredSection("Settings").Get<Settings>(), appSettingsEnvironment);
-            var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
-            if (premiumAccess == false)
+            foreach (var item in _accountService.MainnetAccounts)
             {
-                Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
-                return;
+                try
+                {
+                    var mainnet = await _accountService.LoadMainSettingsForPremium(_userPassword, item);
+                    var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
+                    if (premiumAccess == false || item == _accountService.MainnetAccounts.Last())
+                    {
+                        Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
+                        return;
+                    }
+                    else if (premiumAccess == true)
+                        break;
+                }
+                catch (Exception)
+                {
+
+                }
             }
             var viewModel = new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
             await _dialogService.ShowDialogAsync<GenerateOneOfOnesWindow, GenerateOneOfOnesWindowViewModel>(viewModel);

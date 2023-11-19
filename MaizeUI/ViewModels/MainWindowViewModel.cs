@@ -18,7 +18,18 @@ namespace MaizeUI.ViewModels
     {
         private readonly IDialogService _dialogService;
         private readonly AccountService _accountService;
-
+        private string _password;
+        public string Password
+        {
+            get => _password;
+            set => this.RaiseAndSetIfChanged(ref _password, value);
+        }
+        private string _invalidPasswordMessage;
+        public string InvalidPasswordMessage
+        {
+            get => _invalidPasswordMessage;
+            set => this.RaiseAndSetIfChanged(ref _invalidPasswordMessage, value);
+        }
         private bool _isMainnetSelected;
         public bool IsMainnetSelected
         {
@@ -146,8 +157,14 @@ namespace MaizeUI.ViewModels
         {
             if (isVerify)
             {
-                (Settings settings, string appSettingsEnvironment) = await _accountService.LoadSettings();
+                (Settings settings, string appSettingsEnvironment) = await _accountService.LoadSettings(_password);
                 if (SelectedAccount == _accountService.Accounts[0]) return;
+                if (string.IsNullOrEmpty(appSettingsEnvironment))
+                {
+                    InvalidPasswordMessage = "Invalid password...";
+                    return;
+                }
+                InvalidPasswordMessage = "";
                 var environment = Constants.GetNetworkConfig(settings.Environment);
                 if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
                 {
@@ -188,7 +205,7 @@ namespace MaizeUI.ViewModels
             if (_originalMainWindow != null)
             {
                 _mainMenuWindow = new MainMenuWindow();
-                _mainMenuWindow.DataContext = new MainMenuWindowViewModel(() => Logout(), new DialogService(), _mainMenuWindow)
+                _mainMenuWindow.DataContext = new MainMenuWindowViewModel(() => Logout(), new DialogService(), _mainMenuWindow, _accountService, _password)
                 {
                     Ens = ens,
                     Slogan = slogan,
