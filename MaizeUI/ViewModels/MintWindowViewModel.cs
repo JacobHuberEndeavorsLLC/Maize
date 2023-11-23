@@ -85,7 +85,12 @@ namespace MaizeUI.ViewModels
             get => stepLL;
             set => this.RaiseAndSetIfChanged(ref stepLL, value);
         }
-
+        private ObservableCollection<string> _collectionNames;
+        public ObservableCollection<string> CollectionNames
+        {
+            get => _collectionNames;
+            set => this.RaiseAndSetIfChanged(ref _collectionNames, value);
+        }
         public LoopringServiceUI loopringService;
 
         public LoopringServiceUI LoopringService
@@ -345,7 +350,6 @@ namespace MaizeUI.ViewModels
 
             var sw = Stopwatch.StartNew();
             var validUntil = ApplicationUtilitiesUI.GetUnixTimestamp() + (int)TimeSpan.FromDays(365).TotalSeconds;
-            var maxFeeTokenId = 1;
 
             NftTransferAuditInformation auditInfo = new NftTransferAuditInformation();
             auditInfo.validAddress = new List<string>();
@@ -592,12 +596,7 @@ namespace MaizeUI.ViewModels
             await FetchCollectionNamesFromApi();
             CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
         }
-        private ObservableCollection<string> _collectionNames;
-        public ObservableCollection<string> CollectionNames
-        {
-            get => _collectionNames;
-            set => this.RaiseAndSetIfChanged(ref _collectionNames, value);
-        }
+
         private bool SetSelectedCollection(string value)
         {
             string oldValue = _selectedCollection;
@@ -641,7 +640,7 @@ namespace MaizeUI.ViewModels
                 ZipFile.CreateFromDirectory(sourceFolder, zipFilePath);
 
                 // Delete the original folder
-                Directory.Delete(sourceFolder, true); // Set the second argument to true to delete subdirectories and files
+                //Directory.Delete(sourceFolder, true); // Set the second argument to true to delete subdirectories and files
             }
             catch (Exception ex)
             {

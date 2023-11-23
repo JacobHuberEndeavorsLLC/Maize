@@ -9,14 +9,35 @@ using System.Reactive.Concurrency;
 using Maize.Services;
 using Maize;
 using System.Collections.ObjectModel;
+using Maize.Helpers;
+using OpenCvSharp;
+using System.Drawing.Printing;
+using Maize.Models.Responses;
 
 namespace MaizeUI.ViewModels
 {
     public class LooperLandsGenerateOneOfOnesWindowViewModel : ViewModelBase
     {
         public List<string> Items { get; set; }
+        
+        private Dictionary<string, string> _collectionNameAddressMap = new Dictionary<string, string>();
+        
         public string selectedItem;
-
+        public string fileName;
+        public string SelectedCollectionAddress { get; private set; }
+        private string _selectedCollection;
+        public string SelectedCollection
+        {
+            get => _selectedCollection;
+            set
+            {
+                if (SetSelectedCollection(value))
+                {
+                    this.RaiseAndSetIfChanged(ref _selectedCollection, value);
+                    SelectedCollectionAddress = _collectionNameAddressMap[value];
+                }
+            }
+        }
         public string SelectedItem
         {
             get => selectedItem;
@@ -91,6 +112,13 @@ namespace MaizeUI.ViewModels
             get => nftName;
             set => this.RaiseAndSetIfChanged(ref nftName, value);
         }
+        public string projectName;
+
+        public string ProjectName
+        {
+            get => projectName;
+            set => this.RaiseAndSetIfChanged(ref projectName, value);
+        }
         public string nftDescription;
 
         public string NftDescription
@@ -98,7 +126,20 @@ namespace MaizeUI.ViewModels
             get => nftDescription;
             set => this.RaiseAndSetIfChanged(ref nftDescription, value);
         }
+        public bool forMinted = false;
 
+        public bool ForMinted
+        {
+            get => forMinted;
+            set => this.RaiseAndSetIfChanged(ref forMinted, value);
+        }
+        public bool isMinted = true;
+
+        public bool IsMinted
+        {
+            get => isMinted;
+            set => this.RaiseAndSetIfChanged(ref isMinted, value);
+        }
         public bool isEnabled = true;
 
         public bool IsEnabled
@@ -114,6 +155,7 @@ namespace MaizeUI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _log, value);
         }
         public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
+        public ReactiveCommand<Unit, Unit> NftsAlreadyMintedCommand { get; }
         public ReactiveCommand<Unit, Unit> GenerateSpritesCommand { get; }
 
         public LooperLandsGenerateOneOfOnesWindowViewModel(Settings settings, LoopringServiceUI loopringService)
@@ -123,7 +165,22 @@ namespace MaizeUI.ViewModels
             this.settings = settings;
             this.loopringService = loopringService;
             OpenFolderCommand = ReactiveCommand.CreateFromTask(() => OpenFolder());
+            NftsAlreadyMintedCommand = ReactiveCommand.CreateFromTask(() => NftsAlreadyMinted());
             GenerateSpritesCommand = ReactiveCommand.CreateFromTask(() => GenerateAndProcessSprites());
+        }
+        private async Task NftsAlreadyMinted()
+        {
+            IsMinted = false;
+            ForMinted = true;
+            LoadCollectionNames();
+            string baseFilename = "MyCSVFile";
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string directoryPath = Constants.BaseDirectory + Constants.OutputFolder;
+            fileName = Path.Combine(directoryPath, $"{baseFilename}_{timestamp}.csv");
+            string header = "name,nftId,nftCid,properties";
+
+            File.WriteAllText(fileName, header + Environment.NewLine);
+            ApplicationUtilitiesUI.OpenFile(fileName);
         }
         public async Task OpenFolder()
         {
@@ -150,6 +207,27 @@ namespace MaizeUI.ViewModels
                 Process.Start("open", folderPath);
             }
         }
+        private async void LoadCollectionNames()
+        {
+            await FetchCollectionNamesFromApi();
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
+        private async Task FetchCollectionNamesFromApi()
+        {
+            List<CollectionMinted> userCollections = await loopringService.GetUserMintedCollections(settings.LoopringApiKey, settings.LoopringAddress);
+
+            if (userCollections != null)
+            {
+                foreach (var collectionMinted in userCollections)
+                {
+                    if (collectionMinted?.collection != null)
+                    {
+                        _collectionNameAddressMap[collectionMinted.collection.name] = collectionMinted.collection.collectionAddress;
+                    }
+                }
+            }
+            CollectionNames = new ObservableCollection<string>(_collectionNameAddressMap.Keys.ToList());
+        }
         private async Task GenerateAndProcessSprites()
         {
             if (selectedItem == Items[0]) return;
@@ -162,82 +240,81 @@ namespace MaizeUI.ViewModels
 
             await Task.Run(() =>
             {
-                for (int i = 1; i <= totalIterations; i++)
+                if(isMinted == false)
                 {
-                    bool meetConstraint;
-                    do
+                    for (int i = 1; i <= totalIterations; i++)
                     {
-                        bool isUnique = true;
-                        List<string> orderedSprites = Components.StackRandomSpritesFromSubdirectories(inputDirectory);
-                        if (!_isFeatureEnabled)
-                            isUnique = Components.CheckForDuplicates(orderedSprites);
-
-                        // Temporary dictionary to hold the frequency counts for this iteration
-                        Dictionary<string, int> tempSpriteFrequency = new Dictionary<string, int>(spriteFrequency);
-
-                        // Update temporary sprite frequencies
-                        foreach (var sprite in orderedSprites)
+                        bool meetConstraint;
+                        do
                         {
-                            string spriteType = Path.GetFileNameWithoutExtension(sprite);
-                            if (tempSpriteFrequency.ContainsKey(spriteType))
-                            {
-                                tempSpriteFrequency[spriteType]++;
-                            }
-                            else
-                            {
-                                tempSpriteFrequency[spriteType] = 1;
-                            }
-                        }
+                            bool isUnique = true;
+                            List<string> orderedSprites = Components.StackRandomSpritesFromSubdirectories(inputDirectory);
+                            if (!_isFeatureEnabled)
+                                isUnique = Components.CheckForDuplicates(orderedSprites);
 
-                        // Initialize meetConstraint to true before the loop
-                        meetConstraint = true;
+                            // Temporary dictionary to hold the frequency counts for this iteration
+                            Dictionary<string, int> tempSpriteFrequency = new Dictionary<string, int>(spriteFrequency);
 
-                        // Check and enforce max percentages
-                        foreach (var sprite in orderedSprites)
-                        {
-                            string filename = Path.GetFileName(sprite);
-                            Match match = Regex.Match(filename, @"X#(\d+)");
-                            if (match.Success)
+                            // Update temporary sprite frequencies
+                            foreach (var sprite in orderedSprites)
                             {
-                                int maxPercentage = int.Parse(match.Groups[1].Value);
                                 string spriteType = Path.GetFileNameWithoutExtension(sprite);
-                                if (tempSpriteFrequency[spriteType] / (double)totalIterations > maxPercentage / 100.0)
+                                if (tempSpriteFrequency.ContainsKey(spriteType))
                                 {
-                                    meetConstraint = false;
-                                    break;
+                                    tempSpriteFrequency[spriteType]++;
+                                }
+                                else
+                                {
+                                    tempSpriteFrequency[spriteType] = 1;
                                 }
                             }
-                        }
 
-                        if (isUnique && meetConstraint)
+                            // Initialize meetConstraint to true before the loop
+                            meetConstraint = true;
+
+                            // Check and enforce max percentages
+                            foreach (var sprite in orderedSprites)
+                            {
+                                string filename = Path.GetFileName(sprite);
+                                Match match = Regex.Match(filename, @"X#(\d+)");
+                                if (match.Success)
+                                {
+                                    int maxPercentage = int.Parse(match.Groups[1].Value);
+                                    string spriteType = Path.GetFileNameWithoutExtension(sprite);
+                                    if (tempSpriteFrequency[spriteType] / (double)totalIterations > maxPercentage / 100.0)
+                                    {
+                                        meetConstraint = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (isUnique && meetConstraint)
+                            {
+                                // Update the actual spriteFrequency dictionary
+                                spriteFrequency = tempSpriteFrequency;
+
+                                allOrderedSprites.Add(orderedSprites);
+                                break;
+                            }
+
+                        } while (true);
+                        if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
                         {
-                            // Update the actual spriteFrequency dictionary
-                            spriteFrequency = tempSpriteFrequency;
-
-                            allOrderedSprites.Add(orderedSprites);
-                            break;
+                            // Update Log from the main thread
+                            RxApp.MainThreadScheduler.Schedule(() => Log = $"Processing: {i - 1}/{totalIterations}");
                         }
-
-                    } while (true);
-                    if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
-                    {
-                        // Update Log from the main thread
-                        RxApp.MainThreadScheduler.Schedule(() => Log = $"Processing: {i - 1}/{totalIterations}");
                     }
                 }
             });
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
                 string outputDirectory = $"{Constants.BaseDirectory}{Constants.OutputFolder}{selectedItem.Remove(0, 2)}_{timestamp}";
+
                 Directory.CreateDirectory(outputDirectory);
-                string iterationsDirectory = Path.Combine(outputDirectory, $"Iterations_{timestamp}");
-                string metadataDirectory = Path.Combine(outputDirectory, $"Metadatas_{timestamp}");
-                string nftDirectory = Path.Combine(outputDirectory, $"NFTs_{timestamp}");
-                Directory.CreateDirectory(iterationsDirectory);
-                Directory.CreateDirectory(metadataDirectory);
-                Directory.CreateDirectory(nftDirectory);
+
 
                 string bulkUploadDirectory = Path.Combine(outputDirectory, $"BulkUpload_{timestamp}");
                 Directory.CreateDirectory(bulkUploadDirectory);
@@ -249,18 +326,34 @@ namespace MaizeUI.ViewModels
                 Directory.CreateDirectory(bulkUploadDirectory + "\\6");
                 Directory.CreateDirectory(bulkUploadDirectory + "\\profilepic");
 
-                for (int i = 0; i < allOrderedSprites.Count; i++)
+                if (isMinted = true)
                 {
-                    string iterationDirectory = Path.Combine(iterationsDirectory, $"Iteration_{i + 1}");
-                    Directory.CreateDirectory(iterationDirectory);
-                    var nftName = $"{NftName} {Things.Helpers.GetIterationNumberFromFilePath(iterationDirectory)}";
+                    await Components.NftToSpriteAsync(bulkUploadDirectory, inputDirectory, fileName, settings.LoopringAddress, SelectedCollectionAddress, royaltyPercentage, projectName, selectedItem.Remove(0, 2).Trim());
 
-                    List<string> orderedSprites = allOrderedSprites[i];
-                    Components.ProcessMetadata(metadataDirectory, orderedSprites, iterationDirectory, royaltyPercentage, nftName, nftDescription);
-                    Components.ProcessSprites(nftDirectory, orderedSprites, iterationDirectory, bulkUploadDirectory, selectedItem);
-                    if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
+                }
+                else
+                {
+                    string iterationsDirectory = Path.Combine(outputDirectory, $"Iterations_{timestamp}");
+                    string metadataDirectory = Path.Combine(outputDirectory, $"Metadatas_{timestamp}");
+                    string nftDirectory = Path.Combine(outputDirectory, $"NFTs_{timestamp}");
+
+                    Directory.CreateDirectory(iterationsDirectory);
+                    Directory.CreateDirectory(metadataDirectory);
+                    Directory.CreateDirectory(nftDirectory);
+
+                    for (int i = 0; i < allOrderedSprites.Count; i++)
                     {
-                        RxApp.MainThreadScheduler.Schedule(() => Log = $"Creating: {i}/{totalIterations}");
+                        string iterationDirectory = Path.Combine(iterationsDirectory, $"Iteration_{i + 1}");
+                        Directory.CreateDirectory(iterationDirectory);
+                        var nftName = $"{NftName} {Things.Helpers.GetIterationNumberFromFilePath(iterationDirectory)}";
+
+                        List<string> orderedSprites = allOrderedSprites[i];
+                        Components.ProcessMetadata(metadataDirectory, orderedSprites, iterationDirectory, royaltyPercentage, nftName, nftDescription);
+                        Components.ProcessSprites(nftDirectory, orderedSprites, iterationDirectory, bulkUploadDirectory, selectedItem);
+                        if (i % 10 == 0 || i == allOrderedSprites.Count - 1)
+                        {
+                            RxApp.MainThreadScheduler.Schedule(() => Log = $"Creating: {i}/{totalIterations}");
+                        }
                     }
                 }
                 sw.Stop();
@@ -268,6 +361,12 @@ namespace MaizeUI.ViewModels
                 ViewResults(outputDirectory);
             });
 
+        }
+        private bool SetSelectedCollection(string value)
+        {
+            string oldValue = _selectedCollection;
+            _selectedCollection = value;
+            return !string.Equals(oldValue, value) && _collectionNameAddressMap.ContainsKey(value);
         }
     }
 }

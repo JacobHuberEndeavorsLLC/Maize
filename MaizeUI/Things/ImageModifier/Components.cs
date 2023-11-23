@@ -1,6 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using CsvHelper.Configuration;
+using CsvHelper;
+using Newtonsoft.Json;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using System.Text.RegularExpressions;
+using MaizeUI.ViewModels;
+using System.Globalization;
+using Maize;
+using Maize.Models.Responses;
+using System.IO.Compression;
 
 namespace MaizeUI.Things
 {
@@ -421,9 +428,16 @@ namespace MaizeUI.Things
                 ResizeImage(pfpPath);
             }
         }
+        private static async Task GetNftImageForSpriteProfilePicAsync(string nftCid, string bulkUploadDirectory, string nftId)
+        {
+            INftMetadataService nftMetadataService = new NftMetadataService("https://ipfs.loopring.io/ipfs/");
 
+            var image = await nftMetadataService.SaveFileFromCid(nftCid);
 
-
+            string pfpPath = Path.Combine($"{bulkUploadDirectory}\\profilepic", nftId + ".png");
+            File.Move(image, pfpPath);
+            ResizeImage(pfpPath);
+        }
         public static void ReplaceSpritesBasedOnRelationships(List<string> selectedSprites, Dictionary<string, string> relationships)
         {
             // Check relationships
@@ -483,6 +497,185 @@ namespace MaizeUI.Things
                 }));
                 image.Save(filePath);
             }
+        }
+        public static async Task NftToSpriteAsync(string bulkUploadDirectory, string basePath, string csvFile, string minterAddress, string collectionAddress, 
+            int royaltyPercentage, string projectName, string selectedItem)
+        {
+            var nftRecords = new List<NftRecord>();
+            using (var reader = new StreamReader(csvFile))
+            using (var csv = new CsvReader(reader, new CsvConfiguration(new CultureInfo("en-US"))))
+            {
+                nftRecords = csv.GetRecords<NftRecord>().ToList();
+            }
+            List<OutputRecord> outputRecords = new List<OutputRecord>();
+
+            foreach (var record in nftRecords)
+            {
+                // 2. Parse properties JSON
+                Dictionary<string, string> properties = JsonConvert.DeserializeObject<Dictionary<string, string>>(record.properties);
+
+                // 3. Map keys to folder names and values to file names
+                List<Image<Rgba32>> imagesToStack = new List<Image<Rgba32>>();
+                foreach (var key in properties.Keys)
+                {
+                    string folderName = key.Replace(" ", "_");
+
+                    // Search for the directory that ends with the given folderName
+                    string foundDirectory = Directory.GetDirectories(basePath, "*" + folderName).FirstOrDefault();
+
+                    if (string.IsNullOrEmpty(foundDirectory))
+                    {
+                        //not found
+                        continue;
+                    }
+
+                    string fileName = properties[key].Replace(" ", "_") + ".png";
+                    string imagePath = Path.Combine(foundDirectory, fileName);
+
+                    if (File.Exists(imagePath))
+                    {
+                        Image<Rgba32> img = Image.Load<Rgba32>(imagePath);
+                        imagesToStack.Add(img);
+                    }
+                }
+
+                // 4. Generate new image by stacking
+                int width = imagesToStack[0].Width;
+                int height = imagesToStack[0].Height;
+
+                using (Image<Rgba32> newImage = new Image<Rgba32>(width, height))
+                {
+                    foreach (var img in imagesToStack)
+                    {
+                        newImage.Mutate(ctx => ctx.DrawImage(img, new Point(0, 0), 1f));
+                    }
+
+                    string outputFileName = $"{record.nftId}.png";
+                    var outputPath = Path.Combine($"{bulkUploadDirectory}\\1", outputFileName);
+                    newImage.Save(outputPath);
+
+                    Helpers.SaveResizedSprite(newImage, 2, $"{record.nftId}.png", $"{bulkUploadDirectory}\\2");
+                    Helpers.SaveResizedSprite(newImage, 3, $"{record.nftId}.png", $"{bulkUploadDirectory}\\3");
+
+                    if (selectedItem.Contains("Looper"))
+                        await GetNftImageForSpriteProfilePicAsync(record.nftCid, bulkUploadDirectory, record.nftId);
+                    else if (selectedItem.Contains("Weapon"))
+                    {
+                        //CreateWeaponItem(stackedSprite, iterationDirectory, iterationNumber, bulkUploadDirectory);
+                        //CreatePFPImageFromSpriteWeapon(stackedSprite, backgroundColor, nftDirectory, iterationNumber, bulkUploadDirectory);
+                    }
+                    else if (selectedItem.Contains("Fishing Rod"))
+                    {
+                        string targetFileName = "bobber";
+
+                        //string filePathContainingBobber = orderedSprites.FirstOrDefault(filePath => filePath.Contains(targetFileName, StringComparison.OrdinalIgnoreCase));
+                        //CreateFishingItem(filePathContainingBobber, iterationDirectory, iterationNumber, bulkUploadDirectory);
+                        //CreatePFPImageFromSpriteFishing(filePathContainingBobber, stackedSprite, backgroundColor, nftDirectory, iterationNumber);
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    string assetType;
+                    if (selectedItem.Contains("Looper"))
+                        assetType = "armor";
+                    else if (selectedItem.Contains("Weapon"))
+                        assetType = "weapon";
+                    else if (selectedItem.Contains("Fishing"))
+                        assetType = "fishingrod";
+                    else
+                        assetType = "";
+                    OutputRecord outputRecord = new OutputRecord
+                    {
+                        LooperName = record.name, // Assuming LooperName exists in the original CSV
+                        ShortNFTID = record.nftId,
+                        NFTID = $"{minterAddress}-0-{collectionAddress}-{record.nftId}-{royaltyPercentage}",
+                        projectname = projectName, // Replace with actual project name
+                        assetyype = assetType // Replace with actual asset type
+                    };
+
+                    outputRecords.Add(outputRecord);
+                }
+
+            }
+            // Write to the new CSV file
+            using (var writer = new StreamWriter($"{bulkUploadDirectory}\\ToLooperLands.csv"))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)))
+            {
+                csv.WriteRecords(outputRecords);
+            }
+            CreateInstructionTextFile(bulkUploadDirectory + "\\ReadMeForNextSteps.txt");
+            ZipFolderAndDeleteSource(bulkUploadDirectory, $"{Path.GetDirectoryName(bulkUploadDirectory)}\\ToLooperLands.zip");
+            static void ZipFolderAndDeleteSource(string sourceFolder, string zipFilePath)
+            {
+                try
+                {
+                    // Zip the folder
+                    ZipFile.CreateFromDirectory(sourceFolder, zipFilePath);
+
+                    // Delete the original folder
+                    //Directory.Delete(sourceFolder, true); // Set the second argument to true to delete subdirectories and files
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                }
+            }
+            static void CreateInstructionTextFile(string filePath)
+            {
+                // Content to be written to the text file
+                string content = @"Now take your BulkUpload folder to the Looper Lands discord.
+
+1. https://discord.gg/QRqDEqsNjT
+2. Go to the channel #open-a-ticket
+3. type in /open and click the /open link
+4. click subject and type 'BulkUpload from <Your Wallet address>'
+   example: BulkUpload from 0x6458CC5902D4F9e466B599E220D1663C4718625A
+5. Click into the created ticket
+6. Give the LL team a nice message and upload the ToLooperLands.zip file. 
+7. Done!
+8. Keep an eye on your ticket ^_^";
+
+                try
+                {
+                    // Write the content to the text file
+                    File.WriteAllText(filePath, content);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                }
+            }
+        }
+        private class NftRecord
+        {
+            public string name { get; set; }
+            public string nftId { get; set; }
+            public string nftCid { get; set; }
+            public string properties { get; set; }
+        }
+        private class OutputRecord
+        {
+            public string LooperName { get; set; }
+            public string ShortNFTID { get; set; }
+            public string NFTID { get; set; }
+            public string projectname { get; set; }
+            public string assetyype { get; set; }
         }
     }
 }
