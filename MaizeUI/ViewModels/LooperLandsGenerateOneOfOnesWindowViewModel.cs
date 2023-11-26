@@ -13,6 +13,7 @@ using Maize.Helpers;
 using OpenCvSharp;
 using System.Drawing.Printing;
 using Maize.Models.Responses;
+using System.Runtime.CompilerServices;
 
 namespace MaizeUI.ViewModels
 {
@@ -21,7 +22,9 @@ namespace MaizeUI.ViewModels
         public List<string> Items { get; set; }
         
         private Dictionary<string, string> _collectionNameAddressMap = new Dictionary<string, string>();
-        
+
+        public bool isMinted;
+
         public string selectedItem;
         public string fileName;
         public string SelectedCollectionAddress { get; private set; }
@@ -133,12 +136,12 @@ namespace MaizeUI.ViewModels
             get => forMinted;
             set => this.RaiseAndSetIfChanged(ref forMinted, value);
         }
-        public bool isMinted = true;
+        public bool isVisible = true;
 
-        public bool IsMinted
+        public bool IsVisible
         {
-            get => isMinted;
-            set => this.RaiseAndSetIfChanged(ref isMinted, value);
+            get => isVisible;
+            set => this.RaiseAndSetIfChanged(ref isVisible, value);
         }
         public bool isEnabled = true;
 
@@ -160,6 +163,7 @@ namespace MaizeUI.ViewModels
 
         public LooperLandsGenerateOneOfOnesWindowViewModel(Settings settings, LoopringServiceUI loopringService)
         {
+            isMinted = false;
             Items = new List<string> { "👇 choose", "🦸‍ Looper", "🗡 Weapon", "🎣 Fishing Rod" };
             SelectedItem = Items[0];
             this.settings = settings;
@@ -170,10 +174,11 @@ namespace MaizeUI.ViewModels
         }
         private async Task NftsAlreadyMinted()
         {
-            IsMinted = false;
+            isMinted = true;
+            IsVisible = false;
             ForMinted = true;
             LoadCollectionNames();
-            string baseFilename = "MyCSVFile";
+            string baseFilename = "SpritesFromNfts";
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             string directoryPath = Constants.BaseDirectory + Constants.OutputFolder;
             fileName = Path.Combine(directoryPath, $"{baseFilename}_{timestamp}.csv");
@@ -326,7 +331,7 @@ namespace MaizeUI.ViewModels
                 Directory.CreateDirectory(bulkUploadDirectory + "\\6");
                 Directory.CreateDirectory(bulkUploadDirectory + "\\profilepic");
 
-                if (isMinted = true)
+                if (isMinted == true)
                 {
                     await Components.NftToSpriteAsync(bulkUploadDirectory, inputDirectory, fileName, settings.LoopringAddress, SelectedCollectionAddress, royaltyPercentage, projectName, selectedItem.Remove(0, 2).Trim());
 

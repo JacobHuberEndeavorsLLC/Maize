@@ -96,7 +96,7 @@
     </StackPanel>
       <StackPanel Margin="0 250 10 0">
         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Minting:" FontSize="20" Margin="0 0 0 5" />
-        <Button Width="180" Content="Standard" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MintCommand}" />
+        <Button Width="180" Content="Bulk Minting" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MintCommand}" />
       </StackPanel>
     </StackPanel>
   </Panel>

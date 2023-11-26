@@ -234,7 +234,7 @@ namespace MaizeUI.ViewModels
                 {
                     var mainnet = await _accountService.LoadMainSettingsForPremium(_userPassword, item);
                     var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
-                    if (premiumAccess == false || item == _accountService.MainnetAccounts.Last())
+                    if (premiumAccess == false)
                     {
                         Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                         return;
@@ -259,7 +259,7 @@ namespace MaizeUI.ViewModels
                 {
                     var mainnet = await _accountService.LoadMainSettingsForPremium(_userPassword, item);
                     var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
-                    if (premiumAccess == false || item == _accountService.MainnetAccounts.Last())
+                    if (premiumAccess == false)
                     {
                         Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
                         return;

@@ -44,7 +44,7 @@ namespace MaizeUI.ViewModels
         }
 
         public string Greeting { get; set; } = "Welcome to Maize!";
-        public string Version { get; set; } = "v1.11.0";
+        public string Version { get; set; } = "v1.11.2";
         public string Slogan { get; set; } = "Cornveniently Manage your NFTs";
 
         public List<string> Networks => _accountService.Networks;

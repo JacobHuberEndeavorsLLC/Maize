@@ -145,17 +145,17 @@ namespace MaizeUI.ViewModels
         {
             var collectionsNftsInformation = nftData.Select(m => new
             {
-                NFTCID = m.metadata.basename.image.Replace("ipfs://", ""),
-                NFTAnimation = m.metadata.extra?.animationUrl?.Replace("ipfs://", "") ?? null,
                 name = m.metadata.basename.name,
+                nftId = m.nftId,
+                NFTCID = m.metadata.basename.image.Replace("ipfs://", ""),
+                properties = m.metadata.basename.properties,
                 nftData = m.nftData,
                 m.total,
-                m.royaltyAddress,
                 metadataCid = m.metadata.uri.Replace("ipfs://", ""),
-                nftId = m.nftId,
+                NFTAnimation = m.metadata.extra?.animationUrl?.Replace("ipfs://", "") ?? null,
                 minter = m.minter,
                 tokenAddress = m.tokenAddress,
-                properties = m.metadata.basename.properties
+                m.royaltyAddress,
             }).ToList();
             return ApplicationUtilitiesUI.WriteDataToCsvFile("NftInfoFromCollection", collectionsNftsInformation);
         }

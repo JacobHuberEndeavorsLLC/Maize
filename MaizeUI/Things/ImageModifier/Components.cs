@@ -194,7 +194,7 @@ namespace MaizeUI.Things
                             CreatePFPImageFromSprite(nftDirectory, stackedSprite, backgroundColor, iterationDirectory, bulkUploadDirectory);
                         else if(selectedItem.Contains("Weapon"))
                         {
-                            CreateWeaponItem(stackedSprite, iterationDirectory, iterationNumber, bulkUploadDirectory);
+                            CreateWeaponItem(stackedSprite, iterationDirectory, iterationNumber.ToString(), bulkUploadDirectory);
                             CreatePFPImageFromSpriteWeapon(stackedSprite, backgroundColor, nftDirectory, iterationNumber, bulkUploadDirectory);
                         }
                         else if (selectedItem.Contains("Fishing Rod"))
@@ -202,7 +202,7 @@ namespace MaizeUI.Things
                             string targetFileName = "bobber";
 
                             string filePathContainingBobber = orderedSprites.FirstOrDefault(filePath => filePath.Contains(targetFileName, StringComparison.OrdinalIgnoreCase));
-                            CreateFishingItem(filePathContainingBobber, iterationDirectory, iterationNumber, bulkUploadDirectory);
+                            CreateFishingItem(filePathContainingBobber, iterationDirectory, iterationNumber.ToString(), bulkUploadDirectory);
                             CreatePFPImageFromSpriteFishing(filePathContainingBobber, stackedSprite, backgroundColor, nftDirectory, iterationNumber);
                         }
                     }
@@ -244,26 +244,40 @@ namespace MaizeUI.Things
                 ResizeImage(pfpPath);
             }
         }
-        private static void CreateFishingItem(string bobber, string baseDirectory, int iterationNumber, string bulkUploadDirectory)
+        private static void CreateFishingItem(string bobber, string baseDirectory, string iterationNumber, string bulkUploadDirectory)
         {
             // Load the bobber image
             using (var bobberImage = Image.Load<Rgba32>(bobber))
             {
-                // Create a copy of the bobber image
-                var utilityImage = bobberImage.Clone();
+                if (baseDirectory != null)
+                {
+                    // Create a copy of the bobber image
+                    var utilityImage = bobberImage.Clone();
 
-                // Save the modified image with the new name
-                string utilityFileName = $"item_{iterationNumber}.png";
-                string utilityPath = Path.Combine(baseDirectory, utilityFileName);
-                utilityImage.Save(utilityPath);
+                    // Save the modified image with the new name
+                    string utilityFileName = $"item_{iterationNumber}.png";
+                    string utilityPath = Path.Combine(baseDirectory, utilityFileName);
+                    utilityImage.Save(utilityPath);
 
-                utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0, 5));
-                utilityImage.Save(utilityPath);
+                    utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0, 5));
+                    utilityImage.Save(utilityPath);
 
-                Helpers.SaveResizedSprite(utilityImage, 2, $"item_{iterationNumber}_2x.png", baseDirectory);
-                Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
-                Helpers.SaveResizedSprite(utilityImage, 3, $"item_{iterationNumber}_3x.png", baseDirectory);
-                Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+                    Helpers.SaveResizedSprite(utilityImage, 2, $"item_{iterationNumber}_2x.png", baseDirectory);
+                    Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
+                    Helpers.SaveResizedSprite(utilityImage, 3, $"item_{iterationNumber}_3x.png", baseDirectory);
+                    Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+                }
+                else
+                {
+                    var utilityImage = bobberImage.Clone();
+                    string utilityFileName = $"item_{iterationNumber}.png";
+                    var utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0, 5));
+                    utilityImage.Save(utilityPath);
+
+                    Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
+                    Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+                }
+
             }
         }
         private static void CreatePFPImageFromSpriteWeapon(Image<Rgba32> sprite, Rgba32 backgroundColor, string baseDirectory, int iterationNumber, string bulkUploadDirectory)
@@ -318,7 +332,7 @@ namespace MaizeUI.Things
                 throw new Exception("Sprite not found within the specified search bounds.");
             }
         }
-        private static void CreateWeaponItem(Image<Rgba32> sprite, string baseDirectory, int iterationNumber, string bulkUploadDirectory)
+        private static void CreateWeaponItem(Image<Rgba32> sprite, string baseDirectory, string iterationNumber, string bulkUploadDirectory)
         {
             Rectangle searchBounds = new Rectangle(0, 400, 31, 31);
             Rectangle cropRectangle = FindSpriteBounds(sprite, searchBounds);
@@ -332,17 +346,31 @@ namespace MaizeUI.Things
                     utilityImage.Mutate(ctx => ctx.DrawImage(spriteSection, new Point(i * 16 + 3, 3), 1f));
                 }
 
-                string utilityFileName = $"item_{iterationNumber}.png"; // Replace with your file-naming logic
-                string utilityPath = Path.Combine(baseDirectory, utilityFileName);
-                utilityImage.Save(utilityPath);
+                if (baseDirectory != null)
+                {
+                    string utilityFileName = $"item_{iterationNumber}.png";
+                    string utilityPath = Path.Combine(baseDirectory, utilityFileName);
+                    utilityImage.Save(utilityPath);
 
-                utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0,5));
-                utilityImage.Save(utilityPath);
+                    utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0, 5));
+                    utilityImage.Save(utilityPath);
 
-                Helpers.SaveResizedSprite(utilityImage, 2, $"item_{iterationNumber}_2x.png", baseDirectory);
-                Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
-                Helpers.SaveResizedSprite(utilityImage, 3, $"item_{iterationNumber}_3x.png", baseDirectory);
-                Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+                    Helpers.SaveResizedSprite(utilityImage, 2, $"item_{iterationNumber}_2x.png", baseDirectory);
+                    Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
+                    Helpers.SaveResizedSprite(utilityImage, 3, $"item_{iterationNumber}_3x.png", baseDirectory);
+                    Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+                }
+                else
+                {
+                    string utilityFileName = $"item_{iterationNumber}.png";
+
+                    var utilityPath = Path.Combine($"{bulkUploadDirectory}\\4", utilityFileName.Remove(0, 5));
+                    utilityImage.Save(utilityPath);
+
+                    Helpers.SaveResizedSprite(utilityImage, 2, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\5");
+                    Helpers.SaveResizedSprite(utilityImage, 3, $"{iterationNumber}.png", $"{bulkUploadDirectory}\\6");
+                }
+
             }
         }
         public static void ProcessLayers(int iterationNumber, List<string> orderedLayers, string nftDirectory)
@@ -515,9 +543,11 @@ namespace MaizeUI.Things
                 Dictionary<string, string> properties = JsonConvert.DeserializeObject<Dictionary<string, string>>(record.properties);
 
                 // 3. Map keys to folder names and values to file names
-                List<Image<Rgba32>> imagesToStack = new List<Image<Rgba32>>();
+                Dictionary<string, Image<Rgba32>> imagesToStack = new Dictionary<string, Image<Rgba32>>();
                 foreach (var key in properties.Keys)
                 {
+                    if (key.Contains("background")) continue;
+
                     string folderName = key.Replace(" ", "_");
 
                     // Search for the directory that ends with the given folderName
@@ -535,19 +565,20 @@ namespace MaizeUI.Things
                     if (File.Exists(imagePath))
                     {
                         Image<Rgba32> img = Image.Load<Rgba32>(imagePath);
-                        imagesToStack.Add(img);
+                        imagesToStack.Add(imagePath, img);
                     }
                 }
 
                 // 4. Generate new image by stacking
-                int width = imagesToStack[0].Width;
-                int height = imagesToStack[0].Height;
+                int width = imagesToStack.Values.First().Width;
+                int height = imagesToStack.Values.First().Height;
 
                 using (Image<Rgba32> newImage = new Image<Rgba32>(width, height))
                 {
                     foreach (var img in imagesToStack)
                     {
-                        newImage.Mutate(ctx => ctx.DrawImage(img, new Point(0, 0), 1f));
+                        if (img.Key.Contains("bobber")) continue;
+                        newImage.Mutate(ctx => ctx.DrawImage(img.Value, new Point(0, 0), 1f));
                     }
 
                     string outputFileName = $"{record.nftId}.png";
@@ -561,36 +592,15 @@ namespace MaizeUI.Things
                         await GetNftImageForSpriteProfilePicAsync(record.nftCid, bulkUploadDirectory, record.nftId);
                     else if (selectedItem.Contains("Weapon"))
                     {
-                        //CreateWeaponItem(stackedSprite, iterationDirectory, iterationNumber, bulkUploadDirectory);
-                        //CreatePFPImageFromSpriteWeapon(stackedSprite, backgroundColor, nftDirectory, iterationNumber, bulkUploadDirectory);
+                        CreateWeaponItem(newImage, null, record.nftId, bulkUploadDirectory);
                     }
                     else if (selectedItem.Contains("Fishing Rod"))
                     {
                         string targetFileName = "bobber";
 
-                        //string filePathContainingBobber = orderedSprites.FirstOrDefault(filePath => filePath.Contains(targetFileName, StringComparison.OrdinalIgnoreCase));
-                        //CreateFishingItem(filePathContainingBobber, iterationDirectory, iterationNumber, bulkUploadDirectory);
-                        //CreatePFPImageFromSpriteFishing(filePathContainingBobber, stackedSprite, backgroundColor, nftDirectory, iterationNumber);
+                        string filePathContainingBobber = imagesToStack.Keys.FirstOrDefault(filePath => filePath.Contains(targetFileName, StringComparison.OrdinalIgnoreCase));
+                        CreateFishingItem(filePathContainingBobber, null, record.nftId, bulkUploadDirectory);
                     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     string assetType;
                     if (selectedItem.Contains("Looper"))
                         assetType = "armor";
@@ -625,11 +635,7 @@ namespace MaizeUI.Things
             {
                 try
                 {
-                    // Zip the folder
                     ZipFile.CreateFromDirectory(sourceFolder, zipFilePath);
-
-                    // Delete the original folder
-                    //Directory.Delete(sourceFolder, true); // Set the second argument to true to delete subdirectories and files
                 }
                 catch (Exception ex)
                 {
@@ -645,11 +651,12 @@ namespace MaizeUI.Things
 2. Go to the channel #open-a-ticket
 3. type in /open and click the /open link
 4. click subject and type 'BulkUpload from <Your Wallet address>'
-   example: BulkUpload from 0x6458CC5902D4F9e466B599E220D1663C4718625A
+   example: BulkUpload from 0x834e8242ba51aed0eef95827d241f2db39f04ad9
 5. Click into the created ticket
 6. Give the LL team a nice message and upload the ToLooperLands.zip file. 
-7. Done!
-8. Keep an eye on your ticket ^_^";
+7. Send the 35 LRC per asset fee to looperlands.loopring.eth.
+8. Done!
+9. Keep an eye on your ticket ^_^";
 
                 try
                 {
