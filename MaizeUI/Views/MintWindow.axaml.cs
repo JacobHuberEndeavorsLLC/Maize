@@ -14,7 +14,7 @@ namespace MaizeUI.Views
         }
         public void OnHelpButtonClicked(object sender, RoutedEventArgs args)
         {
-            Maize.Helpers.Things.OpenUrl("https://maizehelps.art/docs/tutorials//minting/with-ipfs");
+            Maize.Helpers.Things.OpenUrl("https://maizehelps.art/docs/tutorials//minting/bulk-minting");
         }
         private void OnDataContextChanged(object sender, EventArgs e)
         {
