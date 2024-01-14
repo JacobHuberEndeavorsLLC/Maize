@@ -121,6 +121,22 @@ namespace Maize
                 return null;
             }
         }
+        public async Task<bool> HasCollectionlessNfts(string apiKey, int accountId)
+        {
+            var request = new RestRequest("api/v3/nft/collection/unknown");
+            request.AddHeader("Content-Type", "application/json");
+            try
+            {
+                var response = await _client.PostAsync(request);
+                var data = JsonConvert.DeserializeObject<bool>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                _font.ToRed($"Error at GetHexAddress: {httpException.Message}");
+                return false;
+            }
+        }
         public async Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress)
         {
             var payload = new

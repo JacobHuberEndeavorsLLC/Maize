@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using NBitcoin;
 using Splat;
 using System;
+using System.Reactive.Linq;
 
 namespace MaizeUI.ViewModels
 {
@@ -52,12 +53,12 @@ namespace MaizeUI.ViewModels
             get => version;
             set => this.RaiseAndSetIfChanged(ref version, value);
         }
-        public Settings settings;
+        public Settings _settings;
 
         public Settings Settings
         {
-            get => settings;
-            set => this.RaiseAndSetIfChanged(ref settings, value);
+            get => _settings;
+            set => this.RaiseAndSetIfChanged(ref _settings, value);
         }
 
         public Constants.Environment environment;
@@ -75,13 +76,13 @@ namespace MaizeUI.ViewModels
             set => this.RaiseAndSetIfChanged(ref selectedNetwork, value);
         }
 
-        public LoopringServiceUI loopringService;
+        public LoopringServiceUI _loopringService;
         private string _userPassword;
 
         public LoopringServiceUI LoopringService
         {
-            get => loopringService;
-            set => this.RaiseAndSetIfChanged(ref loopringService, value);
+            get => _loopringService;
+            set => this.RaiseAndSetIfChanged(ref _loopringService, value);
         }
 
         public ReactiveCommand<Unit, Unit> FindNftDataFromAWalletCommand { get; }
@@ -99,9 +100,12 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> GenerateOneOfOnesCommand { get; }
         public ReactiveCommand<Unit, Unit> MintCommand { get; }
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExpressAirdropNftsCommand { get; }
 
-        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow, AccountService accountService, string userPassword)
+        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow, AccountService accountService, string userPassword, Settings userSettings, LoopringServiceUI loopringService)
         {
+            _loopringService = loopringService;
+            _settings = userSettings;
             _userPassword = userPassword ?? string.Empty;
             _accountService = accountService;
             LogoutAction = logoutAction;
@@ -124,18 +128,34 @@ namespace MaizeUI.ViewModels
             GenerateOneOfOnesCommand = ReactiveCommand.Create(GenerateOneOfOnes);
             MintCommand = ReactiveCommand.Create(Mint);
             LogoutCommand = ReactiveCommand.Create(Logout);
+            ExpressAirdropNftsCommand = ReactiveCommand.Create(ExpressAirdropNfts);
+            CheckForCollectionlessNfts();
+            this.WhenAnyValue(x => x.OwnerWindow).Where(x => x != null).Subscribe(window =>
+            {
+                window.Closing += OnMainMenuWindowClosing;
+            });
+        }
+        private void OnMainMenuWindowClosing(object sender, EventArgs e)
+        {
+            System.Environment.Exit(0);
         }
         public void Logout()
         {
             LogoutAction?.Invoke();
         }
+        private async void CheckForCollectionlessNfts()
+        {
+            var hasCollectionlessNfts = await _loopringService.HasCollectionlessNfts(_settings.LoopringApiKey, _settings.LoopringAccountId);
+            if (hasCollectionlessNfts)
+                Maize.Helpers.Things.OpenUrl("https://www.cobmin.com/posts/Setup-Your-Loopring-Legacy-NFTs");
 
+        }
         private async void FindNftDataFromAWallet()
         {
             var viewModel = new FindNftDataFromAWalletWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
+                LoopringService = _loopringService,
+                Settings = _settings
             };
 
             await _dialogService.ShowDialogAsync<FindNftDataFromAWalletWindow, FindNftDataFromAWalletWindowViewModel>(viewModel, OwnerWindow);
@@ -144,8 +164,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new FindNftDataFromACollectionWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
+                LoopringService = _loopringService,
+                Settings = _settings
             };
 
             await _dialogService.ShowDialogAsync<FindNftDataFromACollectionWindow, FindNftDataFromACollectionWindowViewModel>(viewModel, OwnerWindow);
@@ -154,8 +174,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new FindHoldersFromNftDataWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
+                LoopringService = _loopringService,
+                Settings = _settings
             };
 
             await _dialogService.ShowDialogAsync<FindHoldersFromNftDataWindow, FindHoldersFromNftDataWindowViewModel>(viewModel, OwnerWindow);
@@ -164,8 +184,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new AirdropNftsToUsersWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
+                LoopringService = _loopringService,
+                Settings = _settings,
                 Environment = environment
             };
 
@@ -175,8 +195,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new AirdropCryptoToUsersWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
+                LoopringService = _loopringService,
+                Settings = _settings,
                 Environment = environment
             };
 
@@ -186,8 +206,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new AirdropMigrateWalletWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
+                LoopringService = _loopringService,
+                Settings = _settings,
                 Environment = environment
             };
 
@@ -197,8 +217,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new ScriptingAirdropInputFileWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
+                LoopringService = _loopringService,
+                Settings = _settings,
                 Environment = environment
             };
 
@@ -208,8 +228,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new ScriptingCryptoAirdropInputFileWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings,
+                LoopringService = _loopringService,
+                Settings = _settings,
                 Environment = environment
             };
 
@@ -219,8 +239,8 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new MetadataRefreshCollectionWindowViewModel
             {
-                LoopringService = new LoopringServiceUI(Environment.Url),
-                Settings = settings
+                LoopringService = _loopringService,
+                Settings = _settings
             };
 
             await _dialogService.ShowDialogAsync<MetadataRefreshCollectionWindow, MetadataRefreshCollectionWindowViewModel>(viewModel, OwnerWindow);
@@ -233,7 +253,7 @@ namespace MaizeUI.ViewModels
                 try
                 {
                     var mainnet = await _accountService.LoadMainSettingsForPremium(_userPassword, item);
-                    var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
+                    var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, _loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
                     if (premiumAccess == false)
                     {
                         Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
@@ -248,36 +268,17 @@ namespace MaizeUI.ViewModels
                 }
             }
 
-            var viewModel = new LooperLandsGenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
+            var viewModel = new LooperLandsGenerateOneOfOnesWindowViewModel(_settings, _loopringService);
             await _dialogService.ShowDialogAsync<LooperLandsGenerateOneOfOnesWindow, LooperLandsGenerateOneOfOnesWindowViewModel>(viewModel);
         }
         private async void GenerateOneOfOnes()
         {
-            foreach (var item in _accountService.MainnetAccounts)
-            {
-                try
-                {
-                    var mainnet = await _accountService.LoadMainSettingsForPremium(_userPassword, item);
-                    var premiumAccess = await ApplicationUtilitiesUI.AccessPremiumContent(mainnet.Item1, loopringService = new LoopringServiceUI("https://api3.loopring.io/"));
-                    if (premiumAccess == false)
-                    {
-                        Maize.Helpers.Things.OpenUrl("https://loopexchange.art/collection/maize-access/item/0x6692d7a147762ce9335746c7b062576ef9834500f5546a29c724c55752f668c7");
-                        return;
-                    }
-                    else if (premiumAccess == true)
-                        break;
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-            var viewModel = new GenerateOneOfOnesWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
+            var viewModel = new GenerateOneOfOnesWindowViewModel(_settings, _loopringService);
             await _dialogService.ShowDialogAsync<GenerateOneOfOnesWindow, GenerateOneOfOnesWindowViewModel>(viewModel);
         }
         private async void Mint()
         {
-            var viewModel = new MintWindowViewModel(settings, new LoopringServiceUI(Environment.Url));
+            var viewModel = new MintWindowViewModel(_settings, _loopringService);
             await _dialogService.ShowDialogAsync<MintWindow, MintWindowViewModel>(viewModel);
         }
 
@@ -285,6 +286,17 @@ namespace MaizeUI.ViewModels
         {
             var viewModel = new MetadataUploadToInfuraWindowViewModel();
             await _dialogService.ShowDialogAsync<MetadataUploadToInfuraWindow, MetadataUploadToInfuraWindowViewModel>(viewModel, OwnerWindow);
+        }
+        private async void ExpressAirdropNfts()
+        {
+            var viewModel = new ExpressAirdropNftsWindowViewModel
+            {
+                LoopringService = _loopringService,
+                Settings = _settings,
+                Environment = environment
+            };
+
+            await _dialogService.ShowDialogAsync<ExpressAirdropNftsWindow, ExpressAirdropNftsWindowViewModel>(viewModel, OwnerWindow);
         }
         private void HelpFile()
         {

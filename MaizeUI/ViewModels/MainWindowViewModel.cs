@@ -11,11 +11,20 @@ using Maize.Services;
 using MaizeUI.Helpers;
 using System.Collections.ObjectModel;
 using Splat;
+using Newtonsoft.Json.Linq;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace MaizeUI.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        private HttpClient _httpClient = new HttpClient();
+        public string DownloadUrl { get; private set; }
+        public bool IsUpdateAvailable { get; private set; }
+
+        public string DownloadUrlMac { get; private set; }
+        public string DownloadUrlWindows { get; private set; }
         private readonly IDialogService _dialogService;
         private readonly AccountService _accountService;
         private string _password;
@@ -38,15 +47,14 @@ namespace MaizeUI.ViewModels
             {
                 this.RaiseAndSetIfChanged(ref _isMainnetSelected, value);
                 _accountService.ChangeNetwork(_isMainnetSelected ? "💎 main" : "🧪 test");
-                this.RaisePropertyChanged(nameof(SelectedNetwork)); // Ensure the UI updates to the new network
+                this.RaisePropertyChanged(nameof(SelectedNetwork));
                 SelectedAccount = _accountService.Accounts.FirstOrDefault();
             }
         }
 
         public string Greeting { get; set; } = "Welcome to Maize!";
-        public string Version { get; set; } = "v1.11.3";
+        public string Version { get; set; } = "v1.15.2";
         public string Slogan { get; set; } = "Cornveniently Manage your NFTs";
-
         public List<string> Networks => _accountService.Networks;
         public ObservableCollection<string> Accounts => _accountService.Accounts;
 
@@ -75,11 +83,14 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> VerifyAppSettingsCommand { get; }
         public ReactiveCommand<Unit, Unit> CreateAppSettingsCommand { get; }
         public ReactiveCommand<Unit, Unit> DeleteAccountCommand { get; }
-
+        public ReactiveCommand<Unit, Unit> OpenDownloadUrlCommand { get; }
         public ReactiveCommand<Unit, Unit> HelpFileCommand { get; }
 
         public MainWindowViewModel(AccountService accountService, IDialogService dialogService)
         {
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Maize");
+            _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+
             _accountService = accountService;
             _dialogService = dialogService;
 
@@ -93,6 +104,7 @@ namespace MaizeUI.ViewModels
             };
             _accountService.AccountsListUpdated += OnAccountsListUpdated;
             // Initialize ReactiveCommands
+            OpenDownloadUrlCommand = ReactiveCommand.Create(OpenDownloadUrl);
             VerifyAppSettingsCommand = ReactiveCommand.Create(VerifyAppSettings);
             CreateAppSettingsCommand = ReactiveCommand.Create(CreateAppSettings);
             DeleteAccountCommand = ReactiveCommand.Create(DeleteSelectedAccount);
@@ -100,20 +112,137 @@ namespace MaizeUI.ViewModels
 
             // Set initial values
             Greeting = "Welcome to Maize!";
-            Version = "v1.11.0";
             Slogan = "Cornveniently Manage your NFTs";
             IsMainnetSelected = true;
 
             // Set initial selected account
             SelectedAccount = _accountService.SelectedAccount ?? Accounts.FirstOrDefault();
+
+            FetchDownloadUrls();
+        }
+        private async void FetchDownloadUrls()
+        {
+            try
+            {
+                var response = await _httpClient.GetStringAsync("https://api.github.com/repos/cobmin/maize/releases");
+                var releases = JArray.Parse(response);
+                var latestRelease = releases.First;
+                var latestVersion = latestRelease?["tag_name"]?.Value<string>();
+
+                if (latestVersion != Version)
+                {
+                    foreach (var asset in latestRelease["assets"])
+                    {
+                        var name = asset["name"].ToString();
+                        if (name == "osx-x64.zip")
+                        {
+                            DownloadUrlMac = asset["browser_download_url"].ToString();
+                        }
+                        else if (name == "win-x64.zip")
+                        {
+                            DownloadUrlWindows = asset["browser_download_url"].ToString();
+                        }
+                    }
+
+                    ShowRelevantDownloadUrl();
+                    IsUpdateAvailable = true;
+                    this.RaisePropertyChanged(nameof(IsUpdateAvailable));
+                }
+
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions
+            }
+        }
+
+        private void ShowRelevantDownloadUrl()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                DownloadUrl = DownloadUrlMac;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                DownloadUrl = DownloadUrlWindows;
+            }
+        }
+        private async Task DownloadFileAsync(string downloadUrl, string localPath)
+        {
+            using (var httpResponse = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
+            {
+                httpResponse.EnsureSuccessStatusCode();
+
+                using (var localFileStream = File.Create(localPath))
+                using (var contentStream = await httpResponse.Content.ReadAsStreamAsync())
+                {
+                    await contentStream.CopyToAsync(localFileStream);
+                }
+            }
+        }
+        private void StartUpdaterTool(string localPath)
+        {
+            string updaterToolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = updaterToolPath,
+                Arguments = $"\"{localPath}\"",
+                UseShellExecute = true
+            };
+
+            try
+            {
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                // Log or display the exception
+                Console.WriteLine("Error starting updater: " + ex.Message);
+            }
+
+
+            // Exit the current application to allow the updater to replace files
+            Environment.Exit(0);
+        }
+
+        private async void OpenDownloadUrl()
+        {
+            // Check the OS platform
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = DownloadUrl, // Use the URL for the macOS download
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+
+                //// Define the local path where you want to save the file
+                //var localPath = Path.Combine(Path.GetTempPath(), "update.zip");
+
+                //// Call the method to download the file
+                //await DownloadFileAsync(DownloadUrl, localPath);
+
+                //// Start the updater tool
+                //StartUpdaterTool(localPath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // For macOS users, simply open the URL in the browser
+                var psi = new ProcessStartInfo
+                {
+                    FileName = DownloadUrlMac, // Use the URL for the macOS download
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
         }
         private void DeleteSelectedAccount()
         {
             if (!string.IsNullOrEmpty(SelectedAccount))
             {
                 _accountService.DeleteAccount(SelectedAccount);
-
-                //SelectedAccount = _accountService.Accounts.FirstOrDefault();
             }
         }
         private void OnAccountsListUpdated(string newSelectedAccount)
@@ -143,13 +272,11 @@ namespace MaizeUI.ViewModels
             var dialog = new AppsettingsNoticeWindow();
             dialog.DataContext = viewModel;
 
-            // Subscribe to the RequestClose event
             viewModel.RequestClose += () => dialog.Close();
 
             dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            await dialog.ShowDialog((Avalonia.Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
+            await dialog.ShowDialog((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow);
 
-            // Unsubscribe from the event
             viewModel.OnSettingsFileSaved -= _accountService.RefreshAccountsList;
             viewModel.RequestClose -= () => dialog.Close();
         }
@@ -166,11 +293,6 @@ namespace MaizeUI.ViewModels
                 }
                 InvalidPasswordMessage = "";
                 var environment = Constants.GetNetworkConfig(settings.Environment);
-                if (settings.LoopringAccountId == 1234 || settings.LoopringApiKey == "asdfasdfasdfasdfasdfasdf")
-                {
-                    await ShowNoticeDialog("Issue with Loopring account information", appSettingsEnvironment, environment.Url);
-                    return;
-                }
                 ILoopringService loopringService = new LoopringServiceUI(environment.Url);
                 string signedMessage = EDDSAHelper.EddsaSignUrl(settings.LoopringPrivateKey, HttpMethod.Get, new List<(string Key, string Value)>() { ("accountId", settings.LoopringAccountId.ToString()) }, null, "api/v3/apiKey", environment.Url);
 
@@ -205,13 +327,11 @@ namespace MaizeUI.ViewModels
             if (_originalMainWindow != null)
             {
                 _mainMenuWindow = new MainMenuWindow();
-                _mainMenuWindow.DataContext = new MainMenuWindowViewModel(() => Logout(), new DialogService(), _mainMenuWindow, _accountService, _password)
+                _mainMenuWindow.DataContext = new MainMenuWindowViewModel(() => Logout(), new DialogService(), _mainMenuWindow, _accountService, _password, settings, new LoopringServiceUI(environment.Url))
                 {
                     Ens = ens,
                     Slogan = slogan,
                     Version = version,
-                    Settings = settings,
-                    Environment = environment,
                     SelectedNetwork = selectedNetwork,
                 };
                 _mainMenuWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;

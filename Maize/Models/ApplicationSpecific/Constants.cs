@@ -26,6 +26,7 @@
                     NftFactoryCollection = "0x97BE94250AEF1Df307749aFAeD27f9bc8aB911db",
                     MyAccountId = 79142,
                     MyAccountAddress = "0x37EA02537f3A7A7fFC221125245905Be3D5423e6",
+                    ChainId = variable,
                 };
             }
             else if (variable == 5)
@@ -38,6 +39,7 @@
                     NftFactoryCollection = "0x0ad87482a1bfd0B3036Bb4b13708C88ACAe1b8bA",
                     MyAccountId = 15504,
                     MyAccountAddress = "0x37EA02537f3A7A7fFC221125245905Be3D5423e6",
+                    ChainId = variable,
                 };
             }
             else
@@ -53,6 +55,7 @@
             public string? NftFactoryCollection { get; set; }
             public int MyAccountId { get; set; }
             public string? MyAccountAddress { get; set; }
+            public int ChainId { get; set; }
         }
     }
 }

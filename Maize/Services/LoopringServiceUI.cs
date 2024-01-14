@@ -11,11 +11,29 @@ using System.Numerics;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using Maize.Models.ApplicationSpecific;
+using System.Text.RegularExpressions;
 
 namespace Maize.Services
 {
     public class LoopringServiceUI : ILoopringService, IDisposable
     {
+        public async Task<bool> HasCollectionlessNfts(string apiKey, int accountId)
+        {
+            var request = new RestRequest("api/v3/nft/collection/unknown");
+            request.AddHeader("x-api-key", apiKey);
+            request.AddParameter("accountId", accountId);
+            try
+            {
+                var response = await _client.GetAsync(request);
+                var data = JsonConvert.DeserializeObject<bool>(response.Content!);
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+                return false;
+            }
+        }
         public async Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress)
         {
             var payload = new
@@ -342,9 +360,19 @@ namespace Maize.Services
             }
             catch (HttpRequestException httpException)
             {
-                return null;
+                // Return an instance of ResolveEnsOrNameResponse with default values
+                return new ResolveEnsOrNameResponse
+                {
+                    resultInfo = new Models.ResultInfo
+                    {
+                        code = -1, // You can use a specific code to indicate an error
+                        message = "An error occurred" // Custom error message
+                    },
+                    data = string.Empty // Empty string for data
+                };
             }
         }
+
         public async Task<WalletTypeResponse> GetWalletType(string walletAddress)
         {
             var request = new RestRequest("api/wallet/v3/wallet/type");
@@ -772,7 +800,470 @@ namespace Maize.Services
             }
             return address;
         }
+        public async Task<UserTransferInformation> CallNftTransfer(
+                ILoopringService loopringService,
+                Settings settings,
+                Constants.Environment environment,
+                int maxFeeTokenId,
+                UserTransferInformation transferInformation ,
+                string transferMemo,
+                bool payPayeeUpdateAccount,
+                CounterFactualInfo? isCounterFactual
+    )
+        {
+            try
+            {
 
+
+                var validUntil = ApplicationUtilitiesUI.GetUnixTimestamp() + (int)TimeSpan.FromDays(365).TotalSeconds;
+                string toAddressInitial = transferInformation.WalletAddress;
+
+                int nftTokenId;
+                var userNftToken = await loopringService.GetTokenId(settings.LoopringApiKey, settings.LoopringAccountId, transferInformation.NftData);
+                if(userNftToken.totalNum != 0)
+                    nftTokenId = userNftToken.data[0].tokenId;
+                else
+                {
+                    transferInformation.TransferFail = true;
+                    transferInformation.ErrorMessage = "NFT Data not Valid";
+
+                    return transferInformation;
+                }
+
+                transferInformation.WalletAddress = toAddressInitial.ToLower().Trim();
+                var storageId = await loopringService.GetNextStorageId(settings.LoopringApiKey, settings.LoopringAccountId, nftTokenId);
+                OffchainFee offChainFee;
+                if (payPayeeUpdateAccount == false)
+                    offChainFee = await loopringService.GetOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 11, "0");
+                else
+                    offChainFee = await loopringService.GetOffChainFee(settings.LoopringApiKey, settings.LoopringAccountId, 19, "0");
+
+                transferInformation.WalletAddress = await loopringService.CheckForEthAddress(loopringService, settings.LoopringApiKey, transferInformation.WalletAddress);
+
+                //Calculate eddsa signautre
+                BigInteger[] poseidonInputs =
+                {
+                                ApplicationUtilities.ParseHexUnsigned(environment.Exchange),
+                                (BigInteger) settings.LoopringAccountId,
+                                (BigInteger) 0,
+                                (BigInteger) nftTokenId,
+                                BigInteger.Parse(transferInformation.Amount.ToString()),
+                                (BigInteger) maxFeeTokenId,
+                                BigInteger.Parse(offChainFee.fees[maxFeeTokenId].fee),
+                                ApplicationUtilities.ParseHexUnsigned(transferInformation.WalletAddress),
+                                (BigInteger) 0,
+                                (BigInteger) 0,
+                                (BigInteger) validUntil,
+                                (BigInteger) storageId.offchainId
+                };
+                Poseidon poseidon = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+                BigInteger poseidonHash = poseidon.CalculatePoseidonHash(poseidonInputs);
+                Eddsa eddsa = new(poseidonHash, settings.LoopringPrivateKey);
+                string eddsaSignature = eddsa.Sign();
+
+                //Calculate ecdsa
+                string primaryTypeName = "Transfer";
+                TypedData eip712TypedData = new()
+                {
+                    Domain = new Domain()
+                    {
+                        Name = "Loopring Protocol",
+                        Version = "3.6.0",
+                        ChainId = environment.ChainId,
+                        VerifyingContract = environment.Exchange,
+                    },
+                    PrimaryType = primaryTypeName,
+                    Types = new Dictionary<string, MemberDescription[]>()
+                    {
+                        ["EIP712Domain"] = new[]
+                        {
+                                        new MemberDescription {Name = "name", Type = "string"},
+                                        new MemberDescription {Name = "version", Type = "string"},
+                                        new MemberDescription {Name = "chainId", Type = "uint256"},
+                                        new MemberDescription {Name = "verifyingContract", Type = "address"},
+                                    },
+                        [primaryTypeName] = new[]
+                        {
+                                        new MemberDescription {Name = "from", Type = "address"},            // payerAddr
+                                        new MemberDescription {Name = "to", Type = "address"},              // toAddr
+                                        new MemberDescription {Name = "tokenID", Type = "uint16"},          // token.tokenId 
+                                        new MemberDescription {Name = "amount", Type = "uint96"},           // token.volume 
+                                        new MemberDescription {Name = "feeTokenID", Type = "uint16"},       // maxFee.tokenId
+                                        new MemberDescription {Name = "maxFee", Type = "uint96"},           // maxFee.volume
+                                        new MemberDescription {Name = "validUntil", Type = "uint32"},       // validUntill
+                                        new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
+                                    },
+
+                    },
+                    Message = new[]
+                {
+                                new MemberValue {TypeName = "address", Value = settings.LoopringAddress},
+                                new MemberValue {TypeName = "address", Value = transferInformation.WalletAddress},
+                                new MemberValue {TypeName = "uint16", Value = nftTokenId},
+                                new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(transferInformation.Amount.ToString())},
+                                new MemberValue {TypeName = "uint16", Value = maxFeeTokenId},
+                                new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(offChainFee.fees[maxFeeTokenId].fee)},
+                                new MemberValue {TypeName = "uint32", Value = validUntil},
+                                new MemberValue {TypeName = "uint32", Value = storageId.offchainId},
+                            }
+                };
+
+                TransferTypedData typedData = new()
+                {
+                    domain = new TransferTypedData.Domain()
+                    {
+                        name = "Loopring Protocol",
+                        version = "3.6.0",
+                        chainId = environment.ChainId,
+                        verifyingContract = environment.Exchange,
+                    },
+                    message = new TransferTypedData.Message()
+                    {
+                        from = settings.LoopringAddress,
+                        to = transferInformation.WalletAddress,
+                        tokenID = nftTokenId,
+                        amount = transferInformation.Amount.ToString(),
+                        feeTokenID = maxFeeTokenId,
+                        maxFee = offChainFee.fees[maxFeeTokenId].fee,
+                        validUntil = (int)validUntil,
+                        storageID = storageId.offchainId
+                    },
+                    primaryType = primaryTypeName,
+                    types = new TransferTypedData.Types()
+                    {
+                        EIP712Domain = new List<Type>()
+                                    {
+                                        new Type(){ name = "name", type = "string"},
+                                        new Type(){ name="version", type = "string"},
+                                        new Type(){ name="chainId", type = "uint256"},
+                                        new Type(){ name="verifyingContract", type = "address"},
+                                    },
+                        Transfer = new List<Type>()
+                                    {
+                                        new Type(){ name = "from", type = "address"},
+                                        new Type(){ name = "to", type = "address"},
+                                        new Type(){ name = "tokenID", type = "uint16"},
+                                        new Type(){ name = "amount", type = "uint96"},
+                                        new Type(){ name = "feeTokenID", type = "uint16"},
+                                        new Type(){ name = "maxFee", type = "uint96"},
+                                        new Type(){ name = "validUntil", type = "uint32"},
+                                        new Type(){ name = "storageID", type = "uint32"},
+                                    }
+                    }
+                };
+
+                Eip712TypedDataSigner signer = new();
+                EthECKey ethECKey = new(null);
+                if (settings.MMorGMEPrivateKey == "")
+                    ethECKey = new EthECKey(settings.LoopringPrivateKey.Replace("0x", ""));
+                else
+                    ethECKey = new EthECKey(settings.MMorGMEPrivateKey.Replace("0x", ""));
+                var encodedTypedData = signer.EncodeTypedData(eip712TypedData);
+                var ECDRSASignature = ethECKey.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedData));
+                var serializedECDRSASignature = EthECDSASignature.CreateStringSignature(ECDRSASignature);
+                var ecdsaSignature = serializedECDRSASignature + "0" + (int)2;
+
+                var nftTransferResponse = await loopringService.SubmitNftTransfer(
+                    apiKey: settings.LoopringApiKey,
+                    exchange: environment.Exchange,
+                    fromAccountId: settings.LoopringAccountId,
+                    fromAddress: settings.LoopringAddress,
+                    toAccountId: 0,
+                    toAddress: transferInformation.WalletAddress,
+                    nftTokenId: nftTokenId,
+                    nftAmount: transferInformation.Amount.ToString(),
+                    maxFeeTokenId: maxFeeTokenId,
+                    maxFeeAmount: offChainFee.fees[maxFeeTokenId].fee,
+                    storageId.offchainId,
+                    validUntil: validUntil,
+                    eddsaSignature: eddsaSignature,
+                    ecdsaSignature: ecdsaSignature,
+                    nftData: transferInformation.NftData,
+                    transferMemo: transferMemo,
+                    payPayeeUpdateAccount: payPayeeUpdateAccount,
+                    isCounterFactual: isCounterFactual
+                    );
+                if (nftTransferResponse.Contains("processing"))
+                {
+                    transferInformation.GasFee = decimal.Parse(offChainFee.fees[maxFeeTokenId].fee);
+                }
+                else
+                {
+                    transferInformation.TransferFail = true;
+                    dynamic responseObject = JsonConvert.DeserializeObject<dynamic>(nftTransferResponse);
+                    string errorMessage = responseObject?.resultInfo?.message;
+                    if (errorMessage.StartsWith("balance of") && errorMessage.EndsWith("is not enough"))
+                        transferInformation.ErrorMessage = "NFT Balance Issue";
+                    else
+                        transferInformation.ErrorMessage = errorMessage;
+                }
+
+                return transferInformation;
+            }
+            catch (Exception e)
+            {
+
+                transferInformation.ErrorMessage = e.Message;
+                return transferInformation;
+            }
+        }
+        public async Task<string> PostNftTransfer(
+            string apiKey,
+            string exchange,
+            int fromAccountId,
+            string fromAddress,
+            int toAccountId,
+            string toAddress,
+            int nftTokenId,
+            string nftAmount,
+            int maxFeeTokenId,
+            string maxFeeAmount,
+            int storageId,
+            long validUntil,
+            string eddsaSignature,
+            string ecdsaSignature,
+            string nftData,
+            string transferMemo,
+            bool payPayeeUpdateAccount,
+        CounterFactualInfo? isCounterFactual
+        )
+        {
+            var request = new RestRequest("api/v3/nft/transfer");
+            request.AddHeader("x-api-key", apiKey);
+            request.AddHeader("x-api-sig", ecdsaSignature);
+            request.AlwaysMultipartFormData = true;
+            request.AddParameter("exchange", exchange);
+            request.AddParameter("fromAccountId", fromAccountId);
+            request.AddParameter("fromAddress", fromAddress);
+            request.AddParameter("toAccountId", toAccountId);
+            request.AddParameter("toAddress", toAddress);
+            request.AddParameter("token.tokenId", nftTokenId);
+            request.AddParameter("token.amount", nftAmount);
+            request.AddParameter("token.nftData", nftData);
+            request.AddParameter("maxFee.tokenId", maxFeeTokenId);
+            request.AddParameter("maxFee.amount", maxFeeAmount);
+            request.AddParameter("storageId", storageId);
+            request.AddParameter("validUntil", validUntil);
+            request.AddParameter("eddsaSignature", eddsaSignature);
+            request.AddParameter("memo", transferMemo);
+            if (isCounterFactual.accountId != 0)
+            {
+                request.AddParameter("counterFactualInfo.accountId", fromAccountId);
+                request.AddParameter("counterFactualInfo.wallet", isCounterFactual.wallet);
+                request.AddParameter("counterFactualInfo.walletFactory", isCounterFactual.walletFactory);
+                request.AddParameter("counterFactualInfo.walletSalt", isCounterFactual.walletSalt);
+                request.AddParameter("counterFactualInfo.walletOwner", isCounterFactual.walletOwner);
+            }
+            else
+                request.AddParameter("ecdsaSignature", ecdsaSignature);
+            if (payPayeeUpdateAccount == true)
+                request.AddParameter("payPayeeUpdateAccount", "true");
+            try
+            {
+                var response = await _client.ExecutePostAsync(request);
+                var data = response.Content;
+                return data;
+            }
+            catch (HttpRequestException httpException)
+            {
+
+                return null;
+            }
+        }
+        public async Task<decimal> MaizeTransferFee(
+                                ILoopringService loopringService,
+                                Settings settings,
+                                Constants.Environment environment,
+                                List<UserTransferInformation> transferInformations,
+                                decimal transactionFeeTotal,
+                                string maxFeeToken,
+                                int maxFeeTokenId,
+                                int maizeFeeId,
+                                string maizeFee,
+                                CounterFactualInfo? isCounterFactual,
+                                int transferType
+            )
+        {
+            string transferMemo;
+            if (transferType == 0)
+                transferMemo = $"NFTs:{transferInformations.Where(x => x.TransferFail == false).Sum(x=>x.Amount)} Transactions:{transferInformations.Where(x => x.TransferFail == false).Count()}";
+            else if (transferType == 1)
+                transferMemo = $"";
+            else
+                transferMemo = $"";
+
+            var amount = (transactionFeeTotal * 1000000000000000000m).ToString("0");
+            var transferFeeAmountResult = await loopringService.GetOffChainTransferFee(settings.LoopringApiKey, settings.LoopringAccountId, 3, maizeFee, amount); //3 is the request type for crypto transfers
+            var feeAmount = transferFeeAmountResult.fees.Where(w => w.token == maxFeeToken).First().fee;
+            var transferStorageId = await loopringService.GetNextStorageId(settings.LoopringApiKey, settings.LoopringAccountId, maizeFeeId);
+
+            TransferRequest req = new()
+            {
+                exchange = environment.Exchange,
+                maxFee = new Token()
+                {
+                    tokenId = maxFeeTokenId,
+                    volume = feeAmount
+                },
+                token = new Token()
+                {
+                    tokenId = maizeFeeId,
+                    volume = amount
+                },
+                payeeAddr = environment.MyAccountAddress,
+                payerAddr = settings.LoopringAddress,
+                payeeId = 0,
+                payerId = settings.LoopringAccountId,
+                storageId = transferStorageId.offchainId,
+                validUntil = ApplicationUtilitiesUI.GetUnixTimestamp() + (int)TimeSpan.FromDays(365).TotalSeconds,
+                tokenName = maxFeeToken,
+                tokenFeeName = maxFeeToken
+            };
+
+            BigInteger[] eddsaSignatureinputs = {
+                ApplicationUtilitiesUI.ParseHexUnsigned(req.exchange),
+                (BigInteger)req.payerId,
+                (BigInteger)req.payeeId,
+                (BigInteger)req.token.tokenId,
+                BigInteger.Parse(req.token.volume),
+                (BigInteger)req.maxFee.tokenId,
+                BigInteger.Parse(req.maxFee.volume),
+                ApplicationUtilitiesUI.ParseHexUnsigned(req.payeeAddr),
+                0,
+                0,
+                (BigInteger)req.validUntil,
+                (BigInteger)req.storageId
+            };
+
+            Poseidon poseidonTransfer = new(13, 6, 53, "poseidon", 5, _securityTarget: 128);
+            BigInteger poseidonTransferHash = poseidonTransfer.CalculatePoseidonHash(eddsaSignatureinputs);
+            Eddsa eddsaTransfer = new(poseidonTransferHash, settings.LoopringPrivateKey);
+            string transferEddsaSignature = eddsaTransfer.Sign();
+
+            //Calculate ecdsa
+            string primaryTypeNameTransfer = "Transfer";
+            TypedData eip712TypedDataTransfer = new()
+            {
+                Domain = new Domain()
+                {
+                    Name = "Loopring Protocol",
+                    Version = "3.6.0",
+                    ChainId = environment.ChainId,
+                    VerifyingContract = environment.Exchange,
+                },
+                PrimaryType = primaryTypeNameTransfer,
+                Types = new Dictionary<string, MemberDescription[]>()
+                {
+                    ["EIP712Domain"] = new[]
+                    {
+                                            new MemberDescription {Name = "name", Type = "string"},
+                                            new MemberDescription {Name = "version", Type = "string"},
+                                            new MemberDescription {Name = "chainId", Type = "uint256"},
+                                            new MemberDescription {Name = "verifyingContract", Type = "address"},
+                                        },
+                    [primaryTypeNameTransfer] = new[]
+                    {
+                                            new MemberDescription {Name = "from", Type = "address"},            // payerAddr
+                                            new MemberDescription {Name = "to", Type = "address"},              // toAddr
+                                            new MemberDescription {Name = "tokenID", Type = "uint16"},          // token.tokenId 
+                                            new MemberDescription {Name = "amount", Type = "uint96"},           // token.volume 
+                                            new MemberDescription {Name = "feeTokenID", Type = "uint16"},       // maxFee.tokenId
+                                            new MemberDescription {Name = "maxFee", Type = "uint96"},           // maxFee.volume
+                                            new MemberDescription {Name = "validUntil", Type = "uint32"},       // validUntill
+                                            new MemberDescription {Name = "storageID", Type = "uint32"}         // storageId
+                                        },
+
+                },
+                Message = new[]
+            {
+                                    new MemberValue {TypeName = "address", Value = settings.LoopringAddress},
+                                    new MemberValue {TypeName = "address", Value = environment.MyAccountAddress},
+                                    new MemberValue {TypeName = "uint16", Value = req.token.tokenId},
+                                    new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.token.volume)},
+                                    new MemberValue {TypeName = "uint16", Value = req.maxFee.tokenId},
+                                    new MemberValue {TypeName = "uint96", Value = BigInteger.Parse(req.maxFee.volume)},
+                                    new MemberValue {TypeName = "uint32", Value = req.validUntil},
+                                    new MemberValue {TypeName = "uint32", Value = req.storageId},
+                                }
+            };
+
+            TransferTypedData typedDataTransfer = new()
+            {
+                domain = new TransferTypedData.Domain()
+                {
+                    name = "Loopring Protocol",
+                    version = "3.6.0",
+                    chainId = environment.ChainId,
+                    verifyingContract = environment.Exchange,
+                },
+                message = new TransferTypedData.Message()
+                {
+                    from = settings.LoopringAddress,
+                    to = environment.MyAccountAddress,
+                    tokenID = req.token.tokenId,
+                    amount = req.token.volume,
+                    feeTokenID = req.maxFee.tokenId,
+                    maxFee = req.maxFee.volume,
+                    validUntil = (int)req.validUntil,
+                    storageID = req.storageId
+                },
+                primaryType = primaryTypeNameTransfer,
+                types = new TransferTypedData.Types()
+                {
+                    EIP712Domain = new List<Type>()
+                                        {
+                                            new Type(){ name = "name", type = "string"},
+                                            new Type(){ name="version", type = "string"},
+                                            new Type(){ name="chainId", type = "uint256"},
+                                            new Type(){ name="verifyingContract", type = "address"},
+                                        },
+                    Transfer = new List<Type>()
+                                        {
+                                            new Type(){ name = "from", type = "address"},
+                                            new Type(){ name = "to", type = "address"},
+                                            new Type(){ name = "tokenID", type = "uint16"},
+                                            new Type(){ name = "amount", type = "uint96"},
+                                            new Type(){ name = "feeTokenID", type = "uint16"},
+                                            new Type(){ name = "maxFee", type = "uint96"},
+                                            new Type(){ name = "validUntil", type = "uint32"},
+                                            new Type(){ name = "storageID", type = "uint32"},
+                                        }
+                }
+            };
+
+            Eip712TypedDataSigner signerTransfer = new();
+            EthECKey ethECKeyTransfer = new(null);
+            if (settings.MMorGMEPrivateKey == "")
+                ethECKeyTransfer = new EthECKey(settings.LoopringPrivateKey.Replace("0x", ""));
+            else
+                ethECKeyTransfer = new EthECKey(settings.MMorGMEPrivateKey.Replace("0x", ""));
+
+            var encodedTypedDataTransfer = signerTransfer.EncodeTypedData(eip712TypedDataTransfer);
+            var ECDRSASignatureTransfer = ethECKeyTransfer.SignAndCalculateV(Sha3Keccack.Current.CalculateHash(encodedTypedDataTransfer));
+            var serializedECDRSASignatureTransfer = EthECDSASignature.CreateStringSignature(ECDRSASignatureTransfer);
+            var transferEcdsaSignature = serializedECDRSASignatureTransfer + "0" + (int)2;
+
+            // need to redo this call
+            var tokenTransferResult = await loopringService.SubmitTokenTransfer(
+                settings.LoopringApiKey,
+                environment.Exchange,
+                settings.LoopringAccountId,
+                settings.LoopringAddress,
+                0,
+                environment.MyAccountAddress,
+                req.token.tokenId,
+                req.token.volume,
+                req.maxFee.tokenId,
+                req.maxFee.volume,
+                req.storageId,
+                req.validUntil,
+                transferEddsaSignature,
+                transferEcdsaSignature,
+                transferMemo,
+                false,
+                isCounterFactual);
+            return decimal.Parse(req.maxFee.volume);
+        }
         public async Task<NftTransferAuditInformation> NftTransfer(
             ILoopringService loopringService,
             int environment,

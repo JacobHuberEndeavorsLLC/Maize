@@ -16,6 +16,8 @@ using CsvHelper.Configuration;
 using CsvHelper;
 using System.Globalization;
 using System.IO.Compression;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace MaizeUI.ViewModels
 {
@@ -246,7 +248,15 @@ namespace MaizeUI.ViewModels
                 {
                     if (collectionMinted?.collection != null)
                     {
-                        _collectionNameAddressMap[collectionMinted.collection.name] = collectionMinted.collection.collectionAddress;
+                        string collectionName = collectionMinted.collection.name;
+
+                        // Check if isLegacy is true and add "(legacy)" to the name
+                        if (collectionMinted.collection.extra.properties.isLegacy)
+                        {
+                            collectionName += " (legacy)";
+                        }
+
+                        _collectionNameAddressMap[collectionName] = collectionMinted.collection.contractAddress;
                     }
                 }
             }
@@ -287,6 +297,11 @@ namespace MaizeUI.ViewModels
                 Log = "The selected folder must contain subfolders starting with 'Metadatas' and 'NFTs'.";
                 return;
             }
+            if (!CheckFirstFileForMaizeMintChannel(metadataPath))
+            {
+                Log = "⚠️ This metadata wasn't created by Maize ⚠️\r\nThere is a chance that issues can occur.\r\n\r\nPlease reach out to cobmin for help. Contact information: https://linktr.ee/cobmin";
+                return;
+            }
             var lineCount = Directory.GetFiles(metadataPath).Length;
             
             if (step1 == true || stepLL == true)
@@ -321,6 +336,56 @@ namespace MaizeUI.ViewModels
             LockForMinting = true;
             await MintCids(nftPath, metadataPath, bulkUploadPath, animationPath);
         }
+
+        public bool CheckFirstFileForMaizeMintChannel(string metadataDirectory)
+        {
+            // Get a list of files in the directory
+            string[] metadataFiles = Directory.GetFiles(metadataDirectory);
+
+            // Check if there are any files in the directory
+            if (metadataFiles.Length == 0)
+            {
+                Console.WriteLine("No metadata files found in the directory.");
+                return false;
+            }
+
+            // Get the path of the first file in the directory
+            string firstMetadataFile = metadataFiles[0];
+
+            // Check if the file exists
+            if (File.Exists(firstMetadataFile))
+            {
+                try
+                {
+                    // Read and parse the JSON data from the file
+                    string jsonData = File.ReadAllText(firstMetadataFile);
+                    JObject metadata = JObject.Parse(jsonData);
+
+                    // Check if the "mint_channel" attribute exists and its value is "Maize"
+                    if (metadata["mint_channel"] != null && metadata["mint_channel"].ToString() == "Maize")
+                    {
+                        Console.WriteLine("The first metadata file has the 'mint_channel' set to 'Maize'.");
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("The 'mint_channel' is not 'Maize' in the first metadata file.");
+                        return false;
+                    }
+                }
+                catch (JsonReaderException)
+                {
+                    Console.WriteLine("Error parsing JSON data in the first metadata file.");
+                    return false;
+                }
+            }
+            else
+            {
+                Console.WriteLine("The first file in the directory does not exist.");
+                return false;
+            }
+        }
+
         private static bool CheckForNullsStepOne(string inputDirectory, string LoopringFeeSelectedOption, List<string> LoopringFeeDropdown, string MaizeFeeSelectedOption, List<string> MaizeFeeDropdown)
         {
             if (string.IsNullOrEmpty(inputDirectory))
@@ -343,7 +408,7 @@ namespace MaizeUI.ViewModels
             List<string> animationFileNames = metadataFilesFullPaths.ToList();
             List<string> metadataFileNames = metadataFilesFullPaths.ToList();
 
-            var lineCount = nftFileNames.Count();
+            var lineCount = metadataFileNames.Count();
             List<string> royaltyAddressesForCids = new List<string>(); // This list will store the royaltyAddress for each cid.
 
             List<string> inputAddresses = string.IsNullOrEmpty(RoyaltyWalletAddresses) ? new List<string>() : RoyaltyWalletAddresses.Split(',').Select(a => a.Trim()).ToList();
@@ -375,7 +440,7 @@ namespace MaizeUI.ViewModels
             else
             {
                 int numAddresses = inputAddresses.Count;
-                int numCids = nftFileNames.Count();
+                int numCids = metadataFileNames.Count();
                 int baseCidsPerAddress = numCids / numAddresses;
                 int remainder = numCids % numAddresses;
 
@@ -412,7 +477,7 @@ namespace MaizeUI.ViewModels
 
             List<(string name, string royaltyAddress)> cidAddressPairs = new List<(string, string)>();
             List<OutputRecord> outputRecords = new List<OutputRecord>();
-            foreach (var (cid, royaltyAddress) in nftFileNames.Zip(royaltyAddressesForCids, (cid, royaltyAddress) => (cid, royaltyAddress)))
+            foreach (var (metadataFullPath, royaltyAddress) in metadataFileNames.Zip(royaltyAddressesForCids, (cid, royaltyAddress) => (cid, royaltyAddress)))
             {
                 //var limit = true;
                 //do
@@ -429,8 +494,8 @@ namespace MaizeUI.ViewModels
 
                 var fileExtensions = new List<string> { ".json", ".jpeg", ".jpg", ".gif", ".webp", ".png", ".mp3", ".mpeg", ".mp4", ".mpeg4", ".glb" };
 
-                string numberPart = Regex.Match(Path.GetFileName(cid), @"\d+").Value;
-                string metadataFullPath = FindFileByNumber(metadataPath, numberPart, fileExtensions);                    
+                string numberPart = Regex.Match(Path.GetFileName(metadataFullPath), @"\d+").Value;
+                string cid = FindFileByNumber(nftPath, numberPart, fileExtensions);                    
 
                 var nftCid = await loopringService.PostImage(cid);
 
@@ -441,6 +506,8 @@ namespace MaizeUI.ViewModels
                     animationCid = await loopringService.PostImage(animationFullPath);
                 }
                 (int royaltyPercentage, string name, string updatedJsonMetadata) = MetadataModifier.UpdateAndFetchRoyalty(metadataFullPath, nftCid, animationCid, SelectedCollectionAddress);
+                if (_selectedCollection.Contains("(legacy)"))
+                    updatedJsonMetadata = MetadataModifier.RemoveCollectionMetadataAndMintChannel(updatedJsonMetadata);
                 string metadataHash = await loopringService.PostMetadata(updatedJsonMetadata, Path.GetFileName(metadataFullPath));
              
                 string currentCid = metadataHash.Trim();
@@ -448,8 +515,12 @@ namespace MaizeUI.ViewModels
                 cidAddressPairs.Add((name, royaltyAddress));
                 count++;
                 Log = ($"Attempting mint {count} out of {lineCount} NFTs");
-                
-                var mintResponse = await minter.MintCollection(settings.LoopringApiKey, settings.LoopringPrivateKey, settings.LoopringAddress, settings.LoopringAccountId, 0, royaltyPercentage, nftAmount, validUntil, maxFeeTokenId, Environment.NftFactoryCollection, Environment.Exchange, currentCid, collectionResult.collections[0].collection.baseUri, SelectedCollectionAddress, royaltyAddress);
+
+                (MintResponseData, decimal) mintResponse;
+                if (!_selectedCollection.Contains("(legacy)"))
+                    mintResponse = await minter.MintCollection(settings.LoopringApiKey, settings.LoopringPrivateKey, settings.LoopringAddress, settings.LoopringAccountId, 0, royaltyPercentage, nftAmount, validUntil, maxFeeTokenId, Environment.NftFactoryCollection, Environment.Exchange, currentCid, collectionResult.collections[0].collection.baseUri, SelectedCollectionAddress, royaltyAddress);
+                else
+                    mintResponse = await minter.MintLegacyCollection(settings.LoopringApiKey, settings.LoopringPrivateKey, settings.LoopringAddress, settings.LoopringAccountId, 0, royaltyPercentage, nftAmount, validUntil, maxFeeTokenId, Environment.NftFactory, Environment.Exchange, currentCid, SelectedCollectionAddress, royaltyAddress);
 
                 if (!string.IsNullOrEmpty(mintResponse.Item1.errorMessage))
                 {
@@ -566,10 +637,6 @@ namespace MaizeUI.ViewModels
             Console.WriteLine("No matching file found.");
             return null;
         }
-
-
-
-
 
         public async Task OpenFolder()
         {

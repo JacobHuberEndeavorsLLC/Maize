@@ -12,11 +12,18 @@ namespace MaizeUI.Helpers
 {
     public class Calculations
     {
+        public static async Task<decimal> CurrentTokenPriceInUsd(ILoopringService LoopringService, string maizeFee)
+        {
+            var varHexAddress = await LoopringService.GetTokens();
+            var currentFeePrice = (await LoopringService.GetTokenPrice()).data.Where(x => x.token == varHexAddress.FirstOrDefault(x => x.symbol == maizeFee).address).FirstOrDefault().price;
+
+            return decimal.Parse(currentFeePrice);
+        }
         public static async Task<decimal> CalculateMaizeFee(ILoopringService LoopringService, decimal totalTransactions, string MaizeFeeSelectedOption)
         {
-            return Math.Round((await CurrentTokenPriceInUsd(LoopringService, MaizeFeeSelectedOption)) * (totalTransactions * Constants.LcrTransactionFee), 14);
+            return Math.Round((await CurrentTokenPriceToOneUsd(LoopringService, MaizeFeeSelectedOption)) * (totalTransactions * Constants.LcrTransactionFee), 14);
         }
-        public static async Task<decimal> CurrentTokenPriceInUsd(ILoopringService LoopringService, string maizeFee)
+        public static async Task<decimal> CurrentTokenPriceToOneUsd(ILoopringService LoopringService, string maizeFee)
         {
             var varHexAddress = await LoopringService.GetTokens();
             var currentFeePrice = (await LoopringService.GetTokenPrice()).data.Where(x => x.token == varHexAddress.FirstOrDefault(x => x.symbol == maizeFee).address).FirstOrDefault().price;

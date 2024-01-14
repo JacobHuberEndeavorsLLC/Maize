@@ -53,6 +53,9 @@
     </AvaloniaXaml>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Views\ExpressAirdropNftsWindow.axaml.cs">
+      <DependentUpon>ExpressAirdropNftsWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\AirdropCryptoToUsersWindow.axaml.cs">
       <DependentUpon>AirdropCryptoToUsersWindow.axaml</DependentUpon>
     </Compile>

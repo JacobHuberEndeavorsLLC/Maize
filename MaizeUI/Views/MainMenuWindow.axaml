@@ -70,17 +70,7 @@
     <StackPanel Orientation="Horizontal">
     <StackPanel Margin="0 250 10 0">
       <TextBlock HorizontalAlignment="Left" VerticalAlignment="Bottom" Text="1/1 Creation:" FontSize="20" Margin="0 0 0 5" />
-      <Button Width="180" IsEnabled="True" Margin="0 0 0 10" Command="{Binding GenerateOneOfOnesCommand}" Background="#eeed97">
-        <Button.Styles>
-          <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#a6d09a"/>
-          </Style>
-        </Button.Styles>
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="⭐" Width="16" Height="16" VerticalAlignment="Center" Foreground="Black"/>
-          <TextBlock Text="Generate 1/1 NFTs" Margin="5,0,0,0" Foreground="Black"/>
-        </StackPanel>
-      </Button>
+      <Button Width="180" Content="Generate 1/1 NFTs" IsEnabled="True" Margin="0 0 0 10" Command="{Binding GenerateOneOfOnesCommand}" />
       <Button Width="180" IsEnabled="True" Margin="0 0 0 10" Command="{Binding LooperLandsGenerateOneOfOnesCommand}" Background="#eeed97">
         <Button.Styles>
           <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -98,7 +88,12 @@
         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Minting:" FontSize="20" Margin="0 0 0 5" />
         <Button Width="180" Content="Bulk Minting" IsEnabled="True" Margin="0 0 0 10" Command="{Binding MintCommand}" />
       </StackPanel>
+      <StackPanel Margin="0 250 10 0">
+        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Text="Express:" FontSize="20" Margin="0 0 0 5" />
+        <Button Width="180" Content="Airdrop NFTs" IsEnabled="True" Margin="0 0 0 10" Command="{Binding ExpressAirdropNftsCommand}" />
+      </StackPanel>
     </StackPanel>
+    
   </Panel>
   </Panel>
 </Window>

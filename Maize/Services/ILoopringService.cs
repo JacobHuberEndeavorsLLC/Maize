@@ -7,6 +7,7 @@ namespace Maize
     public interface ILoopringService
     {
         Task<RefreshNftResponse> RefreshNft(string nftId, string collectionAddress);
+        Task<bool> HasCollectionlessNfts(string apiKey, int accountId);
         Task<string> PostImage(string filePath);
         Task<string> PostMetadata(string metadataJson, string metadataFileName);
         Task<decimal?> GetRecommendedGasPrice();

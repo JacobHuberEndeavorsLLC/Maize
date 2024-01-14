@@ -12,7 +12,25 @@
         x:Class="MaizeUI.Views.MainWindow"
         Icon="/Assets/LogoClose.ico"
         Title="MaizeUI">
-
+  <Window.Styles>
+    <!-- Add this Style block for the pulsating effect -->
+    <Style Selector="Button.pulsate">
+      <Setter Property="Foreground" Value="Black" />
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="#eeed97"/>
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="#eeed97"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="#a6d09a"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </Window.Styles>
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -30,6 +48,13 @@
     <Panel Margin="30 40 30 0">
       <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 0 0 0" Source="/Assets/maize_full_logo.png" ToolTip.Tip="{Binding Version}" Height="50" />
       <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 50 0 0" Text="{Binding Slogan}" />
+      <Button Classes="pulsate" Content="🚀"
+              ToolTip.Tip="Update Maize"
+        Command="{Binding OpenDownloadUrlCommand}"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Top"
+        IsVisible="{Binding IsUpdateAvailable}"
+        Margin="0,0,142,0" />
       <ToggleButton IsChecked="{Binding IsMainnetSelected, Mode=TwoWay}"
                     Content="{Binding SelectedNetwork}"
                     HorizontalAlignment="Right"

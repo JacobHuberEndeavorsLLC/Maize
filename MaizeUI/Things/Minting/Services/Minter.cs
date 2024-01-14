@@ -114,28 +114,24 @@ namespace LoopMintSharp
             return await loopringMintService.FindNftCollection(loopringApiKey, limit, offset, owner, contractAddress);
         }
 
-        public async Task<MintResponseData> MintLegacyCollection(string loopringApiKey,
-                 string loopringPrivateKey,
-                 string? minterAddress,
-                 int accountId,
-                 int nftType,
-                 int nftRoyaltyPercentage,
-                 int nftAmount,
-                 long validUntil,
-                 int maxFeeTokenId,
-                 string? nftFactory,
-                 string? exchange,
-                 string currentCid,
-                 bool verboseLogging,
-                 string royaltyAddress)
+        public async Task<(MintResponseData, decimal)> MintLegacyCollection(string loopringApiKey,
+                       string loopringPrivateKey,
+                       string? minterAddress,
+                       int accountId,
+                       int nftType,
+                       int nftRoyaltyPercentage,
+                       int nftAmount,
+                       long validUntil,
+                       int maxFeeTokenId,
+                       string? nftFactory,
+                       string? exchange,
+                       string currentCid,
+                       string tokenAddress,
+                       string royaltyAddress)
         {
             #region Get storage id, token address and offchain fee
             //Getting the storage id
             var storageId = await loopringMintService.GetNextStorageId(loopringApiKey, accountId, maxFeeTokenId);
-            if (verboseLogging)
-            {
-                Console.WriteLine($"Storage id: {JsonConvert.SerializeObject(storageId, Formatting.Indented)}");
-            }
 
             //Getting the token address
             CounterFactualNftInfo counterFactualNftInfo = new CounterFactualNftInfo
@@ -145,75 +141,16 @@ namespace LoopMintSharp
                 nftBaseUri = ""
             };
             var counterFactualNft = await loopringMintService.ComputeTokenAddress(loopringApiKey, counterFactualNftInfo);
-            if (verboseLogging)
-            {
-                Console.WriteLine($"CounterFactualNFT Token Address: {JsonConvert.SerializeObject(counterFactualNft, Formatting.Indented)}");
-            }
 
             //Getting the offchain fee
             var offChainFee = await loopringMintService.GetOffChainFee(loopringApiKey, accountId, 9, counterFactualNft.tokenAddress);
-            if (verboseLogging)
-            {
-                Console.WriteLine($"Offchain fee: {JsonConvert.SerializeObject(offChainFee, Formatting.Indented)}");
-            }
             #endregion
 
             #region Generate Eddsa Signature
 
             //Generate the nft id here
             string nftId = "";
-            if (currentCid.StartsWith('b'))
-            {
-                try
-                {
-                    var cidv1 = currentCid;
-                    var apiEndpoint = "http://localhost:5001/api/v0";
-                    var remoteFileUrl = $"https://loopring.mypinata.cloud/ipfs/{currentCid}";
-
-                    // Step 1: Download the remote file
-                    var response = await httpClient.GetAsync(remoteFileUrl);
-                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
-
-                    // Step 2: Convert the raw bytes into a CIDv0 dag-pb file
-                    var postFileUrl = $"{apiEndpoint}/dag/put?format=dag-pb&input-enc=raw&hash=sha2-256";
-                    var fileContent = new ByteArrayContent(fileBytes);
-                    response = await httpClient.PostAsync(postFileUrl, fileContent);
-                    var cidv0 = await response.Content.ReadAsStringAsync();
-
-                    // Step 3: Upload the CIDv0 file to IPFS
-                    var addUrl = $"{apiEndpoint}/add?pin=true";
-                    var fileName = Path.GetFileName(remoteFileUrl);
-                    var formData = new MultipartFormDataContent();
-                    formData.Add(new ByteArrayContent(fileBytes), "file", fileName);
-                    formData.Add(new StringContent(cidv0), "cid-version");
-                    response = await httpClient.PostAsync(addUrl, formData);
-
-                    // Step 4: Print out the response
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    responseString = "[" + responseString.Replace(" ", "").Replace("\r", "").Replace("\n", "").Replace("}{", "},{") + "]";
-
-                    var responseObject = JsonConvert.DeserializeObject<List<IpfsData>>(responseString);
-                    //Console.WriteLine($"[Debug] Converted cidv1: {responseObject[0].Name} to cidv0: {responseObject[0].Hash})");
-                    Multihash multiHash = Multihash.Parse(responseObject[0].Hash, Multiformats.Base.MultibaseEncoding.Base58Btc);
-                    string multiHashString = multiHash.ToString();
-                    var ipfsCidBigInteger = Utils.ParseHexUnsigned(multiHashString);
-                    nftId = "0x" + ipfsCidBigInteger.ToString("x").Substring(4);
-                }
-                catch(Exception ex)
-                {
-                    if (verboseLogging)
-                    {
-                        Console.WriteLine($"{ex.Message}");
-                    }
-                    return new MintResponseData()
-                    {
-                        metadataCid = currentCid,
-                        errorMessage = $"{ex.Message}",
-                        status = "Mint failed"
-                    };
-                }
-            }
-            else if(currentCid.StartsWith("Qm"))
+            if (currentCid.StartsWith("Qm"))
             {
                 Multihash multiHash = Multihash.Parse(currentCid, Multiformats.Base.MultibaseEncoding.Base58Btc);
                 string multiHashString = multiHash.ToString();
@@ -222,21 +159,12 @@ namespace LoopMintSharp
             }
             else
             {
-                if (verboseLogging)
-                {
-                    Console.WriteLine($"Not a valid CID, must begin with b or Qm");
-                }
-                return new MintResponseData()
+                return (new MintResponseData()
                 {
                     metadataCid = currentCid,
                     errorMessage = "Not a valid CID, must begin with b or Qm",
                     status = "Mint failed"
-                };
-            }
-
-            if (verboseLogging)
-            {
-                Console.WriteLine($"Generated NFT ID: {nftId}");
+                }, 0.0m); ;
             }
 
             //Generate the poseidon hash for the nft data
@@ -246,7 +174,7 @@ namespace LoopMintSharp
             {
                 Utils.ParseHexUnsigned(minterAddress),
                 (BigInteger) 0,
-                Utils.ParseHexUnsigned(counterFactualNft.tokenAddress),
+                Utils.ParseHexUnsigned(tokenAddress),
                 nftIdLo,
                 nftIdHi,
                 (BigInteger)nftRoyaltyPercentage
@@ -284,7 +212,7 @@ namespace LoopMintSharp
                 toAccountId: accountId,
                 toAddress: minterAddress,
                 nftType: nftType,
-                tokenAddress: counterFactualNft.tokenAddress,
+                tokenAddress: tokenAddress,
                 nftId,
                 amount: nftAmount.ToString(),
                 validUntil: validUntil,
@@ -301,17 +229,15 @@ namespace LoopMintSharp
             nftMintResponse.nftId = nftId;
             if (nftMintResponse.hash != null)
             {
-                if (verboseLogging)
-                {
-                    Console.WriteLine($"Nft Mint response: {JsonConvert.SerializeObject(nftMintResponse, Formatting.Indented)}");
-                }
                 nftMintResponse.status = "Minted successfully";
             }
             else
             {
                 nftMintResponse.status = "Mint failed";
             }
-            return nftMintResponse;
+            var gasFeeTotal = decimal.Parse(offChainFee.fees[maxFeeTokenId].fee);
+
+            return (nftMintResponse, gasFeeTotal);
             #endregion
         }
 
@@ -350,54 +276,8 @@ namespace LoopMintSharp
 
             //Generate the nft id here
             string nftId = "";
-            if (currentCid.StartsWith('b'))
-            {
-                try
-                {
-                    var cidv1 = currentCid;
-                    var apiEndpoint = "http://localhost:5001/api/v0";
-                    var remoteFileUrl = $"https://nftinfos.loopring.io/{currentCid}";
-
-                    // Step 1: Download the remote file
-                    var response = await httpClient.GetAsync(remoteFileUrl);
-                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
-
-                    // Step 2: Convert the raw bytes into a CIDv0 dag-pb file
-                    var postFileUrl = $"{apiEndpoint}/dag/put?format=dag-pb&input-enc=raw&hash=sha2-256";
-                    var fileContent = new ByteArrayContent(fileBytes);
-                    response = await httpClient.PostAsync(postFileUrl, fileContent);
-                    var cidv0 = await response.Content.ReadAsStringAsync();
-
-                    // Step 3: Upload the CIDv0 file to IPFS
-                    var addUrl = $"{apiEndpoint}/add?pin=true";
-                    var fileName = Path.GetFileName(remoteFileUrl);
-                    var formData = new MultipartFormDataContent();
-                    formData.Add(new ByteArrayContent(fileBytes), "file", fileName);
-                    formData.Add(new StringContent(cidv0), "cid-version");
-                    response = await httpClient.PostAsync(addUrl, formData);
-
-                    // Step 4: Print out the response
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    responseString = "[" + responseString.Replace(" ", "").Replace("\r", "").Replace("\n", "").Replace("}{", "},{") + "]";
-
-                    var responseObject = JsonConvert.DeserializeObject<List<IpfsData>>(responseString);
-                    //Console.WriteLine($"[Debug] Converted cidv1: {responseObject[0].Name} to cidv0: {responseObject[0].Hash})");
-                    Multihash multiHash = Multihash.Parse(responseObject[0].Hash, Multiformats.Base.MultibaseEncoding.Base58Btc);
-                    string multiHashString = multiHash.ToString();
-                    var ipfsCidBigInteger = Utils.ParseHexUnsigned(multiHashString);
-                    nftId = "0x" + ipfsCidBigInteger.ToString("x").Substring(4);
-                }
-                catch (Exception ex)
-                {
-                    return (new MintResponseData()
-                    {
-                        metadataCid = currentCid,
-                        errorMessage = $"{ex.Message}",
-                        status = "Mint failed"
-                    }, 0.0m);
-                }
-            }
-            else if (currentCid.StartsWith("Qm"))
+            
+            if (currentCid.StartsWith("Qm"))
             {
                 Multihash multiHash = Multihash.Parse(currentCid, Multiformats.Base.MultibaseEncoding.Base58Btc);
                 string multiHashString = multiHash.ToString();

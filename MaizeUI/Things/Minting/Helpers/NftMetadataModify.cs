@@ -27,6 +27,28 @@ public class MetadataModifier
         // Return the extracted royalty percentage, name, and updatedJsonMetadata
         return (royaltyPercentage, name, updatedJsonMetadata);
     }
+    public static string RemoveCollectionMetadataAndMintChannel(string metadataTemplate)
+    {
+        try
+        {
+            // Parse the JSON string into a JObject
+            JObject metadataObject = JObject.Parse(metadataTemplate);
+
+            // Remove the "collection_metadata" and "mint_channel" properties
+            metadataObject.Remove("collection_metadata");
+            metadataObject.Remove("mint_channel");
+
+            // Convert the modified JObject back to a JSON string
+            string modifiedMetadata = metadataObject.ToString();
+
+            return modifiedMetadata;
+        }
+        catch (JsonReaderException)
+        {
+            // Handle JSON parsing errors
+            return null;
+        }
+    }
     public class Metadata
     {
         public string image { get; set; }

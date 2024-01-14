@@ -1,0 +1,139 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MaizeUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" Width="700" Height="475"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        CanResize="True"
+        x:Class="MaizeUI.Views.ExpressAirdropNftsWindow"
+        Title="Express Airdrop ">
+
+  <Design.DataContext>
+    <vm:ExpressAirdropNftsWindowViewModel/>
+  </Design.DataContext>
+
+  <!-- Main container -->
+  <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20 20 20 20">
+
+    <!-- Label and Description -->
+    <TextBlock Text="Express Airdrop NFTs"
+               FontWeight="Bold"
+               FontSize="16"
+               HorizontalAlignment="Left"/>
+    <TextBlock Text="Provide the NFT data and wallet addresses for airdropping."
+               HorizontalAlignment="Left"
+               TextWrapping="Wrap"
+               Width="550"
+               Margin="0,0,0,10"/>
+
+    <!-- Grid for side-by-side TextBoxes -->
+    <Grid HorizontalAlignment="Stretch" IsVisible="{Binding IsBeginningVisible}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Multi-line TextBox for NFT Data -->
+        <Grid Grid.Column="0" Margin="0,0,10,0">
+    <TextBox FontSize="12"
+             Text="{Binding NftData, Mode=TwoWay}"
+             AcceptsReturn="True"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             Height="250"
+             Width="325"
+             Watermark="Enter NFT datas here..."/>
+    <TextBlock Text="{Binding NftDataLineCount}"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Bottom"
+               Margin="0,0,10,10"
+               Foreground="White"/>
+  </Grid>
+
+      <!-- Multi-line TextBox for Wallet Addresses -->
+        <Grid Grid.Column="1">
+    <TextBox FontSize="12"
+             Text="{Binding WalletAddresses, Mode=TwoWay}"
+             AcceptsReturn="True"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             Height="250"
+             Width="325"
+             Watermark="Enter wallet addresses here..."/>
+    <TextBlock Text="{Binding WalletAddressesLineCount}"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Bottom"
+               Margin="0,0,10,10"
+               Foreground="White"/>
+  </Grid>
+      
+    </Grid>
+<!-- DockPanel for Randomize, Dropdowns and Submit, ensuring proper alignment -->
+<DockPanel LastChildFill="False" Margin="0,10,0,0" IsVisible="{Binding IsBeginningVisible}">
+    <!-- Checkbox for One-to-One or Randomized Association -->
+      <TextBox DockPanel.Dock="Left" Text="{Binding Memo}" Margin="0 0 10 0" Width="225" Watermark="Enter memo here..."/>
+  
+    <CheckBox DockPanel.Dock="Left"
+              Name="associationCheckBox"
+              ToolTip.Tip="Check to randomize the order of wallets and NFTs before sending"
+              IsChecked="{Binding IsRandom}"
+              Content="Randomize"
+              HorizontalAlignment="Left"/>
+
+    <!-- Stretching space between checkbox and dropdowns -->
+    <Panel DockPanel.Dock="Left" HorizontalAlignment="Stretch"/>
+
+    <!-- Nested StackPanel for Dropdowns to the left of Submit Button -->
+    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+        <ComboBox IsEnabled="{Binding IsComboBoxEnabled}"
+                  ItemsSource="{Binding LoopringFeeDropdown}"
+                  SelectedItem="{Binding LoopringFeeSelectedOption}"
+                  Width="100"
+                  Margin="0 0 5 0"/>
+
+        <ComboBox IsEnabled="{Binding IsComboBoxEnabled}"
+                  ItemsSource="{Binding MaizeFeeDropdown}"
+                  SelectedItem="{Binding MaizeFeeSelectedOption}"
+                  ToolTip.Tip="0.002 USD per transfer"
+                  Width="100"
+                  Margin="0 0 5 0"/>
+      
+        <Button Name="submitButton"
+                Content="Start"
+                Width="100"
+                HorizontalContentAlignment="Center"
+                IsEnabled="{Binding CanStart}" 
+                Command="{Binding StartCommand}"/>
+    </StackPanel>
+</DockPanel>
+    
+
+    <ProgressBar IsVisible="{Binding IsProgressBarVisible}" Value="{Binding Progress}"
+             Maximum="100"
+             Minimum="0"
+             Height="90"
+             Margin="0 10 0 0"
+            Foreground="#21a238"
+            ShowProgressText="True"/>
+<TextBox x:Name="nftDataTextBox"
+         Height="{Binding LogBoxHeight}"
+         IsVisible="{Binding IsLogVisible}"
+         Margin="0 10 0 0"
+         IsReadOnly="True"
+         Text="{Binding Log}"
+         TextWrapping="Wrap"
+         ScrollViewer.VerticalScrollBarVisibility="Visible" />
+    <DockPanel LastChildFill="False" Margin="0,10,0,0">
+    <Panel DockPanel.Dock="Left" HorizontalAlignment="Stretch"/>
+    <Button Content="Again"
+            Command="{Binding ResetAirdropUICommand}"
+            DockPanel.Dock="Right"
+            HorizontalAlignment="Right"
+            Width="100"
+            HorizontalContentAlignment="Center"
+            IsVisible="{Binding IsStartButtonVisible}"/>
+</DockPanel>
+</StackPanel>
+</Window>
