@@ -169,18 +169,19 @@ namespace MaizeUI.ViewModels
             set => this.RaiseAndSetIfChanged(ref settings, value);
         }
 
-        public Constants.Environment environment;
+        public Constants.Environment _environment;
         public Constants.Environment Environment
         {
-            get => environment;
-            set => this.RaiseAndSetIfChanged(ref environment, value);
+            get => _environment;
+            set => this.RaiseAndSetIfChanged(ref _environment, value);
         }
 
         public ReactiveCommand<Unit, Unit> StartCommand { get; }
         public ReactiveCommand<Unit, Unit> ResetAirdropUICommand { get; }
 
-        public ExpressAirdropNftsWindowViewModel()
+        public ExpressAirdropNftsWindowViewModel(Constants.Environment environment)
         {
+            _environment = environment;
             LoopringFeeDropdown = new List<string> { "Loopring Fee", "ETH", "LRC" };
             MaizeFeeDropdown = new List<string> { "Maize Fee", "ETH", "LRC", "PEPE" };
             LoopringFeeSelectedOption = LoopringFeeDropdown[0];
@@ -223,7 +224,7 @@ namespace MaizeUI.ViewModels
                 var newAuditInfo = await loopringService.CallNftTransfer(
                     loopringService,
                     settings,
-                    environment,
+                    _environment,
                     maxFeeTokenId,
                     transferInformation,
                     memo,
@@ -248,7 +249,7 @@ namespace MaizeUI.ViewModels
             var maxFeeVolume = await loopringService.MaizeTransferFee(
                     loopringService,
                     settings,
-                    environment,
+                    _environment,
                     transferInformations,
                     maizeFee,
                     loopringFeeSelectedOption.ToString(),

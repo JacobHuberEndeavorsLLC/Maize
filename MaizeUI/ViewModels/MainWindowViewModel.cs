@@ -327,7 +327,7 @@ namespace MaizeUI.ViewModels
             if (_originalMainWindow != null)
             {
                 _mainMenuWindow = new MainMenuWindow();
-                _mainMenuWindow.DataContext = new MainMenuWindowViewModel(() => Logout(), new DialogService(), _mainMenuWindow, _accountService, _password, settings, new LoopringServiceUI(environment.Url))
+                _mainMenuWindow.DataContext = new MainMenuWindowViewModel(() => Logout(), new DialogService(), _mainMenuWindow, _accountService, _password, settings, new LoopringServiceUI(environment.Url), environment)
                 {
                     Ens = ens,
                     Slogan = slogan,

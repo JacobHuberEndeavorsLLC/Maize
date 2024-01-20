@@ -14,6 +14,7 @@ using NBitcoin;
 using Splat;
 using System;
 using System.Reactive.Linq;
+using static Maize.Models.ApplicationSpecific.Constants;
 
 namespace MaizeUI.ViewModels
 {
@@ -61,12 +62,12 @@ namespace MaizeUI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _settings, value);
         }
 
-        public Constants.Environment environment;
+        public Constants.Environment _environment;
 
         public Constants.Environment Environment
         {
-            get => environment;
-            set => this.RaiseAndSetIfChanged(ref environment, value);
+            get => _environment;
+            set => this.RaiseAndSetIfChanged(ref _environment, value);
         }
         public string selectedNetwork;
 
@@ -102,8 +103,9 @@ namespace MaizeUI.ViewModels
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
         public ReactiveCommand<Unit, Unit> ExpressAirdropNftsCommand { get; }
 
-        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow, AccountService accountService, string userPassword, Settings userSettings, LoopringServiceUI loopringService)
+        public MainMenuWindowViewModel(Action logoutAction, IDialogService dialogService, Window ownerWindow, AccountService accountService, string userPassword, Settings userSettings, LoopringServiceUI loopringService, Constants.Environment environment)
         {
+            _environment = environment;
             _loopringService = loopringService;
             _settings = userSettings;
             _userPassword = userPassword ?? string.Empty;
@@ -186,7 +188,7 @@ namespace MaizeUI.ViewModels
             {
                 LoopringService = _loopringService,
                 Settings = _settings,
-                Environment = environment
+                Environment = _environment
             };
 
             await _dialogService.ShowDialogAsync<AirdropNftsToUsersWindow, AirdropNftsToUsersWindowViewModel>(viewModel, OwnerWindow);
@@ -197,7 +199,7 @@ namespace MaizeUI.ViewModels
             {
                 LoopringService = _loopringService,
                 Settings = _settings,
-                Environment = environment
+                Environment = _environment
             };
 
             await _dialogService.ShowDialogAsync<AirdropCryptoToUsersWindow, AirdropCryptoToUsersWindowViewModel>(viewModel, OwnerWindow);
@@ -208,7 +210,7 @@ namespace MaizeUI.ViewModels
             {
                 LoopringService = _loopringService,
                 Settings = _settings,
-                Environment = environment
+                Environment = _environment
             };
 
             await _dialogService.ShowDialogAsync<AirdropMigrateWalletWindow, AirdropMigrateWalletWindowViewModel>(viewModel, OwnerWindow);
@@ -219,7 +221,7 @@ namespace MaizeUI.ViewModels
             {
                 LoopringService = _loopringService,
                 Settings = _settings,
-                Environment = environment
+                Environment = _environment
             };
 
             await _dialogService.ShowDialogAsync<ScriptingAirdropInputFileWindow, ScriptingAirdropInputFileWindowViewModel>(viewModel, OwnerWindow);
@@ -230,7 +232,7 @@ namespace MaizeUI.ViewModels
             {
                 LoopringService = _loopringService,
                 Settings = _settings,
-                Environment = environment
+                Environment = _environment
             };
 
             await _dialogService.ShowDialogAsync<ScriptingCryptoAirdropInputFileWindow, ScriptingCryptoAirdropInputFileWindowViewModel>(viewModel, OwnerWindow);
@@ -289,11 +291,10 @@ namespace MaizeUI.ViewModels
         }
         private async void ExpressAirdropNfts()
         {
-            var viewModel = new ExpressAirdropNftsWindowViewModel
+            var viewModel = new ExpressAirdropNftsWindowViewModel(_environment)
             {
                 LoopringService = _loopringService,
-                Settings = _settings,
-                Environment = environment
+                Settings = _settings
             };
 
             await _dialogService.ShowDialogAsync<ExpressAirdropNftsWindow, ExpressAirdropNftsWindowViewModel>(viewModel, OwnerWindow);
